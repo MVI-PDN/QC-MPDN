@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QC Pro - Foto & Video</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .preview-item { transition: all 0.3s ease; }
+        .preview-item:hover { transform: scale(1.02); }
+        /* Scrollbar custom */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20">
+
+    <div class="max-w-xl mx-auto bg-white min-h-screen sm:min-h-0 sm:my-8 sm:rounded-xl sm:shadow-xl overflow-hidden relative">
+        
+        <!-- Header -->
+        <div class="bg-blue-700 p-5 text-white shadow-lg sticky top-0 z-20">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up"></i> QC Project Upload
+            </h1>
+            <p class="text-blue-200 text-xs mt-1">Foto & Video • Multi-file Support</p>
+        </div>
+
+        <!-- Form Area -->
+        <div class="p-5 space-y-5">
+            <form id="qcForm" class="space-y-4">
+                
+                <!-- Input Project (dengan Datalist untuk Autocomplete) -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Nama Project</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-building"></i>
+                        </span>
+                        <input type="text" id="project" name="project" list="projectList" required autocomplete="off"
+                            class="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50"
+                            placeholder="Pilih atau Buat Baru...">
+                        
+                        <!-- Tombol Refresh Project -->
+                        <button type="button" id="refreshProjects" class="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-500 hover:text-blue-700" title="Refresh list project">
+                            <i class="fa-solid fa-sync"></i>
+                        </button>
+
+                        <datalist id="projectList">
+                            <!-- Option akan diisi otomatis dari Google Drive -->
+                        </datalist>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">*Ketik nama baru untuk buat project baru</p>
+                </div>
+
+                <!-- Input Batch -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Batch / Area</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </span>
+                        <input type="text" id="batch" name="batch" required
+                            class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50"
+                            placeholder="Contoh: Lantai 2">
+                    </div>
+                </div>
+
+                <!-- Input Notes -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Catatan Umum</label>
+                    <textarea id="notes" rows="2"
+                        class="w-full p-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-sm bg-slate-50"
+                        placeholder="Keterangan untuk semua file ini..."></textarea>
+                </div>
+
+                <!-- Area Pilih File -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">File Dokumentasi</label>
+                    
+                    <!-- Tombol Kamera & Galeri -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <label class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600">
+                            <i class="fa-solid fa-camera text-2xl mb-1"></i>
+                            <span class="text-xs font-bold">Kamera</span>
+                            <!-- Input Kamera -->
+                            <input type="file" id="cameraInput" accept="image/*,video/*" capture="environment" class="hidden" multiple>
+                        </label>
+                        
+                        <label class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition text-slate-600">
+                            <i class="fa-solid fa-images text-2xl mb-1"></i>
+                            <span class="text-xs font-bold">Galeri</span>
+                            <!-- Input Galeri -->
+                            <input type="file" id="galleryInput" accept="image/*,video/*" class="hidden" multiple>
+                        </label>
+                    </div>
+
+                    <!-- List Preview -->
+                    <div id="previewContainer" class="space-y-3 hidden">
+                        <div class="flex justify-between items-center text-sm text-slate-500 border-b pb-2">
+                            <span>Siap Diupload: <b id="fileCount">0</b> file</span>
+                            <button type="button" onclick="clearAllFiles()" class="text-red-500 hover:text-red-700 text-xs font-bold">Hapus Semua</button>
+                        </div>
+                        <div id="previewList" class="max-h-60 overflow-y-auto space-y-2 pr-1">
+                            <!-- Item preview akan muncul di sini -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitBtn" disabled
+                    class="w-full bg-slate-400 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition flex justify-center items-center gap-2 cursor-not-allowed">
+                    <span id="btnText">Pilih File Dulu</span>
+                    <i id="btnIcon" class="fa-solid fa-cloud-arrow-up"></i>
+                </button>
+
+            </form>
+        </div>
+
+        <!-- Progress Overlay -->
+        <div id="progressOverlay" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
+            <div class="w-full max-w-xs mb-4">
+                <div class="flex justify-between text-xs mb-1">
+                    <span id="progressText">Uploading 1/5</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div id="progressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+            <h3 class="text-lg font-bold animate-pulse">Sedang Mengirim...</h3>
+            <p class="text-sm text-gray-300 mt-2">Jangan tutup halaman ini.</p>
+            <p id="currentFileName" class="text-xs text-gray-400 mt-1 italic truncate max-w-[200px]"></p>
+        </div>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-50 text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
+        <i id="toastIcon"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // ===============================================
+        // PASTE URL DEPLOYMENT GOOGLE SCRIPT BARU DI SINI
+        const SCRIPT_URL = "URL_WEB_APP_ANDA_DISINI"; 
+        // ===============================================
+
+        let fileQueue = [];
+        const projectInput = document.getElementById('project');
+        const projectList = document.getElementById('projectList');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewList = document.getElementById('previewList');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+
+        // 1. Fetch Daftar Project saat Loading
+        window.addEventListener('DOMContentLoaded', fetchProjects);
+        document.getElementById('refreshProjects').addEventListener('click', function() {
+            this.classList.add('fa-spin');
+            fetchProjects().then(() => this.classList.remove('fa-spin'));
+        });
+
+        async function fetchProjects() {
+            if (!SCRIPT_URL.startsWith("http")) return;
+            try {
+                // Tambahkan parameter action=getProjects untuk memberitahu script
+                const response = await fetch(`${SCRIPT_URL}?action=getProjects`);
+                const data = await response.json();
+                if (data.result === 'success') {
+                    projectList.innerHTML = '';
+                    data.projects.forEach(proj => {
+                        const option = document.createElement('option');
+                        option.value = proj;
+                        projectList.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error("Gagal load project list", e);
+            }
+        }
+
+        // 2. Handle Input File (Kamera & Galeri)
+        ['cameraInput', 'galleryInput'].forEach(id => {
+            document.getElementById(id).addEventListener('change', function(e) {
+                handleFiles(e.target.files);
+                this.value = ''; // Reset input agar bisa pilih file sama lagi
+            });
+        });
+
+        function handleFiles(files) {
+            if (!files.length) return;
+
+            Array.from(files).forEach(file => {
+                // Validasi ukuran (misal max 25MB agar tidak timeout)
+                if (file.size > 25 * 1024 * 1024) {
+                    showToast(`File ${file.name} terlalu besar (>25MB)`, 'error');
+                    return;
+                }
+                fileQueue.push(file);
+            });
+            
+            renderPreview();
+            updateSubmitBtn();
+        }
+
+        function renderPreview() {
+            previewList.innerHTML = '';
+            fileQueue.forEach((file, index) => {
+                const isVideo = file.type.startsWith('video');
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200 preview-item';
+                
+                div.innerHTML = `
+                    <div class="w-12 h-12 flex-shrink-0 bg-gray-200 rounded overflow-hidden flex items-center justify-center text-gray-400">
+                        ${isVideo ? '<i class="fa-solid fa-video"></i>' : '<i class="fa-solid fa-image"></i>'}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold truncate text-slate-700">${file.name}</p>
+                        <p class="text-[10px] text-slate-500">${(file.size/1024/1024).toFixed(2)} MB</p>
+                    </div>
+                    <button type="button" onclick="removeFile(${index})" class="text-red-400 hover:text-red-600 p-2">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                `;
+                previewList.appendChild(div);
+            });
+
+            if (fileQueue.length > 0) {
+                previewContainer.classList.remove('hidden');
+                document.getElementById('fileCount').textContent = fileQueue.length;
+            } else {
+                previewContainer.classList.add('hidden');
+            }
+        }
+
+        window.removeFile = function(index) {
+            fileQueue.splice(index, 1);
+            renderPreview();
+            updateSubmitBtn();
+        };
+
+        window.clearAllFiles = function() {
+            fileQueue = [];
+            renderPreview();
+            updateSubmitBtn();
+        };
+
+        function updateSubmitBtn() {
+            if (fileQueue.length > 0) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                btnText.textContent = `Upload ${fileQueue.length} File`;
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('bg-slate-400', 'cursor-not-allowed');
+                submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btnText.textContent = "Pilih File Dulu";
+            }
+        }
+
+        // 3. Handle Upload Process
+        document.getElementById('qcForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (fileQueue.length === 0) return;
+            if (!SCRIPT_URL.startsWith("http")) {
+                showToast("URL Script belum diisi!", "error");
+                return;
+            }
+
+            const project = document.getElementById('project').value;
+            const batch = document.getElementById('batch').value;
+            const notes = document.getElementById('notes').value;
+
+            // Show UI Loading
+            const overlay = document.getElementById('progressOverlay');
+            const pBar = document.getElementById('progressBar');
+            const pText = document.getElementById('progressText');
+            const pPercent = document.getElementById('progressPercent');
+            const fName = document.getElementById('currentFileName');
+            
+            overlay.classList.remove('hidden');
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // Proses upload satu per satu (Sequential)
+            for (let i = 0; i < fileQueue.length; i++) {
+                const file = fileQueue[i];
+                
+                // Update UI Progress
+                const percent = Math.round(((i) / fileQueue.length) * 100);
+                pBar.style.width = percent + '%';
+                pPercent.textContent = percent + '%';
+                pText.textContent = `Mengirim ${i + 1} dari ${fileQueue.length}`;
+                fName.textContent = file.name;
+
+                try {
+                    const base64 = await toBase64(file);
+                    const payload = {
+                        project: project,
+                        batch: batch,
+                        notes: notes,
+                        filename: file.name,
+                        file: base64
+                    };
+
+                    const req = await fetch(SCRIPT_URL, {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const res = await req.json();
+                    if (res.result === 'success') {
+                        successCount++;
+                    } else {
+                        throw new Error(res.error);
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    failCount++;
+                }
+            }
+
+            // Selesai
+            overlay.classList.add('hidden');
+            if (failCount === 0) {
+                showToast(`Sukses! ${successCount} file terupload.`, 'success');
+                clearAllFiles();
+                document.getElementById('notes').value = ''; // Clear notes only
+            } else {
+                showToast(`${successCount} sukses, ${failCount} gagal.`, 'error');
+            }
+        });
+
+        // Helper: Convert File to Base64
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Helper: Toast Notification
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            const icon = document.getElementById('toastIcon');
+
+            msg.textContent = message;
+            
+            if (type === 'success') {
+                toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium text-white flex items-center gap-2 bg-green-600";
+                icon.className = "fa-solid fa-check-circle";
+            } else {
+                toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium text-white flex items-center gap-2 bg-red-600";
+                icon.className = "fa-solid fa-circle-exclamation";
+            }
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
