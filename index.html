@@ -11,8 +11,13 @@
         .preview-item:hover { transform: scale(1.02); }
         .modal-enter { opacity: 0; transform: scale(0.9); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.3s, transform 0.3s; }
-        .modal-exit { opacity: 1; transform: scale(1); }
-        .modal-exit-active { opacity: 0; transform: scale(0.9); transition: opacity 0.3s, transform 0.3s; }
+        /* Animasi Flash Kamera */
+        @keyframes flash {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; background: white; }
+            100% { opacity: 1; }
+        }
+        .flash-anim { animation: flash 0.2s ease-out; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-24">
@@ -43,6 +48,48 @@
                 <button onclick="selectCategory('VDW')" class="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 font-bold text-sm transition text-slate-600 flex flex-col items-center gap-1">
                     <i class="fa-solid fa-cubes text-xl mb-1 opacity-50"></i> VDW
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === CAMERA OVERLAY (WEBRTC) === -->
+    <div id="cameraOverlay" class="hidden fixed inset-0 z-[60] bg-black flex flex-col">
+        <!-- Top Bar -->
+        <div class="absolute top-0 w-full p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/50 to-transparent">
+            <span class="text-white text-xs font-mono bg-black/30 px-2 py-1 rounded">QC CAMERA MODE</span>
+            <button type="button" onclick="closeCamera()" class="text-white bg-gray-800/50 rounded-full p-2 w-8 h-8 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Viewfinder -->
+        <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+            <video id="cameraVideo" autoplay playsinline muted class="absolute w-full h-full object-cover"></video>
+            <canvas id="cameraCanvas" class="hidden"></canvas>
+            
+            <!-- Focus Guide -->
+            <div class="absolute w-64 h-64 border border-white/30 rounded-lg pointer-events-none">
+                <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-yellow-400"></div>
+                <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-yellow-400"></div>
+                <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-yellow-400"></div>
+                <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-yellow-400"></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="h-32 bg-black flex items-center justify-around pb-4 pt-2 px-6">
+            <div class="w-12"></div> <!-- Spacer -->
+            
+            <!-- Shutter Button -->
+            <button onclick="takePicture()" class="w-16 h-16 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center active:scale-95 transition shadow-[0_0_15px_rgba(255,255,255,0.5)]">
+                <div class="w-14 h-14 rounded-full border-2 border-black"></div>
+            </button>
+
+            <!-- Counter Badge -->
+            <div class="w-12 flex justify-center">
+                <div id="camCountBadge" class="hidden w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold animate-bounce">
+                    0
+                </div>
             </div>
         </div>
     </div>
@@ -85,20 +132,21 @@
                 <div class="pt-2 border-t border-dashed border-slate-300">
                     <label class="block text-sm font-bold text-slate-700 mb-3 text-center">Ambil Bukti Foto/Video</label>
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <label class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600 shadow-sm active:scale-95 transform duration-100">
+                        
+                        <!-- TOMBOL KAMERA (MEMBUKA OVERLAY WEB) -->
+                        <div onclick="startCamera()" class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600 shadow-sm active:scale-95 transform duration-100">
                             <i class="fa-solid fa-camera text-2xl mb-1"></i>
-                            <span class="text-xs font-bold">Kamera</span>
-                            <!-- Dikembalikan capture="environment" agar HP langsung membuka kamera -->
-                            <!-- multiple dihapus agar fokus pada pengambilan 1 foto per klik (langsung jepret) -->
-                            <input type="file" id="cameraInput" accept="image/*,video/*" capture="environment" class="hidden">
-                        </label>
+                            <span class="text-xs font-bold">Buka Kamera</span>
+                        </div>
+                        
+                        <!-- TOMBOL GALERI (INPUT FILE BIASA) -->
                         <label class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition text-slate-600 shadow-sm active:scale-95 transform duration-100">
                             <i class="fa-solid fa-images text-2xl mb-1"></i>
                             <span class="text-xs font-bold">Galeri</span>
-                            <!-- Galeri tetap menggunakan multiple -->
                             <input type="file" id="galleryInput" accept="image/*,video/*" class="hidden" multiple>
                         </label>
                     </div>
+
                     <div id="previewContainer" class="space-y-3 hidden">
                         <div class="flex justify-between items-center text-sm text-slate-500 border-b pb-2">
                             <span>Siap Diupload: <b id="fileCount">0</b> file</span>
@@ -136,6 +184,8 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHsmGuJX7xIGo9ICzJqk48yVCrp15PpMZb4ilvf_Af4ZYbcm-dRLJuYE35f-ZUY9M0/exec"; 
 
         let fileQueue = [];
+        let videoStream = null;
+
         const categoryModal = document.getElementById('categoryModal');
         const categoryInput = document.getElementById('category');
         const categoryDisplay = document.getElementById('currentCategoryDisplay');
@@ -145,7 +195,12 @@
         const btnText = document.getElementById('btnText');
         const previewList = document.getElementById('previewList');
         const previewContainer = document.getElementById('previewContainer');
+        const cameraOverlay = document.getElementById('cameraOverlay');
+        const videoEl = document.getElementById('cameraVideo');
+        const canvasEl = document.getElementById('cameraCanvas');
+        const camCountBadge = document.getElementById('camCountBadge');
 
+        // === 1. LOGIKA KATEGORI & STARTUP ===
         document.addEventListener("DOMContentLoaded", () => {
             const lastProject = localStorage.getItem('lastProjectName');
             if (lastProject) projectInput.value = lastProject;
@@ -163,6 +218,79 @@
             categoryModal.classList.remove('opacity-0', 'pointer-events-none');
         }
 
+        // === 2. CAMERA WEBRTC LOGIC ===
+        async function startCamera() {
+            try {
+                // Request camera permission & stream
+                // facingMode: 'environment' artinya kamera belakang
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 4096 }, // Coba minta resolusi 4K
+                        height: { ideal: 2160 } 
+                    }, 
+                    audio: false 
+                });
+                
+                videoEl.srcObject = videoStream;
+                cameraOverlay.classList.remove('hidden');
+                updateCamBadge();
+
+            } catch (err) {
+                console.error("Camera Error:", err);
+                showToast("Gagal akses kamera. Pastikan izin diberikan.", "error");
+            }
+        }
+
+        function takePicture() {
+            if (!videoStream) return;
+
+            // Efek Flash
+            cameraOverlay.classList.add('flash-anim');
+            setTimeout(() => cameraOverlay.classList.remove('flash-anim'), 200);
+
+            // Setup Canvas sesuai ukuran asli video stream (resolusi penuh)
+            const track = videoStream.getVideoTracks()[0];
+            const settings = track.getSettings();
+            
+            canvasEl.width = settings.width || videoEl.videoWidth;
+            canvasEl.height = settings.height || videoEl.videoHeight;
+            
+            const ctx = canvasEl.getContext('2d');
+            // Gambar frame video ke canvas
+            ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+
+            // Konversi ke File Object (JPEG Quality 0.9)
+            canvasEl.toBlob((blob) => {
+                const fileName = `Capture_${Date.now()}.jpg`;
+                const file = new File([blob], fileName, { type: "image/jpeg" });
+                
+                // Masukkan ke antrian
+                handleFiles([file]);
+                updateCamBadge();
+                showToast("Foto diambil!", "success");
+
+            }, 'image/jpeg', 0.9);
+        }
+
+        function closeCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            cameraOverlay.classList.add('hidden');
+        }
+
+        function updateCamBadge() {
+            if (fileQueue.length > 0) {
+                camCountBadge.textContent = fileQueue.length;
+                camCountBadge.classList.remove('hidden');
+            } else {
+                camCountBadge.classList.add('hidden');
+            }
+        }
+
+        // === 3. LOGIKA PROJECT LIST (AUTOCOMPLETE) ===
         document.getElementById('refreshProjects').addEventListener('click', function() {
             const currentCat = categoryInput.value;
             if(currentCat) {
@@ -191,11 +319,10 @@
             }
         }
 
-        ['cameraInput', 'galleryInput'].forEach(id => {
-            document.getElementById(id).addEventListener('change', function(e) {
-                handleFiles(e.target.files);
-                this.value = ''; 
-            });
+        // === 4. LOGIKA FILE INPUT (GALERI) & QUEUE ===
+        document.getElementById('galleryInput').addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+            this.value = ''; 
         });
 
         function handleFiles(files) {
@@ -209,6 +336,7 @@
             });
             renderPreview();
             updateSubmitBtn();
+            updateCamBadge(); // Update badge di kamera juga
         }
 
         function renderPreview() {
@@ -218,8 +346,11 @@
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200 preview-item';
                 div.innerHTML = `
-                    <div class="w-10 h-10 flex-shrink-0 bg-white rounded border flex items-center justify-center text-slate-400">
-                        ${isVideo ? '<i class="fa-solid fa-video"></i>' : '<i class="fa-solid fa-image"></i>'}
+                    <div class="w-10 h-10 flex-shrink-0 bg-white rounded border flex items-center justify-center text-slate-400 overflow-hidden relative">
+                        ${isVideo 
+                            ? '<i class="fa-solid fa-video"></i>' 
+                            : `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">`
+                        }
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold truncate text-slate-700">${file.name}</p>
@@ -242,12 +373,14 @@
             fileQueue.splice(index, 1);
             renderPreview();
             updateSubmitBtn();
+            updateCamBadge();
         };
 
         window.clearAllFiles = () => {
             fileQueue = [];
             renderPreview();
             updateSubmitBtn();
+            updateCamBadge();
         };
 
         function updateSubmitBtn() {
@@ -264,6 +397,7 @@
             }
         }
 
+        // === 5. LOGIKA UPLOAD (SUBMIT) ===
         document.getElementById('qcForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (fileQueue.length === 0) return;
