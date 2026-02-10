@@ -136,6 +136,20 @@
         <div class="p-5 space-y-5">
             <form id="qcForm" class="space-y-4">
                 <input type="hidden" id="category" name="category">
+                
+                <!-- INPUT KATEGORI (READONLY) - Pengingat Visual -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Kategori Produk</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-600">
+                            <i class="fa-solid fa-tag"></i>
+                        </span>
+                        <input type="text" id="categoryDisplayInput" readonly
+                            class="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-blue-400 bg-blue-100 text-blue-900 font-extrabold focus:outline-none cursor-not-allowed shadow-sm transition text-base tracking-wide"
+                            placeholder="Pilih Kategori...">
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Nama Project</label>
                     <div class="relative">
@@ -202,6 +216,12 @@
             <p id="currentFileName" class="text-xs text-gray-400 mt-1 italic truncate max-w-[200px]"></p>
         </div>
     </div>
+    
+    <!-- FOOTER DESIGN -->
+    <div class="text-center text-slate-400 text-xs py-6">
+        WebDesign by KurniawanDidi
+    </div>
+
     <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-50 text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
         <i id="toastIcon"></i>
         <span id="toastMessage"></span>
@@ -221,6 +241,7 @@
         const categoryModal = document.getElementById('categoryModal');
         const categoryInput = document.getElementById('category');
         const categoryDisplay = document.getElementById('currentCategoryDisplay');
+        const categoryDisplayInput = document.getElementById('categoryDisplayInput'); // Tambahan: Input Display
         const projectInput = document.getElementById('project');
         const projectList = document.getElementById('projectList');
         const submitBtn = document.getElementById('submitBtn');
@@ -244,14 +265,32 @@
 
         // === 1. LOGIKA KATEGORI & STARTUP ===
         document.addEventListener("DOMContentLoaded", () => {
-            const lastProject = localStorage.getItem('lastProjectName');
-            if (lastProject) projectInput.value = lastProject;
+            // Hapus logika load global, tunggu user pilih kategori
             openModal();
         });
 
         function selectCategory(catName) {
             categoryInput.value = catName;
             categoryDisplay.textContent = catName;
+            
+            // Update input visual (Pengingat Kategori)
+            if(categoryDisplayInput) {
+                categoryDisplayInput.value = catName;
+            }
+
+            // Load history project per kategori
+            const historyProject = localStorage.getItem(`lastProjectName_${catName}`);
+            projectInput.value = historyProject || ''; 
+
+            // Custom Placeholder logic
+            if (catName === 'MVIFCO') {
+                projectInput.placeholder = "Contoh: MVIFCO5.0-2601-0001-0100";
+            } else if (catName === 'MVIFCI') {
+                projectInput.placeholder = "Contoh: MVIFCIL2.5-2601-0001-0100";
+            } else {
+                projectInput.placeholder = "Ketik nama project...";
+            }
+
             categoryModal.classList.add('opacity-0', 'pointer-events-none');
             fetchProjects(catName);
         }
@@ -555,7 +594,8 @@
             const sn = document.getElementById('sn').value;
             const notes = document.getElementById('notes').value;
 
-            localStorage.setItem('lastProjectName', project);
+            // Simpan Project ke LocalStorage per kategori
+            localStorage.setItem(`lastProjectName_${category}`, project);
 
             const overlay = document.getElementById('progressOverlay');
             const pBar = document.getElementById('progressBar');
