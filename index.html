@@ -88,7 +88,8 @@
                         <label class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600 shadow-sm active:scale-95 transform duration-100">
                             <i class="fa-solid fa-camera text-2xl mb-1"></i>
                             <span class="text-xs font-bold">Kamera</span>
-                            <input type="file" id="cameraInput" accept="image/*,video/*" capture="environment" class="hidden" multiple>
+                            <!-- Removed capture="environment" to allow system picker (camera/files) and avoid direct permission block -->
+                            <input type="file" id="cameraInput" accept="image/*,video/*" class="hidden" multiple>
                         </label>
                         <label class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition text-slate-600 shadow-sm active:scale-95 transform duration-100">
                             <i class="fa-solid fa-images text-2xl mb-1"></i>
