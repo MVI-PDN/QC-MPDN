@@ -3,37 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QC Pro - Foto & Video</title>
-    <!-- Tailwind CSS -->
+    <title>QC Pro - Microvision</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .preview-item { transition: all 0.3s ease; }
         .preview-item:hover { transform: scale(1.02); }
-        /* Scrollbar custom */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+        /* Animasi Modal */
+        .modal-enter { opacity: 0; transform: scale(0.9); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.3s, transform 0.3s; }
+        .modal-exit { opacity: 1; transform: scale(1); }
+        .modal-exit-active { opacity: 0; transform: scale(0.9); transition: opacity 0.3s, transform 0.3s; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-24">
 
+    <!-- === MODAL PILIH KATEGORI (POPUP UTAMA) === -->
+    <div id="categoryModal" class="fixed inset-0 z-50 bg-slate-900 bg-opacity-95 flex flex-col justify-center items-center p-4 transition-all duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
+            <div class="bg-blue-800 p-5 text-center">
+                <h2 class="text-white font-bold text-lg tracking-wide">PILIH KATEGORI QC</h2>
+                <p class="text-blue-200 text-xs mt-1">Silakan pilih jenis produk</p>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-3">
+                <button onclick="selectCategory('MVIFCI')" class="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 font-bold text-sm transition text-slate-600 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-tv text-xl mb-1 opacity-50"></i> MVIFCI
+                </button>
+                <button onclick="selectCategory('MVIFCO')" class="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 font-bold text-sm transition text-slate-600 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-display text-xl mb-1 opacity-50"></i> MVIFCO
+                </button>
+                <button onclick="selectCategory('MVIDCI')" class="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 font-bold text-sm transition text-slate-600 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-video text-xl mb-1 opacity-50"></i> MVIDCI
+                </button>
+                <button onclick="selectCategory('KIOSK')" class="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 font-bold text-sm transition text-slate-600 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-tablet-screen-button text-xl mb-1 opacity-50"></i> KIOSK
+                </button>
+                <button onclick="selectCategory('IFP')" class="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 font-bold text-sm transition text-slate-600 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-chalkboard text-xl mb-1 opacity-50"></i> IFP
+                </button>
+                <button onclick="selectCategory('VDW')" class="p-3 bg-slate-50 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 font-bold text-sm transition text-slate-600 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-cubes text-xl mb-1 opacity-50"></i> VDW
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === APLIKASI UTAMA === -->
     <div class="max-w-xl mx-auto bg-white min-h-screen sm:min-h-0 sm:my-8 sm:rounded-xl sm:shadow-xl overflow-hidden relative">
         
-        <!-- Header -->
-        <div class="bg-blue-700 p-5 text-white shadow-lg sticky top-0 z-20">
-            <h1 class="text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-cloud-arrow-up"></i> QC Project Upload
-            </h1>
-            <p class="text-blue-200 text-xs mt-1">Foto & Video • Multi-file Support</p>
+        <!-- Header dengan Logo & Kategori Terpilih -->
+        <div class="bg-white p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/microvision-logo%20(1).webp?raw=true" 
+                     alt="Microvision Logo" 
+                     class="h-8 w-auto object-contain">
+            </div>
+            <!-- Tombol Ganti Kategori -->
+            <button onclick="openModal()" class="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 hover:bg-blue-100 transition">
+                <span id="currentCategoryDisplay">PILIH KATEGORI</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
         </div>
 
         <!-- Form Area -->
         <div class="p-5 space-y-5">
             <form id="qcForm" class="space-y-4">
                 
-                <!-- Input Project (dengan Datalist untuk Autocomplete) -->
+                <!-- Input Hidden Category -->
+                <input type="hidden" id="category" name="category">
+
+                <!-- Input Project (Auto-Recommend) -->
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Nama Project</label>
                     <div class="relative">
@@ -41,59 +80,54 @@
                             <i class="fa-solid fa-building"></i>
                         </span>
                         <input type="text" id="project" name="project" list="projectList" required autocomplete="off"
-                            class="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50"
-                            placeholder="Pilih atau Buat Baru...">
+                            class="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-semibold"
+                            placeholder="Ketik nama project...">
                         
-                        <!-- Tombol Refresh Project -->
                         <button type="button" id="refreshProjects" class="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-500 hover:text-blue-700" title="Refresh list project">
                             <i class="fa-solid fa-sync"></i>
                         </button>
 
                         <datalist id="projectList">
-                            <!-- Option akan diisi otomatis dari Google Drive -->
+                            <!-- Option diisi otomatis dari Drive sesuai Kategori -->
                         </datalist>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">*Ketik nama baru untuk buat project baru</p>
                 </div>
 
-                <!-- Input Batch -->
+                <!-- Input Serial Number (SN) -->
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Batch / Area</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Serial Number (SN)</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-layer-group"></i>
+                            <i class="fa-solid fa-barcode"></i>
                         </span>
-                        <input type="text" id="batch" name="batch" required
-                            class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50"
-                            placeholder="Contoh: Lantai 2">
+                        <input type="text" id="sn" name="sn" required
+                            class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide"
+                            placeholder="Scan / Ketik SN Unit">
                     </div>
                 </div>
 
                 <!-- Input Notes -->
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Catatan Umum</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Catatan</label>
                     <textarea id="notes" rows="2"
                         class="w-full p-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-sm bg-slate-50"
-                        placeholder="Keterangan untuk semua file ini..."></textarea>
+                        placeholder="Keterangan tambahan..."></textarea>
                 </div>
 
                 <!-- Area Pilih File -->
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">File Dokumentasi</label>
+                <div class="pt-2 border-t border-dashed border-slate-300">
+                    <label class="block text-sm font-bold text-slate-700 mb-3 text-center">Ambil Bukti Foto/Video</label>
                     
-                    <!-- Tombol Kamera & Galeri -->
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <label class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600">
+                        <label class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600 shadow-sm active:scale-95 transform duration-100">
                             <i class="fa-solid fa-camera text-2xl mb-1"></i>
                             <span class="text-xs font-bold">Kamera</span>
-                            <!-- Input Kamera -->
                             <input type="file" id="cameraInput" accept="image/*,video/*" capture="environment" class="hidden" multiple>
                         </label>
                         
-                        <label class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition text-slate-600">
+                        <label class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition text-slate-600 shadow-sm active:scale-95 transform duration-100">
                             <i class="fa-solid fa-images text-2xl mb-1"></i>
                             <span class="text-xs font-bold">Galeri</span>
-                            <!-- Input Galeri -->
                             <input type="file" id="galleryInput" accept="image/*,video/*" class="hidden" multiple>
                         </label>
                     </div>
@@ -105,14 +139,14 @@
                             <button type="button" onclick="clearAllFiles()" class="text-red-500 hover:text-red-700 text-xs font-bold">Hapus Semua</button>
                         </div>
                         <div id="previewList" class="max-h-60 overflow-y-auto space-y-2 pr-1">
-                            <!-- Item preview akan muncul di sini -->
+                            <!-- Preview items here -->
                         </div>
                     </div>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" id="submitBtn" disabled
-                    class="w-full bg-slate-400 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition flex justify-center items-center gap-2 cursor-not-allowed">
+                    class="w-full bg-slate-400 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition flex justify-center items-center gap-2 cursor-not-allowed mt-2">
                     <span id="btnText">Pilih File Dulu</span>
                     <i id="btnIcon" class="fa-solid fa-cloud-arrow-up"></i>
                 </button>
@@ -124,7 +158,7 @@
         <div id="progressOverlay" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
             <div class="w-full max-w-xs mb-4">
                 <div class="flex justify-between text-xs mb-1">
-                    <span id="progressText">Uploading 1/5</span>
+                    <span id="progressText">Uploading...</span>
                     <span id="progressPercent">0%</span>
                 </div>
                 <div class="w-full bg-gray-700 rounded-full h-2.5">
@@ -132,7 +166,6 @@
                 </div>
             </div>
             <h3 class="text-lg font-bold animate-pulse">Sedang Mengirim...</h3>
-            <p class="text-sm text-gray-300 mt-2">Jangan tutup halaman ini.</p>
             <p id="currentFileName" class="text-xs text-gray-400 mt-1 italic truncate max-w-[200px]"></p>
         </div>
 
@@ -147,29 +180,62 @@
     <script>
         // ===============================================
         // PASTE URL DEPLOYMENT GOOGLE SCRIPT BARU DI SINI
-        const SCRIPT_URL = "URL_WEB_APP_ANDA_DISINI"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHsmGuJX7xIGo9ICzJqk48yVCrp15PpMZb4ilvf_Af4ZYbcm-dRLJuYE35f-ZUY9M0/exec"; 
         // ===============================================
 
         let fileQueue = [];
+        const categoryModal = document.getElementById('categoryModal');
+        const categoryInput = document.getElementById('category');
+        const categoryDisplay = document.getElementById('currentCategoryDisplay');
         const projectInput = document.getElementById('project');
         const projectList = document.getElementById('projectList');
-        const previewContainer = document.getElementById('previewContainer');
-        const previewList = document.getElementById('previewList');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
+        const previewList = document.getElementById('previewList');
+        const previewContainer = document.getElementById('previewContainer');
 
-        // 1. Fetch Daftar Project saat Loading
-        window.addEventListener('DOMContentLoaded', fetchProjects);
-        document.getElementById('refreshProjects').addEventListener('click', function() {
-            this.classList.add('fa-spin');
-            fetchProjects().then(() => this.classList.remove('fa-spin'));
+        // === 1. LOGIKA KATEGORI & STARTUP ===
+        document.addEventListener("DOMContentLoaded", () => {
+            // Cek apakah ada project terakhir yang tersimpan di memori HP
+            const lastProject = localStorage.getItem('lastProjectName');
+            if (lastProject) {
+                projectInput.value = lastProject;
+            }
+            // Modal Kategori selalu muncul saat pertama buka
+            openModal();
         });
 
-        async function fetchProjects() {
+        function selectCategory(catName) {
+            categoryInput.value = catName;
+            categoryDisplay.textContent = catName;
+            
+            // Tutup Modal
+            categoryModal.classList.add('opacity-0', 'pointer-events-none');
+            
+            // Load Project List sesuai Kategori ini
+            fetchProjects(catName);
+        }
+
+        function openModal() {
+            categoryModal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        // === 2. LOGIKA PROJECT LIST (AUTOCOMPLETE) ===
+        document.getElementById('refreshProjects').addEventListener('click', function() {
+            const currentCat = categoryInput.value;
+            if(currentCat) {
+                this.classList.add('fa-spin');
+                fetchProjects(currentCat).then(() => this.classList.remove('fa-spin'));
+            } else {
+                showToast("Pilih kategori dulu!", "error");
+            }
+        });
+
+        async function fetchProjects(category) {
             if (!SCRIPT_URL.startsWith("http")) return;
             try {
-                // Tambahkan parameter action=getProjects untuk memberitahu script
-                const response = await fetch(`${SCRIPT_URL}?action=getProjects`);
+                // Request list project spesifik kategori
+                const response = await fetch(`${SCRIPT_URL}?action=getProjects&category=${category}`);
                 const data = await response.json();
                 if (data.result === 'success') {
                     projectList.innerHTML = '';
@@ -184,26 +250,23 @@
             }
         }
 
-        // 2. Handle Input File (Kamera & Galeri)
+        // === 3. LOGIKA FILE INPUT ===
         ['cameraInput', 'galleryInput'].forEach(id => {
             document.getElementById(id).addEventListener('change', function(e) {
                 handleFiles(e.target.files);
-                this.value = ''; // Reset input agar bisa pilih file sama lagi
+                this.value = ''; 
             });
         });
 
         function handleFiles(files) {
             if (!files.length) return;
-
             Array.from(files).forEach(file => {
-                // Validasi ukuran (misal max 25MB agar tidak timeout)
                 if (file.size > 25 * 1024 * 1024) {
-                    showToast(`File ${file.name} terlalu besar (>25MB)`, 'error');
+                    showToast(`File ${file.name} > 25MB (Ditolak)`, 'error');
                     return;
                 }
                 fileQueue.push(file);
             });
-            
             renderPreview();
             updateSubmitBtn();
         }
@@ -214,22 +277,21 @@
                 const isVideo = file.type.startsWith('video');
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200 preview-item';
-                
                 div.innerHTML = `
-                    <div class="w-12 h-12 flex-shrink-0 bg-gray-200 rounded overflow-hidden flex items-center justify-center text-gray-400">
+                    <div class="w-10 h-10 flex-shrink-0 bg-white rounded border flex items-center justify-center text-slate-400">
                         ${isVideo ? '<i class="fa-solid fa-video"></i>' : '<i class="fa-solid fa-image"></i>'}
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold truncate text-slate-700">${file.name}</p>
-                        <p class="text-[10px] text-slate-500">${(file.size/1024/1024).toFixed(2)} MB</p>
+                        <p class="text-[10px] text-slate-500">${(file.size/1024/1024).toFixed(1)} MB</p>
                     </div>
-                    <button type="button" onclick="removeFile(${index})" class="text-red-400 hover:text-red-600 p-2">
-                        <i class="fa-solid fa-times"></i>
+                    <button type="button" onclick="removeFile(${index})" class="text-red-400 hover:text-red-600 px-2">
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                 `;
                 previewList.appendChild(div);
             });
-
+            
             if (fileQueue.length > 0) {
                 previewContainer.classList.remove('hidden');
                 document.getElementById('fileCount').textContent = fileQueue.length;
@@ -238,13 +300,13 @@
             }
         }
 
-        window.removeFile = function(index) {
+        window.removeFile = (index) => {
             fileQueue.splice(index, 1);
             renderPreview();
             updateSubmitBtn();
         };
 
-        window.clearAllFiles = function() {
+        window.clearAllFiles = () => {
             fileQueue = [];
             renderPreview();
             updateSubmitBtn();
@@ -264,7 +326,7 @@
             }
         }
 
-        // 3. Handle Upload Process
+        // === 4. LOGIKA UPLOAD (SUBMIT) ===
         document.getElementById('qcForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (fileQueue.length === 0) return;
@@ -273,38 +335,41 @@
                 return;
             }
 
-            const project = document.getElementById('project').value;
-            const batch = document.getElementById('batch').value;
+            const category = categoryInput.value;
+            const project = projectInput.value;
+            const sn = document.getElementById('sn').value;
             const notes = document.getElementById('notes').value;
 
-            // Show UI Loading
+            // Simpan Project ke LocalStorage untuk rekomendasi selanjutnya
+            localStorage.setItem('lastProjectName', project);
+
+            // UI Loading
             const overlay = document.getElementById('progressOverlay');
             const pBar = document.getElementById('progressBar');
             const pText = document.getElementById('progressText');
             const pPercent = document.getElementById('progressPercent');
             const fName = document.getElementById('currentFileName');
-            
             overlay.classList.remove('hidden');
 
             let successCount = 0;
             let failCount = 0;
 
-            // Proses upload satu per satu (Sequential)
             for (let i = 0; i < fileQueue.length; i++) {
                 const file = fileQueue[i];
                 
-                // Update UI Progress
+                // Update UI
                 const percent = Math.round(((i) / fileQueue.length) * 100);
                 pBar.style.width = percent + '%';
                 pPercent.textContent = percent + '%';
-                pText.textContent = `Mengirim ${i + 1} dari ${fileQueue.length}`;
+                pText.textContent = `Mengirim ${i + 1}/${fileQueue.length}`;
                 fName.textContent = file.name;
 
                 try {
                     const base64 = await toBase64(file);
                     const payload = {
+                        category: category,
                         project: project,
-                        batch: batch,
+                        sn: sn,
                         notes: notes,
                         filename: file.name,
                         file: base64
@@ -316,11 +381,8 @@
                     });
                     
                     const res = await req.json();
-                    if (res.result === 'success') {
-                        successCount++;
-                    } else {
-                        throw new Error(res.error);
-                    }
+                    if (res.result === 'success') successCount++;
+                    else throw new Error(res.error);
 
                 } catch (err) {
                     console.error(err);
@@ -328,18 +390,19 @@
                 }
             }
 
-            // Selesai
+            // Finish
             overlay.classList.add('hidden');
             if (failCount === 0) {
-                showToast(`Sukses! ${successCount} file terupload.`, 'success');
+                showToast(`Sukses! ${successCount} file tersimpan.`, 'success');
                 clearAllFiles();
-                document.getElementById('notes').value = ''; // Clear notes only
+                // Reset form KECUALI Project Name (sesuai request)
+                document.getElementById('sn').value = ''; 
+                document.getElementById('notes').value = '';
             } else {
                 showToast(`${successCount} sukses, ${failCount} gagal.`, 'error');
             }
         });
 
-        // Helper: Convert File to Base64
         function toBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -349,14 +412,12 @@
             });
         }
 
-        // Helper: Toast Notification
         function showToast(message, type) {
             const toast = document.getElementById('toast');
             const msg = document.getElementById('toastMessage');
             const icon = document.getElementById('toastIcon');
 
             msg.textContent = message;
-            
             if (type === 'success') {
                 toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium text-white flex items-center gap-2 bg-green-600";
                 icon.className = "fa-solid fa-check-circle";
@@ -364,10 +425,7 @@
                 toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium text-white flex items-center gap-2 bg-red-600";
                 icon.className = "fa-solid fa-circle-exclamation";
             }
-            
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 4000);
+            setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 3000);
         }
     </script>
 </body>
