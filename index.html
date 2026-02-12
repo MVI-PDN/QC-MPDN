@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QC Pro - Microvision</title>
+    
+    <!-- TAG PWA (Progressive Web App) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="QC Pro">
+    <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/microvision-logo%20(1).webp?raw=true">
+    <!-- END TAG PWA -->
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -196,7 +206,7 @@
                         <input type="text" id="sn" name="sn" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide" placeholder="Scan / Ketik SN Unit">
                     </div>
                     <!-- TEXT HISTORI SN TERAKHIR DIUPLOAD -->
-                    <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">SN Terahir: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
+                    <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir diupload: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Catatan</label>
@@ -245,7 +255,7 @@
                     <div id="progressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                 </div>
             </div>
-            <h3 class="text-lg font-bold animate-pulse">Sedang Mengupload...</h3>
+            <h3 class="text-lg font-bold animate-pulse">Sedang Mengirim...</h3>
             <p id="currentFileName" class="text-xs text-gray-400 mt-1 italic truncate max-w-[200px]"></p>
         </div>
     </div>
@@ -821,7 +831,7 @@
                 const percent = Math.round(((i) / fileQueue.length) * 100);
                 pBar.style.width = percent + '%';
                 pPercent.textContent = percent + '%';
-                pText.textContent = `Upload ${i + 1}/${fileQueue.length}`;
+                pText.textContent = `Mengirim ${i + 1}/${fileQueue.length}`;
                 fName.textContent = file.name;
 
                 try {
