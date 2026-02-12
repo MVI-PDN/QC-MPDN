@@ -282,25 +282,47 @@
             openModal();
         });
 
-        // MESIN PELACAK GPS
+        // MESIN PELACAK GPS (Dengan Reverse Geocoding)
+        let lastFetchedCoords = { lat: null, lng: null };
+
         function initGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(
-                    (position) => {
+                    async (position) => {
                         const lat = position.coords.latitude.toFixed(6);
                         const lng = position.coords.longitude.toFixed(6);
-                        currentLocationStr = `Lat: ${lat}, Lng: ${lng}`;
                         gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-green-600"></i> <span class="font-bold text-green-700">GPS OK</span>';
+                        
+                        // Cek apakah lokasi berubah signifikan agar tidak spam API
+                        if (Math.abs(lat - lastFetchedCoords.lat) > 0.001 || Math.abs(lng - lastFetchedCoords.lng) > 0.001) {
+                            lastFetchedCoords = { lat, lng };
+                            currentLocationStr = `Lat: ${lat}, Lng: ${lng}`; // Fallback awal
+                            
+                            try {
+                                // Mengubah titik koordinat menjadi nama lokasi menggunakan OpenStreetMap
+                                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+                                const data = await response.json();
+                                
+                                if (data && data.display_name) {
+                                    // Ambil 3 segmen pertama dari alamat (Jalan, Kelurahan, Kota) agar tidak terlalu panjang
+                                    const addressParts = data.display_name.split(', ');
+                                    const shortAddress = addressParts.slice(0, 3).join(', ');
+                                    currentLocationStr = `Lokasi : ${shortAddress}`;
+                                }
+                            } catch (e) {
+                                console.log("Gagal mengambil nama lokasi, menggunakan koordinat.");
+                            }
+                        }
                     },
                     (error) => {
                         console.log("GPS Error", error);
-                        currentLocationStr = "Lokasi: Tidak diizinkan/Gagal";
+                        currentLocationStr = "Lokasi : Tidak diizinkan/Gagal";
                         gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-red-500"></i> <span class="font-bold text-red-600">No GPS</span>';
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
-                currentLocationStr = "Lokasi: Browser tidak dukung GPS";
+                currentLocationStr = "Lokasi : Browser tidak dukung GPS";
                 gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-gray-400"></i> <span class="font-bold text-gray-500">No GPS</span>';
             }
         }
@@ -332,8 +354,25 @@
             categoryModal.classList.remove('opacity-0', 'pointer-events-none');
         }
 
+        // === MENCEGAH TOMBOL BACK KELUAR DARI WEB SAAT KAMERA TERBUKA ===
+        window.addEventListener('hashchange', function() {
+            if (window.location.hash !== '#camera') {
+                if (!cameraOverlay.classList.contains('hidden')) {
+                    closeCamera(true); // Tutup kamera (true = dipanggil dari tombol back)
+                }
+            }
+        });
+
         // === 2. CAMERA WEBRTC LOGIC ===
         async function startCamera() {
+            // Validasi SN Sebelum membuka Kamera
+            const snValue = document.getElementById('sn').value.trim();
+            if (!snValue) {
+                showToast("SN Wajib Diisi terlebih dahulu!", "error");
+                document.getElementById('sn').focus(); // Arahkan kursor ke kolom SN
+                return;
+            }
+
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
@@ -346,6 +385,11 @@
                 
                 videoEl.srcObject = videoStream;
                 cameraOverlay.classList.remove('hidden');
+                
+                // Tambahkan kode #camera ke URL agar bisa dicegat oleh tombol Back
+                if (window.location.hash !== '#camera') {
+                    window.location.hash = 'camera';
+                }
                 
                 setCameraMode('photo');
                 updateCamBadge();
@@ -393,6 +437,7 @@
         // MESIN WATERMARK DI CANVAS
         function drawWatermark(ctx, canvasWidth, canvasHeight) {
             const projectName = document.getElementById('project').value || "PROJECT BELUM DIISI";
+            const snValue = document.getElementById('sn').value || "SN KOSONG";
             const now = new Date();
             
             // Format Tanggal: 12 Feb 2026, 10:23:45
@@ -409,6 +454,7 @@
 
             const textLines = [
                 `Project : ${projectName.toUpperCase()}`,
+                `S/N     : ${snValue.toUpperCase()}`,
                 dateTimeStr,
                 currentLocationStr
             ];
@@ -566,7 +612,7 @@
             }
         }
 
-        function closeCamera() {
+        function closeCamera(fromBackButton = false) {
             if (mediaRecorder && mediaRecorder.state === "recording") {
                 stopRecording();
             }
@@ -575,6 +621,12 @@
                 videoStream = null;
             }
             cameraOverlay.classList.add('hidden');
+
+            // Jika ditutup lewat tombol X atau "Selesai" (bukan tombol back fisik), 
+            // kita hapus hash '#camera' di URL agar riwayat tetap rapi.
+            if (!fromBackButton && window.location.hash === '#camera') {
+                window.history.back();
+            }
         }
 
         function updateCamBadge() {
