@@ -27,9 +27,29 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
         .record-pulse { animation: pulse-red 1.5s infinite; }
+
+        /* Animasi Pop-up Tengah Layar */
+        @keyframes bounceShort {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-bounce-short { animation: bounceShort 0.3s ease-out forwards; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-24">
+
+    <!-- === MODAL PERINGATAN SN KOSONG (TENGAH LAYAR) === -->
+    <div id="snAlertModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 max-w-xs w-full text-center transform transition-all animate-bounce-short">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-red-50">
+                <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">SN KOSONG!</h3>
+            <p class="text-slate-600 text-sm mb-6 font-medium">Serial Number (SN) wajib diisi terlebih dahulu sebelum membuka kamera.</p>
+            <button onclick="closeSnAlert()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-500/30 active:scale-95">Oke, Mengerti</button>
+        </div>
+    </div>
 
     <!-- === MODAL PILIH KATEGORI === -->
     <div id="categoryModal" class="fixed inset-0 z-50 bg-slate-900 bg-opacity-95 flex flex-col justify-center items-center p-4 transition-all duration-300">
@@ -175,6 +195,8 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-barcode"></i></span>
                         <input type="text" id="sn" name="sn" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide" placeholder="Scan / Ketik SN Unit">
                     </div>
+                    <!-- TEXT HISTORI SN TERAKHIR DIUPLOAD -->
+                    <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir diupload: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Catatan</label>
@@ -223,7 +245,7 @@
                     <div id="progressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                 </div>
             </div>
-            <h3 class="text-lg font-bold animate-pulse">Upload file...</h3>
+            <h3 class="text-lg font-bold animate-pulse">Sedang Mengirim...</h3>
             <p id="currentFileName" class="text-xs text-gray-400 mt-1 italic truncate max-w-[200px]"></p>
         </div>
     </div>
@@ -233,6 +255,7 @@
         WebDesign by KurniawanDidi
     </div>
 
+    <!-- TOAST NOTIFICATION STANDAR -->
     <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-50 text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
         <i id="toastIcon"></i>
         <span id="toastMessage"></span>
@@ -276,11 +299,31 @@
         const camCountBadge = document.getElementById('camCountBadge');
         const btnFinishCamera = document.getElementById('btnFinishCamera');
 
-        // === 1. LOGIKA KATEGORI, GPS & STARTUP ===
+        // === 1. LOGIKA KATEGORI, GPS, HISTORI SN & STARTUP ===
         document.addEventListener("DOMContentLoaded", () => {
             initGPS(); // Nyalakan pelacak GPS saat web dibuka
+            updateLastSnDisplay(); // Tampilkan histori SN
             openModal();
         });
+
+        function updateLastSnDisplay() {
+            const lastSn = localStorage.getItem('lastUploadedSN');
+            const displayEl = document.getElementById('lastSnDisplay');
+            const valueEl = document.getElementById('lastSnValue');
+            
+            if (lastSn) {
+                valueEl.textContent = lastSn;
+                displayEl.classList.remove('hidden');
+            } else {
+                displayEl.classList.add('hidden');
+            }
+        }
+
+        // FUNGSI MENUTUP PERINGATAN SN
+        function closeSnAlert() {
+            document.getElementById('snAlertModal').classList.add('hidden');
+            document.getElementById('sn').focus();
+        }
 
         // MESIN PELACAK GPS (Dengan Reverse Geocoding)
         let lastFetchedCoords = { lat: null, lng: null };
@@ -304,7 +347,7 @@
                                 const data = await response.json();
                                 
                                 if (data && data.display_name) {
-                                    // Ambil 3 segmen pertama dari alamat (Jalan, Kelurahan, Kota) agar tidak terlalu panjang
+                                    // Ambil 3 segmen pertama dari alamat (Jalan, Kelurahan, Kota)
                                     const addressParts = data.display_name.split(', ');
                                     const shortAddress = addressParts.slice(0, 3).join(', ');
                                     currentLocationStr = `Lokasi : ${shortAddress}`;
@@ -365,11 +408,10 @@
 
         // === 2. CAMERA WEBRTC LOGIC ===
         async function startCamera() {
-            // Validasi SN Sebelum membuka Kamera
+            // Validasi SN Sebelum membuka Kamera (Munculkan Modal Tengah Layar)
             const snValue = document.getElementById('sn').value.trim();
             if (!snValue) {
-                showToast("SN Wajib Diisi terlebih dahulu!", "error");
-                document.getElementById('sn').focus(); // Arahkan kursor ke kolom SN
+                document.getElementById('snAlertModal').classList.remove('hidden');
                 return;
             }
 
@@ -779,7 +821,7 @@
                 const percent = Math.round(((i) / fileQueue.length) * 100);
                 pBar.style.width = percent + '%';
                 pPercent.textContent = percent + '%';
-                pText.textContent = `Upload ${i + 1}/${fileQueue.length}`;
+                pText.textContent = `Mengirim ${i + 1}/${fileQueue.length}`;
                 fName.textContent = file.name;
 
                 try {
@@ -810,6 +852,10 @@
 
             overlay.classList.add('hidden');
             if (failCount === 0) {
+                // UPDATE HISTORI SN SETELAH SUKSES UPLOAD
+                localStorage.setItem('lastUploadedSN', sn);
+                updateLastSnDisplay();
+
                 showToast(`Sukses! ${successCount} file tersimpan.`, 'success');
                 clearAllFiles();
                 document.getElementById('sn').value = ''; 
