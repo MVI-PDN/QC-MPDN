@@ -47,7 +47,7 @@
         .animate-bounce-short { animation: bounceShort 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-24">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-24 relative overflow-x-hidden">
 
     <!-- === MODAL PERINGATAN SN KOSONG (TENGAH LAYAR) === -->
     <div id="snAlertModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
@@ -245,21 +245,24 @@
                 </button>
             </form>
         </div>
-        <div id="progressOverlay" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
-            <div class="w-full max-w-xs mb-4">
-                <div class="flex justify-between text-xs mb-1">
-                    <span id="progressText">Uploading...</span>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="w-full bg-gray-700 rounded-full h-2.5">
-                    <div id="progressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-            </div>
-            <h3 class="text-lg font-bold animate-pulse">Sedang Mengirim...</h3>
-            <p id="currentFileName" class="text-xs text-gray-400 mt-1 italic truncate max-w-[200px]"></p>
-        </div>
     </div>
     
+    <!-- WIDGET FLOATING: PROGRESS UPLOAD BACKGROUND -->
+    <div id="floatingProgress" class="fixed bottom-20 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 translate-y-10 opacity-0 pointer-events-none hidden">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                <i class="fa-solid fa-cloud-arrow-up fa-fade"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h4 class="text-xs font-bold text-slate-700">Sisa Antrean: <span id="bgQueueCount">0</span></h4>
+                <p id="bgQueueFileName" class="text-[10px] text-slate-500 truncate w-full">Menyiapkan...</p>
+            </div>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div id="bgQueueBar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+    </div>
+
     <!-- FOOTER DESIGN -->
     <div class="text-center text-slate-400 text-xs py-6 font-medium">
         WebDesign by KurniawanDidi
@@ -275,6 +278,9 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHsmGuJX7xIGo9ICzJqk48yVCrp15PpMZb4ilvf_Af4ZYbcm-dRLJuYE35f-ZUY9M0/exec"; 
 
         let fileQueue = [];
+        let backgroundQueue = []; // Antrean untuk proses background
+        let isUploading = false;
+
         let videoStream = null;
         let mediaRecorder = null;
         let recordedChunks = [];
@@ -318,13 +324,11 @@
 
         function updateLastSnDisplay() {
             const currentCat = categoryInput.value;
-            // Jika belum ada kategori yang dipilih, sembunyikan histori
             if (!currentCat) {
                 document.getElementById('lastSnDisplay').classList.add('hidden');
                 return;
             }
 
-            // Panggil histori SN khusus untuk kategori yang sedang aktif
             const lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`);
             const displayEl = document.getElementById('lastSnDisplay');
             const valueEl = document.getElementById('lastSnValue');
@@ -337,13 +341,11 @@
             }
         }
 
-        // FUNGSI MENUTUP PERINGATAN SN
         function closeSnAlert() {
             document.getElementById('snAlertModal').classList.add('hidden');
             document.getElementById('sn').focus();
         }
 
-        // MESIN PELACAK GPS (Dengan Reverse Geocoding)
         let lastFetchedCoords = { lat: null, lng: null };
 
         function initGPS() {
@@ -352,20 +354,17 @@
                     async (position) => {
                         const lat = position.coords.latitude.toFixed(6);
                         const lng = position.coords.longitude.toFixed(6);
-                        gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-green-600"></i> <span class="font-bold text-green-700">GPS OK</span>';
+                        gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-green-600"></i> <span class="font-bold text-green-700">GPS OK</span>';
                         
-                        // Cek apakah lokasi berubah signifikan agar tidak spam API
                         if (Math.abs(lat - lastFetchedCoords.lat) > 0.001 || Math.abs(lng - lastFetchedCoords.lng) > 0.001) {
                             lastFetchedCoords = { lat, lng };
-                            currentLocationStr = `Lat: ${lat}, Lng: ${lng}`; // Fallback awal
+                            currentLocationStr = `Lat: ${lat}, Lng: ${lng}`; 
                             
                             try {
-                                // Mengubah titik koordinat menjadi nama lokasi menggunakan OpenStreetMap
                                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
                                 const data = await response.json();
                                 
                                 if (data && data.display_name) {
-                                    // Ambil 3 segmen pertama dari alamat (Jalan, Kelurahan, Kota)
                                     const addressParts = data.display_name.split(', ');
                                     const shortAddress = addressParts.slice(0, 3).join(', ');
                                     currentLocationStr = `Lokasi : ${shortAddress}`;
@@ -378,13 +377,13 @@
                     (error) => {
                         console.log("GPS Error", error);
                         currentLocationStr = "Lokasi : Tidak diizinkan/Gagal";
-                        gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-red-500"></i> <span class="font-bold text-red-600">No GPS</span>';
+                        gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500"></i> <span class="font-bold text-red-600">No GPS</span>';
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
                 currentLocationStr = "Lokasi : Browser tidak dukung GPS";
-                gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-gray-400"></i> <span class="font-bold text-gray-500">No GPS</span>';
+                gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-gray-400"></i> <span class="font-bold text-gray-500">No GPS</span>';
             }
         }
 
@@ -407,9 +406,7 @@
                 projectInput.placeholder = "Ketik nama project...";
             }
 
-            // Update histori SN sesuai kategori yang baru dipilih
             updateLastSnDisplay();
-
             categoryModal.classList.add('opacity-0', 'pointer-events-none');
             fetchProjects(catName);
         }
@@ -418,18 +415,16 @@
             categoryModal.classList.remove('opacity-0', 'pointer-events-none');
         }
 
-        // === MENCEGAH TOMBOL BACK KELUAR DARI WEB SAAT KAMERA TERBUKA ===
         window.addEventListener('hashchange', function() {
             if (window.location.hash !== '#camera') {
                 if (!cameraOverlay.classList.contains('hidden')) {
-                    closeCamera(true); // Tutup kamera (true = dipanggil dari tombol back)
+                    closeCamera(true);
                 }
             }
         });
 
-        // === 2. CAMERA WEBRTC LOGIC ===
+        // === 2. CAMERA WEBRTC LOGIC (DIPERBARUI) ===
         async function startCamera() {
-            // Validasi SN Sebelum membuka Kamera (Munculkan Modal Tengah Layar)
             const snValue = document.getElementById('sn').value.trim();
             if (!snValue) {
                 document.getElementById('snAlertModal').classList.remove('hidden');
@@ -437,19 +432,21 @@
             }
 
             try {
+                // UPDATE: Membatasi frameRate ke 30fps untuk mencegah LAG saat video.
+                // Mute audio agar tidak minta izin mic & kecilkan ukuran file video.
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: { ideal: "environment" },
                         width: { ideal: 1920 }, 
-                        height: { ideal: 1080 } 
+                        height: { ideal: 1080 },
+                        frameRate: { ideal: 30, max: 30 } 
                     }, 
-                    audio: true 
+                    audio: false // MUTE MIC DISINI
                 });
                 
                 videoEl.srcObject = videoStream;
                 cameraOverlay.classList.remove('hidden');
                 
-                // Tambahkan kode #camera ke URL agar bisa dicegat oleh tombol Back
                 if (window.location.hash !== '#camera') {
                     window.location.hash = 'camera';
                 }
@@ -459,7 +456,7 @@
 
             } catch (err) {
                 console.error("Camera Error:", err);
-                showToast("Gagal akses kamera/mic. Pastikan izin diberikan.", "error");
+                showToast("Gagal akses kamera. Pastikan izin diberikan.", "error");
             }
         }
 
@@ -476,7 +473,7 @@
                 
                 recordingTimer.classList.add('hidden');
                 modeIndicator.textContent = "FOTO MODE";
-                watermarkPreview.classList.remove('hidden'); // Munculkan info watermark
+                watermarkPreview.classList.remove('hidden'); 
             } else {
                 btnModeVideo.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-red-600 text-white";
                 btnModePhoto.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400 hover:text-white";
@@ -484,8 +481,8 @@
                 shutterInner.className = "w-16 h-16 rounded-full bg-red-600 border-2 border-black transition-all duration-200 scale-90";
                 
                 recordingTimer.classList.add('hidden');
-                modeIndicator.textContent = "VIDEO MODE";
-                watermarkPreview.classList.add('hidden'); // Sembunyikan saat video (Watermark khusus foto)
+                modeIndicator.textContent = "VIDEO MODE (MUTE)"; // Penanda bahwa video dimute
+                watermarkPreview.classList.add('hidden'); 
             }
         }
 
@@ -497,21 +494,18 @@
             }
         }
 
-        // MESIN WATERMARK DI CANVAS
         function drawWatermark(ctx, canvasWidth, canvasHeight) {
             const projectName = document.getElementById('project').value || "PROJECT BELUM DIISI";
             const snValue = document.getElementById('sn').value || "SN KOSONG";
             const now = new Date();
             
-            // Format Tanggal: 12 Feb 2026, 10:23:45
             const dateOptions = { day: '2-digit', month: 'short', year: 'numeric' };
             const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
             const dateStr = now.toLocaleDateString('id-ID', dateOptions);
             const timeStr = now.toLocaleTimeString('id-ID', timeOptions);
             const dateTimeStr = `Waktu : ${dateStr} - ${timeStr} WIB`;
             
-            // Pengaturan Font
-            const fontSize = Math.max(20, Math.floor(canvasWidth * 0.025)); // Menyesuaikan resolusi kamera
+            const fontSize = Math.max(20, Math.floor(canvasWidth * 0.025)); 
             const padding = fontSize;
             const lineHeight = fontSize * 1.4;
 
@@ -524,7 +518,6 @@
 
             ctx.font = `bold ${fontSize}px sans-serif`;
             
-            // Cari lebar box background hitam
             let maxWidth = 0;
             textLines.forEach(text => {
                 const w = ctx.measureText(text).width;
@@ -534,24 +527,19 @@
             const boxWidth = maxWidth + (padding * 2);
             const boxHeight = (textLines.length * lineHeight) + padding;
             
-            // Posisi Pojok Kiri Bawah
             const startX = padding;
             const startY = canvasHeight - boxHeight - padding;
 
-            // Gambar Background Hitam Transparan
             ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
             ctx.fillRect(startX, startY, boxWidth, boxHeight);
 
-            // Gambar Garis Aksen Biru di Kiri Box
-            ctx.fillStyle = "#3b82f6"; // Blue-500
+            ctx.fillStyle = "#3b82f6"; 
             ctx.fillRect(startX, startY, 6, boxHeight);
 
-            // Tulis Teks Putih
             ctx.fillStyle = "#ffffff";
             ctx.textAlign = "left";
             ctx.textBaseline = "top";
             
-            // Shadow tipis agar teks lebih jelas
             ctx.shadowColor = "black";
             ctx.shadowBlur = 4;
             ctx.shadowOffsetX = 1;
@@ -563,7 +551,6 @@
                 currentY += lineHeight;
             });
 
-            // Reset Shadow
             ctx.shadowBlur = 0;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
@@ -578,19 +565,14 @@
             const track = videoStream.getVideoTracks()[0];
             const settings = track.getSettings();
             
-            // Set ukuran canvas sama persis dengan resolusi video asli (Bukan sekedar ukuran layar HP)
             canvasEl.width = settings.width || videoEl.videoWidth;
             canvasEl.height = settings.height || videoEl.videoHeight;
             
             const ctx = canvasEl.getContext('2d');
             
-            // 1. Gambar foto asli dari video
             ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
-
-            // 2. Gambar Watermark di atasnya
             drawWatermark(ctx, canvasEl.width, canvasEl.height);
 
-            // 3. Konversi menjadi file
             canvasEl.toBlob((blob) => {
                 const fileName = `Foto_${Date.now()}.jpg`;
                 const file = new File([blob], fileName, { type: "image/jpeg" });
@@ -611,15 +593,13 @@
             if (!videoStream) return;
             recordedChunks = [];
             
-            let options = { mimeType: 'video/webm;codecs=vp9' };
+            // UPDATE: Hapus preferensi "codecs=vp9" agar hardware encoder jalan mulus (Tanpa Lag)
+            let options = { mimeType: 'video/webm' }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                options = { mimeType: 'video/webm' };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                     options = { mimeType: 'video/mp4' };
-                     if(!MediaRecorder.isTypeSupported(options.mimeType)) {
-                         options = undefined;
-                     }
-                }
+                 options = { mimeType: 'video/mp4' };
+                 if(!MediaRecorder.isTypeSupported(options.mimeType)) {
+                     options = undefined;
+                 }
             }
 
             try {
@@ -685,8 +665,6 @@
             }
             cameraOverlay.classList.add('hidden');
 
-            // Jika ditutup lewat tombol X atau "Selesai" (bukan tombol back fisik), 
-            // kita hapus hash '#camera' di URL agar riwayat tetap rapi.
             if (!fromBackButton && window.location.hash === '#camera') {
                 window.history.back();
             }
@@ -706,7 +684,7 @@
         // === 3. LOGIKA PROJECT LIST (AUTOCOMPLETE) ===
         document.getElementById('refreshProjects').addEventListener('click', function() {
             const currentCat = categoryInput.value;
-            const icon = this.querySelector('i'); // Targetkan ikonnya secara spesifik
+            const icon = this.querySelector('i'); 
             if(currentCat) {
                 icon.classList.add('fa-spin');
                 fetchProjects(currentCat).then(() => icon.classList.remove('fa-spin'));
@@ -811,8 +789,8 @@
             }
         }
 
-        // === 5. LOGIKA UPLOAD (SUBMIT) ===
-        document.getElementById('qcForm').addEventListener('submit', async function(e) {
+        // === 5. LOGIKA UPLOAD BACKGROUND (BARU) ===
+        document.getElementById('qcForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (fileQueue.length === 0) return;
             if (!SCRIPT_URL.startsWith("http")) {
@@ -825,67 +803,101 @@
             const sn = document.getElementById('sn').value;
             const notes = document.getElementById('notes').value;
 
-            // Simpan Project ke LocalStorage per kategori
+            // Simpan Histori Lokal
             localStorage.setItem(`lastProjectName_${category}`, project);
+            localStorage.setItem(`lastUploadedSN_${category}`, sn);
 
-            const overlay = document.getElementById('progressOverlay');
-            const pBar = document.getElementById('progressBar');
-            const pText = document.getElementById('progressText');
-            const pPercent = document.getElementById('progressPercent');
-            const fName = document.getElementById('currentFileName');
-            overlay.classList.remove('hidden');
+            // 1. Pindahkan semua file yang disubmit ke Antrean Background
+            fileQueue.forEach(file => {
+                backgroundQueue.push({
+                    fileObj: file,
+                    category: category,
+                    project: project,
+                    sn: sn,
+                    notes: notes
+                });
+            });
 
-            let successCount = 0;
-            let failCount = 0;
+            const totalAdded = fileQueue.length;
 
-            for (let i = 0; i < fileQueue.length; i++) {
-                const file = fileQueue[i];
-                const percent = Math.round(((i) / fileQueue.length) * 100);
-                pBar.style.width = percent + '%';
-                pPercent.textContent = percent + '%';
-                pText.textContent = `Mengirim ${i + 1}/${fileQueue.length}`;
-                fName.textContent = file.name;
+            // 2. Langsung KOSONGKAN FORM agar User bisa lanjut scan SN berikutnya!
+            clearAllFiles();
+            document.getElementById('sn').value = ''; 
+            document.getElementById('notes').value = '';
+            updateLastSnDisplay(); // Tampilkan SN yang barusan disubmit ke teks histori
 
-                try {
-                    const base64 = await toBase64(file);
-                    const payload = {
-                        category: category,
-                        project: project,
-                        sn: sn,
-                        notes: notes,
-                        filename: file.name,
-                        file: base64
-                    };
+            showToast(`${totalAdded} File masuk ke antrean upload!`, 'success');
 
-                    const req = await fetch(SCRIPT_URL, {
-                        method: "POST",
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const res = await req.json();
-                    if (res.result === 'success') successCount++;
-                    else throw new Error(res.error);
-
-                } catch (err) {
-                    console.error(err);
-                    failCount++;
-                }
-            }
-
-            overlay.classList.add('hidden');
-            if (failCount === 0) {
-                // UPDATE HISTORI SN SETELAH SUKSES UPLOAD SPESIFIK PER KATEGORI
-                localStorage.setItem(`lastUploadedSN_${category}`, sn);
-                updateLastSnDisplay();
-
-                showToast(`Sukses! ${successCount} file tersimpan.`, 'success');
-                clearAllFiles();
-                document.getElementById('sn').value = ''; 
-                document.getElementById('notes').value = '';
-            } else {
-                showToast(`${successCount} sukses, ${failCount} gagal.`, 'error');
+            // 3. Jalankan Mesin Background jika belum jalan
+            if (!isUploading) {
+                processBackgroundQueue();
             }
         });
+
+        // MESIN BACKGROUND UPLOAD
+        async function processBackgroundQueue() {
+            const floatingProgress = document.getElementById('floatingProgress');
+            const queueCount = document.getElementById('bgQueueCount');
+            const queueFileName = document.getElementById('bgQueueFileName');
+            const queueBar = document.getElementById('bgQueueBar');
+
+            // Jika antrean kosong, matikan mesin dan sembunyikan widget
+            if (backgroundQueue.length === 0) {
+                isUploading = false;
+                floatingProgress.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+                setTimeout(() => floatingProgress.classList.add('hidden'), 300);
+                showToast("Semua antrean upload telah selesai!", "success");
+                return;
+            }
+
+            // Nyalakan mesin & tampilkan widget
+            isUploading = true;
+            floatingProgress.classList.remove('hidden');
+            // Sedikit delay agar efek transisinya smooth
+            setTimeout(() => {
+                floatingProgress.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+            }, 10);
+
+            // Ambil 1 data teratas dari antrean
+            const currentItem = backgroundQueue.shift(); 
+            queueCount.textContent = (backgroundQueue.length + 1); // +1 karena yang currentItem sedang diproses
+            queueFileName.textContent = currentItem.fileObj.name;
+            queueBar.style.width = "10%";
+
+            try {
+                // Encode File ke Base64
+                const base64 = await toBase64(currentItem.fileObj);
+                
+                const payload = {
+                    category: currentItem.category,
+                    project: currentItem.project,
+                    sn: currentItem.sn,
+                    notes: currentItem.notes,
+                    filename: currentItem.fileObj.name,
+                    file: base64
+                };
+
+                queueBar.style.width = "50%"; // Indikator proses kirim internet
+
+                const req = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                
+                const res = await req.json();
+                if (res.result !== 'success') throw new Error(res.error);
+
+                queueBar.style.width = "100%"; // Indikator Sukses
+
+            } catch (err) {
+                console.error("Gagal Upload Background:", err);
+                showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error');
+                // Anda bisa mengembalikan file ke antrean jika mau (di sini saya biarkan drop/skip)
+            }
+
+            // Jeda 1 detik lalu proses file berikutnya di antrean
+            setTimeout(processBackgroundQueue, 1000);
+        }
 
         function toBase64(file) {
             return new Promise((resolve, reject) => {
