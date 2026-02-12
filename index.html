@@ -432,14 +432,13 @@
             }
 
             try {
-                // UPDATE: Membatasi frameRate ke 30fps untuk mencegah LAG saat video.
-                // Mute audio agar tidak minta izin mic & kecilkan ukuran file video.
+                // UPDATE: Mengembalikan setelan frameRate ke normal agar kamera tidak lag
+                // Namun tetap mempertahankan Mute Audio agar ukuran file tidak bengkak
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: { ideal: "environment" },
                         width: { ideal: 1920 }, 
-                        height: { ideal: 1080 },
-                        frameRate: { ideal: 30, max: 30 } 
+                        height: { ideal: 1080 }
                     }, 
                     audio: false // MUTE MIC DISINI
                 });
@@ -593,12 +592,15 @@
             if (!videoStream) return;
             recordedChunks = [];
             
-            // UPDATE: Hapus preferensi "codecs=vp9" agar hardware encoder jalan mulus (Tanpa Lag)
-            let options = { mimeType: 'video/webm' }; 
+            // UPDATE: Mengembalikan setelan codec VP9 sebagai prioritas utama agar tidak lag
+            let options = { mimeType: 'video/webm;codecs=vp9' }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                 options = { mimeType: 'video/mp4' };
-                 if(!MediaRecorder.isTypeSupported(options.mimeType)) {
-                     options = undefined;
+                 options = { mimeType: 'video/webm' };
+                 if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                     options = { mimeType: 'video/mp4' };
+                     if(!MediaRecorder.isTypeSupported(options.mimeType)) {
+                         options = undefined;
+                     }
                  }
             }
 
