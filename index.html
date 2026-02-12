@@ -84,6 +84,12 @@
         <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
             <video id="cameraVideo" autoplay playsinline muted class="absolute w-full h-full object-cover"></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
+            
+            <!-- Watermark Preview (Visual Only) -->
+            <div id="watermarkPreview" class="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded text-[10px] font-mono opacity-50 pointer-events-none border border-white/20">
+                <div class="font-bold text-blue-300">AUTO-WATERMARK AKTIF</div>
+                <div>Koordinat terdeteksi</div>
+            </div>
         </div>
 
         <!-- Controls -->
@@ -126,6 +132,10 @@
         <div class="bg-white p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/microvision-logo%20(1).webp?raw=true" alt="Microvision Logo" class="h-8 w-auto object-contain">
+                <!-- Indikator GPS Baru -->
+                <div id="gpsStatus" class="flex items-center gap-1 text-xs bg-slate-100 px-2 py-1 rounded-md border border-slate-200" title="Mencari GPS...">
+                    <i class="fa-solid fa-location-crosshairs fa-spin text-slate-400"></i>
+                </div>
             </div>
             <button onclick="openModal()" class="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 hover:bg-blue-100 transition">
                 <span id="currentCategoryDisplay">PILIH KATEGORI</span>
@@ -175,8 +185,9 @@
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         
                         <!-- TOMBOL KAMERA (MEMBUKA OVERLAY WEB) -->
-                        <div onclick="startCamera()" class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600 shadow-sm active:scale-95 transform duration-100">
-                            <i class="fa-solid fa-camera text-2xl mb-1"></i>
+                        <div onclick="startCamera()" class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600 shadow-sm active:scale-95 transform duration-100 relative overflow-hidden">
+                            <div class="absolute top-1 right-1 text-[8px] font-bold bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded shadow">GPS WATERMARK</div>
+                            <i class="fa-solid fa-camera text-2xl mb-1 mt-2"></i>
                             <span class="text-xs font-bold">Buka Kamera</span>
                         </div>
                         
@@ -218,7 +229,7 @@
     </div>
     
     <!-- FOOTER DESIGN -->
-    <div class="text-center text-slate-400 text-xs py-6">
+    <div class="text-center text-slate-400 text-xs py-6 font-medium">
         WebDesign by KurniawanDidi
     </div>
 
@@ -236,12 +247,13 @@
         let recordedChunks = [];
         let recordingTimerInterval = null;
         let recordingStartTime = null;
-        let currentMode = 'photo'; // 'photo' or 'video'
+        let currentMode = 'photo'; 
+        let currentLocationStr = "Lokasi: Menunggu GPS..."; // Global GPS String
 
         const categoryModal = document.getElementById('categoryModal');
         const categoryInput = document.getElementById('category');
         const categoryDisplay = document.getElementById('currentCategoryDisplay');
-        const categoryDisplayInput = document.getElementById('categoryDisplayInput'); // Tambahan: Input Display
+        const categoryDisplayInput = document.getElementById('categoryDisplayInput'); 
         const projectInput = document.getElementById('project');
         const projectList = document.getElementById('projectList');
         const submitBtn = document.getElementById('submitBtn');
@@ -251,6 +263,7 @@
         const cameraOverlay = document.getElementById('cameraOverlay');
         const videoEl = document.getElementById('cameraVideo');
         const canvasEl = document.getElementById('cameraCanvas');
+        const gpsStatus = document.getElementById('gpsStatus');
         
         // UI Camera
         const shutterInner = document.getElementById('shutterInner');
@@ -263,26 +276,46 @@
         const camCountBadge = document.getElementById('camCountBadge');
         const btnFinishCamera = document.getElementById('btnFinishCamera');
 
-        // === 1. LOGIKA KATEGORI & STARTUP ===
+        // === 1. LOGIKA KATEGORI, GPS & STARTUP ===
         document.addEventListener("DOMContentLoaded", () => {
-            // Hapus logika load global, tunggu user pilih kategori
+            initGPS(); // Nyalakan pelacak GPS saat web dibuka
             openModal();
         });
+
+        // MESIN PELACAK GPS
+        function initGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lng = position.coords.longitude.toFixed(6);
+                        currentLocationStr = `Lat: ${lat}, Lng: ${lng}`;
+                        gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-green-600"></i> <span class="font-bold text-green-700">GPS OK</span>';
+                    },
+                    (error) => {
+                        console.log("GPS Error", error);
+                        currentLocationStr = "Lokasi: Tidak diizinkan/Gagal";
+                        gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-red-500"></i> <span class="font-bold text-red-600">No GPS</span>';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                currentLocationStr = "Lokasi: Browser tidak dukung GPS";
+                gpsStatus.innerHTML = '<i class="fa-solid fa-location-dot text-gray-400"></i> <span class="font-bold text-gray-500">No GPS</span>';
+            }
+        }
 
         function selectCategory(catName) {
             categoryInput.value = catName;
             categoryDisplay.textContent = catName;
             
-            // Update input visual (Pengingat Kategori)
             if(categoryDisplayInput) {
                 categoryDisplayInput.value = catName;
             }
 
-            // Load history project per kategori
             const historyProject = localStorage.getItem(`lastProjectName_${catName}`);
             projectInput.value = historyProject || ''; 
 
-            // Custom Placeholder logic
             if (catName === 'MVIFCO') {
                 projectInput.placeholder = "Contoh: MVIFCO5.0-2601-0001-0100";
             } else if (catName === 'MVIFCI') {
@@ -325,6 +358,8 @@
 
         function setCameraMode(mode) {
             currentMode = mode;
+            const watermarkPreview = document.getElementById('watermarkPreview');
+
             if(mode === 'photo') {
                 btnModePhoto.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white text-black";
                 btnModeVideo.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400 hover:text-white";
@@ -334,6 +369,7 @@
                 
                 recordingTimer.classList.add('hidden');
                 modeIndicator.textContent = "FOTO MODE";
+                watermarkPreview.classList.remove('hidden'); // Munculkan info watermark
             } else {
                 btnModeVideo.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-red-600 text-white";
                 btnModePhoto.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400 hover:text-white";
@@ -342,6 +378,7 @@
                 
                 recordingTimer.classList.add('hidden');
                 modeIndicator.textContent = "VIDEO MODE";
+                watermarkPreview.classList.add('hidden'); // Sembunyikan saat video (Watermark khusus foto)
             }
         }
 
@@ -353,6 +390,76 @@
             }
         }
 
+        // MESIN WATERMARK DI CANVAS
+        function drawWatermark(ctx, canvasWidth, canvasHeight) {
+            const projectName = document.getElementById('project').value || "PROJECT BELUM DIISI";
+            const now = new Date();
+            
+            // Format Tanggal: 12 Feb 2026, 10:23:45
+            const dateOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const dateStr = now.toLocaleDateString('id-ID', dateOptions);
+            const timeStr = now.toLocaleTimeString('id-ID', timeOptions);
+            const dateTimeStr = `Waktu : ${dateStr} - ${timeStr} WIB`;
+            
+            // Pengaturan Font
+            const fontSize = Math.max(20, Math.floor(canvasWidth * 0.025)); // Menyesuaikan resolusi kamera
+            const padding = fontSize;
+            const lineHeight = fontSize * 1.4;
+
+            const textLines = [
+                `Project : ${projectName.toUpperCase()}`,
+                dateTimeStr,
+                currentLocationStr
+            ];
+
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            
+            // Cari lebar box background hitam
+            let maxWidth = 0;
+            textLines.forEach(text => {
+                const w = ctx.measureText(text).width;
+                if(w > maxWidth) maxWidth = w;
+            });
+
+            const boxWidth = maxWidth + (padding * 2);
+            const boxHeight = (textLines.length * lineHeight) + padding;
+            
+            // Posisi Pojok Kiri Bawah
+            const startX = padding;
+            const startY = canvasHeight - boxHeight - padding;
+
+            // Gambar Background Hitam Transparan
+            ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+            ctx.fillRect(startX, startY, boxWidth, boxHeight);
+
+            // Gambar Garis Aksen Biru di Kiri Box
+            ctx.fillStyle = "#3b82f6"; // Blue-500
+            ctx.fillRect(startX, startY, 6, boxHeight);
+
+            // Tulis Teks Putih
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            
+            // Shadow tipis agar teks lebih jelas
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+
+            let currentY = startY + (padding / 2);
+            textLines.forEach(line => {
+                ctx.fillText(line, startX + padding, currentY);
+                currentY += lineHeight;
+            });
+
+            // Reset Shadow
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+        }
+
         function takePicture() {
             if (!videoStream) return;
 
@@ -361,18 +468,26 @@
 
             const track = videoStream.getVideoTracks()[0];
             const settings = track.getSettings();
+            
+            // Set ukuran canvas sama persis dengan resolusi video asli (Bukan sekedar ukuran layar HP)
             canvasEl.width = settings.width || videoEl.videoWidth;
             canvasEl.height = settings.height || videoEl.videoHeight;
             
             const ctx = canvasEl.getContext('2d');
+            
+            // 1. Gambar foto asli dari video
             ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
 
+            // 2. Gambar Watermark di atasnya
+            drawWatermark(ctx, canvasEl.width, canvasEl.height);
+
+            // 3. Konversi menjadi file
             canvasEl.toBlob((blob) => {
                 const fileName = `Foto_${Date.now()}.jpg`;
                 const file = new File([blob], fileName, { type: "image/jpeg" });
                 handleFiles([file]);
-                showToast("Foto tersimpan!", "success");
-            }, 'image/jpeg', 0.9);
+                showToast("Foto & Watermark tersimpan!", "success");
+            }, 'image/jpeg', 0.92);
         }
 
         function toggleRecording() {
