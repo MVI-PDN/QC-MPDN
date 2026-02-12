@@ -706,9 +706,10 @@
         // === 3. LOGIKA PROJECT LIST (AUTOCOMPLETE) ===
         document.getElementById('refreshProjects').addEventListener('click', function() {
             const currentCat = categoryInput.value;
+            const icon = this.querySelector('i'); // Targetkan ikonnya secara spesifik
             if(currentCat) {
-                this.classList.add('fa-spin');
-                fetchProjects(currentCat).then(() => this.classList.remove('fa-spin'));
+                icon.classList.add('fa-spin');
+                fetchProjects(currentCat).then(() => icon.classList.remove('fa-spin'));
             } else {
                 showToast("Pilih kategori dulu!", "error");
             }
