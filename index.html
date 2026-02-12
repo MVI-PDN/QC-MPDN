@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QC-MPDN Pro - Microvision</title>
+    <title>QC-PDN PRO - Microvision</title>
     
     <!-- TAG PWA (Progressive Web App) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="QC-MPDN Pro">
+    <meta name="apple-mobile-web-app-title" content="QC-PDN PRO">
     <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true">
     <!-- END TAG PWA -->
 
@@ -317,7 +317,15 @@
         });
 
         function updateLastSnDisplay() {
-            const lastSn = localStorage.getItem('lastUploadedSN');
+            const currentCat = categoryInput.value;
+            // Jika belum ada kategori yang dipilih, sembunyikan histori
+            if (!currentCat) {
+                document.getElementById('lastSnDisplay').classList.add('hidden');
+                return;
+            }
+
+            // Panggil histori SN khusus untuk kategori yang sedang aktif
+            const lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`);
             const displayEl = document.getElementById('lastSnDisplay');
             const valueEl = document.getElementById('lastSnValue');
             
@@ -398,6 +406,9 @@
             } else {
                 projectInput.placeholder = "Ketik nama project...";
             }
+
+            // Update histori SN sesuai kategori yang baru dipilih
+            updateLastSnDisplay();
 
             categoryModal.classList.add('opacity-0', 'pointer-events-none');
             fetchProjects(catName);
@@ -862,8 +873,8 @@
 
             overlay.classList.add('hidden');
             if (failCount === 0) {
-                // UPDATE HISTORI SN SETELAH SUKSES UPLOAD
-                localStorage.setItem('lastUploadedSN', sn);
+                // UPDATE HISTORI SN SETELAH SUKSES UPLOAD SPESIFIK PER KATEGORI
+                localStorage.setItem(`lastUploadedSN_${category}`, sn);
                 updateLastSnDisplay();
 
                 showToast(`Sukses! ${successCount} file tersimpan.`, 'success');
