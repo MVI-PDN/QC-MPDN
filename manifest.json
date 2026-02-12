@@ -1,0 +1,22 @@
+{
+  "name": "QC Pro Microvision",
+  "short_name": "QC Pro",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "https://github.com/MVI-PDN/QC-MPDN/blob/main/microvision-logo%20(1).webp?raw=true",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://github.com/MVI-PDN/QC-MPDN/blob/main/microvision-logo%20(1).webp?raw=true",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}
