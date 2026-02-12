@@ -1,6 +1,6 @@
 {
   "name": "QC Pro Microvision",
-  "short_name": "QC Pro",
+  "short_name": "QC-MPDN Pro",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f1f5f9",
