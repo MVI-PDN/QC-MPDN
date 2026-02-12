@@ -223,7 +223,7 @@
                     <div id="progressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                 </div>
             </div>
-            <h3 class="text-lg font-bold animate-pulse">Sedang Mengirim...</h3>
+            <h3 class="text-lg font-bold animate-pulse">Upload file...</h3>
             <p id="currentFileName" class="text-xs text-gray-400 mt-1 italic truncate max-w-[200px]"></p>
         </div>
     </div>
@@ -779,7 +779,7 @@
                 const percent = Math.round(((i) / fileQueue.length) * 100);
                 pBar.style.width = percent + '%';
                 pPercent.textContent = percent + '%';
-                pText.textContent = `Mengirim ${i + 1}/${fileQueue.length}`;
+                pText.textContent = `Upload ${i + 1}/${fileQueue.length}`;
                 fName.textContent = file.name;
 
                 try {
