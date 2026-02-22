@@ -460,14 +460,13 @@
         // FUNGSI HELPER: MENGATUR IKON & WARNA DINAMIS (KONSISTEN)
         function getFolderIconConfig(name) {
             let nameLower = name.toLowerCase();
-            // Default styling
+            // Default styling untuk Folder Umum (termasuk Batch angka tahun/bulan)
             let config = { icon: "fa-folder", color: "text-slate-400" };
 
-            // === PENGATURAN KATEGORI & BATCH ===
+            // === PENGATURAN KATEGORI ===
             if (nameLower === 'indoor') config = { icon: "fa-building", color: "text-blue-500" }; // Gedung
             else if (nameLower === 'outdoor') config = { icon: "fa-sun", color: "text-orange-500" };
-            else if (/^p\d+\.\d+/.test(nameLower)) config = { icon: "fa-display", color: "text-indigo-500" }; // Ikon Layar (Display) untuk Pitch P1.20 dkk
-            else if (/^\d{4}$/.test(nameLower) || nameLower.includes('batch')) config = { icon: "fa-calendar-days", color: "text-emerald-500" };
+            else if (/^p\d+\.\d+/.test(nameLower)) config = { icon: "fa-display", color: "text-indigo-500" }; // Ikon Layar (Display)
             
             // === PENYERAGAMAN IKON FIRMWARE & RCGFX ===
             else if (nameLower.includes('firmware')) config = { icon: "fa-microchip", color: "text-purple-500" }; // Selalu Ungu Microchip
@@ -539,7 +538,7 @@
                                     <p class="text-[10px] text-slate-400 font-mono transition-colors group-hover:text-blue-400">Unduh file</p>
                                 </div>
                             </div>
-                            <i class="fa-solid fa-cloud-arrow-down text-slate-300 group-hover:text-blue-600 transition-colors"></i>
+                            <i class="fa-solid fa-file-arrow-down text-slate-300 group-hover:text-blue-600 transition-colors text-xl"></i>
                         </a>
                     `;
                 } else if (isVariantFolder) {
@@ -551,10 +550,10 @@
                         variantsHtml += `
                             <a href="${itemData[vKey]}" target="_blank" class="py-2.5 px-3 rounded-lg flex items-center justify-between hover:bg-slate-50 transition-all duration-200 group/var active:scale-[0.98] mb-1">
                                 <div class="flex items-center gap-3">
-                                    <i class="fa-solid fa-file-arrow-down text-slate-300 group-hover/var:text-blue-400 transition-colors"></i>
+                                    <i class="fa-solid fa-file-lines text-slate-400 group-hover/var:text-blue-500 transition-colors"></i>
                                     <span class="text-xs font-bold text-slate-600 transition-transform duration-300 group-hover/var:translate-x-1 group-active/var:text-blue-600">${vKey}</span>
                                 </div>
-                                <i class="fa-solid fa-download text-slate-300 group-hover/var:text-blue-600 transition-colors text-xs"></i>
+                                <i class="fa-solid fa-file-arrow-down text-slate-300 group-hover/var:text-blue-600 transition-colors text-sm"></i>
                             </a>
                         `;
                     }
