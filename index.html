@@ -290,7 +290,6 @@
         // ==========================================
         // DATABASE LINK DOWNLOAD (MANUAL)
         // ==========================================
-        // Anda bisa menambahkan, mengedit, atau menghapus link di sini!
         const downloadDB = {
             "INDOOR": {
                 "P1.20": {
@@ -309,7 +308,12 @@
                         "RCGFX": "https://link..."
                     }
                 },
-                "P1.86": {}, 
+                "P1.86": {
+                    "Batch 2507": {
+                        Firmware": "",
+                        "RCGFX": ""
+                    }
+                }, 
                 "P2.00": {},
                 "P2.50": {},
                 "P4.00": {}
@@ -419,6 +423,7 @@
             const navQC = document.getElementById('navQC');
             const navDownload = document.getElementById('navDownload');
             const headerCatBtn = document.getElementById('headerCatBtn');
+            const modalKategori = document.getElementById('categoryModal');
 
             if (tabName === 'qc') {
                 tabQC.classList.remove('hidden');
@@ -426,12 +431,23 @@
                 navQC.classList.replace('text-slate-400', 'text-blue-600');
                 navDownload.classList.replace('text-blue-600', 'text-slate-400');
                 headerCatBtn.classList.remove('opacity-0', 'pointer-events-none');
+                
+                // Segera munculkan pop-up pilihan kategori
+                if (modalKategori) {
+                    modalKategori.classList.remove('opacity-0', 'pointer-events-none');
+                }
+
             } else if (tabName === 'download') {
                 tabQC.classList.add('hidden');
                 tabDownload.classList.remove('hidden');
                 navDownload.classList.replace('text-slate-400', 'text-blue-600');
                 navQC.classList.replace('text-blue-600', 'text-slate-400');
                 headerCatBtn.classList.add('opacity-0', 'pointer-events-none');
+                
+                // Hilangkan pop-up kategori secara paksa jika sedang terbuka
+                if (modalKategori) {
+                    modalKategori.classList.add('opacity-0', 'pointer-events-none');
+                }
                 
                 if(document.getElementById('downloadContent').children.length === 0) {
                     renderDownloadMenu();
@@ -529,12 +545,12 @@
                                     currentLocationStr = `Lokasi : ${shortAddress}`;
                                 }
                             } catch (e) {
-                                console.log("Gagal mengambil nama lokasi, menggunakan koordinat.");
+                                console.log("Info GPS: Gagal mengambil nama lokasi, menggunakan koordinat.");
                             }
                         }
                     },
                     (error) => {
-                        console.log("GPS Error", error);
+                        console.log("Info GPS: Tidak diizinkan/Gagal", error.message);
                         currentLocationStr = "Lokasi : Tidak diizinkan/Gagal";
                         gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500"></i> <span class="font-bold text-red-600">No GPS</span>';
                     },
@@ -596,7 +612,7 @@
                         width: { ideal: 1920 }, 
                         height: { ideal: 1080 }
                     }, 
-                    audio: false // AUDIO DIMUTE
+                    audio: false 
                 });
                 
                 videoEl.srcObject = videoStream;
@@ -610,7 +626,7 @@
                 updateCamBadge();
 
             } catch (err) {
-                console.error("Camera Error:", err);
+                console.log("Info Kamera: Akses ditolak atau tidak tersedia.", err.message);
                 showToast("Gagal akses kamera. Pastikan izin diberikan.", "error");
             }
         }
@@ -762,7 +778,7 @@
             try {
                 mediaRecorder = new MediaRecorder(videoStream, options);
             } catch (e) {
-                console.error("MediaRecorder Error", e);
+                console.log("Info Perekam: Gagal memulai perekam.", e.message);
                 showToast("Gagal memulai perekam.", "error");
                 return;
             }
@@ -863,7 +879,8 @@
                     });
                 }
             } catch (e) {
-                console.error("Gagal load project list", e);
+                console.log("Info Jaringan: Gagal mengambil daftar project (Offline/Belum diset).", e.message);
+                // Kita tidak memunculkan error keras di sini agar form tetap bisa diketik manual
             }
         }
 
@@ -1037,7 +1054,7 @@
                 queueBar.style.width = "100%"; 
 
             } catch (err) {
-                console.error("Gagal Upload Background:", err);
+                console.log("Info Upload: Gagal mengirim file background.", err.message);
                 showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error');
             }
 
