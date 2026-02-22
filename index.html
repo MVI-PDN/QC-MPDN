@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="QC-PDN PRO">
-    <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true">
+    <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true">
     <!-- END TAG PWA -->
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -47,7 +47,7 @@
         .animate-bounce-short { animation: bounceShort 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-24 relative overflow-x-hidden">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
 
     <!-- === MODAL PERINGATAN SN KOSONG (TENGAH LAYAR) === -->
     <div id="snAlertModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
@@ -95,16 +95,13 @@
     <div id="cameraOverlay" class="hidden fixed inset-0 z-[60] bg-black flex flex-col">
         <!-- Top Bar -->
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
-            <!-- Timer Recording -->
             <div id="recordingTimer" class="hidden bg-red-600 text-white px-3 py-1 rounded-full text-sm font-mono font-bold flex items-center gap-2">
                 <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                 <span id="timerText">00:00</span>
             </div>
-            
             <div id="modeIndicator" class="text-white text-xs font-mono bg-black/30 px-2 py-1 rounded border border-white/20">
                 FOTO MODE
             </div>
-
             <button type="button" onclick="closeCamera()" class="text-white bg-gray-800/50 rounded-full p-2 w-8 h-8 flex items-center justify-center backdrop-blur-sm hover:bg-gray-700">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -114,8 +111,6 @@
         <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
             <video id="cameraVideo" autoplay playsinline muted class="absolute w-full h-full object-cover"></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
-            
-            <!-- Watermark Preview (Visual Only) -->
             <div id="watermarkPreview" class="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded text-[10px] font-mono opacity-50 pointer-events-none border border-white/20">
                 <div class="font-bold text-blue-300">AUTO-WATERMARK AKTIF</div>
                 <div>Koordinat terdeteksi</div>
@@ -124,30 +119,21 @@
 
         <!-- Controls -->
         <div class="bg-black/90 pb-10 pt-5 px-6 flex flex-col items-center gap-5">
-            
-            <!-- Mode Switcher -->
             <div class="flex bg-gray-800 rounded-full p-1 gap-1">
                 <button onclick="setCameraMode('photo')" id="btnModePhoto" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white text-black">FOTO</button>
                 <button onclick="setCameraMode('video')" id="btnModeVideo" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400 hover:text-white">VIDEO</button>
             </div>
-
             <div class="flex items-center justify-between w-full max-w-xs mx-auto">
-                <!-- Spacer Left -->
                 <div class="w-14"></div> 
-                
-                <!-- Shutter Button (Dynamic) -->
                 <button id="shutterBtn" onclick="handleShutter()" class="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center transition-all duration-200 shadow-[0_0_15px_rgba(255,255,255,0.3)] active:scale-95">
                     <div id="shutterInner" class="w-16 h-16 rounded-full bg-white border-2 border-black transition-all duration-200"></div>
                 </button>
-
-                <!-- Done Button / Counter (Right) -->
                 <div class="w-14 flex justify-center">
                     <button id="btnFinishCamera" onclick="closeCamera()" class="hidden flex-col items-center gap-1 text-white active:scale-90 transition">
                         <div class="relative">
                             <div class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center border-2 border-white shadow-lg">
                                 <i class="fa-solid fa-check"></i>
                             </div>
-                            <!-- Badge Count -->
                             <div id="camCountBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border border-white">0</div>
                         </div>
                         <span class="text-[10px] font-bold mt-1">Selesai</span>
@@ -157,27 +143,27 @@
         </div>
     </div>
 
-    <!-- === APLIKASI UTAMA === -->
-    <div class="max-w-xl mx-auto bg-white min-h-screen sm:min-h-0 sm:my-8 sm:rounded-xl sm:shadow-xl overflow-hidden relative">
-        <div class="bg-white p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true" alt="Microvision Logo" class="h-8 w-auto object-contain">
-                <!-- Indikator GPS Baru -->
-                <div id="gpsStatus" class="flex items-center gap-1 text-xs bg-slate-100 px-2 py-1 rounded-md border border-slate-200" title="Mencari GPS...">
-                    <i class="fa-solid fa-location-crosshairs fa-spin text-slate-400"></i>
-                </div>
+    <!-- === HEADER GLOBAL === -->
+    <div class="bg-white p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
+        <div class="flex items-center gap-3">
+            <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true" alt="Microvision Logo" class="h-8 w-auto object-contain">
+            <div id="gpsStatus" class="flex items-center gap-1 text-xs bg-slate-100 px-2 py-1 rounded-md border border-slate-200" title="Mencari GPS...">
+                <i class="fa-solid fa-location-crosshairs fa-spin text-slate-400"></i>
             </div>
-            <button onclick="openModal()" class="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 hover:bg-blue-100 transition">
-                <span id="currentCategoryDisplay">PILIH KATEGORI</span>
-                <i class="fa-solid fa-chevron-down"></i>
-            </button>
         </div>
+        <button id="headerCatBtn" onclick="openModal()" class="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 hover:bg-blue-100 transition">
+            <span id="currentCategoryDisplay">PILIH KATEGORI</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+    </div>
 
-        <div class="p-5 space-y-5">
+    <!-- === KONTEN UTAMA: DIBAGI 2 TAB (QC & DOWNLOAD) === -->
+    <div class="max-w-xl mx-auto bg-white min-h-[85vh] sm:min-h-0 sm:rounded-b-xl sm:shadow-xl overflow-hidden relative mb-20">
+        
+        <!-- BAGIAN 1: FORMULIR QC -->
+        <div id="tabQC" class="p-5 space-y-5 block transition-opacity duration-300">
             <form id="qcForm" class="space-y-4">
                 <input type="hidden" id="category" name="category">
-                
-                <!-- INPUT KATEGORI (READONLY) - Pengingat Visual -->
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Kategori Produk</label>
                     <div class="relative">
@@ -205,8 +191,7 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-barcode"></i></span>
                         <input type="text" id="sn" name="sn" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide" placeholder="Scan / Ketik SN Unit">
                     </div>
-                    <!-- TEXT HISTORI SN TERAKHIR DIUPLOAD -->
-                    <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir diupload: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
+                    <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Catatan</label>
@@ -215,15 +200,11 @@
                 <div class="pt-2 border-t border-dashed border-slate-300">
                     <label class="block text-sm font-bold text-slate-700 mb-3 text-center">Ambil Bukti Foto/Video</label>
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        
-                        <!-- TOMBOL KAMERA (MEMBUKA OVERLAY WEB) -->
                         <div onclick="startCamera()" class="flex flex-col items-center justify-center p-4 border-2 border-blue-100 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition text-blue-600 shadow-sm active:scale-95 transform duration-100 relative overflow-hidden">
                             <div class="absolute top-1 right-1 text-[8px] font-bold bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded shadow">GPS WATERMARK</div>
                             <i class="fa-solid fa-camera text-2xl mb-1 mt-2"></i>
                             <span class="text-xs font-bold">Buka Kamera</span>
                         </div>
-                        
-                        <!-- TOMBOL GALERI (INPUT FILE BIASA) -->
                         <label class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition text-slate-600 shadow-sm active:scale-95 transform duration-100">
                             <i class="fa-solid fa-images text-2xl mb-1"></i>
                             <span class="text-xs font-bold">Galeri</span>
@@ -245,16 +226,40 @@
                 </button>
             </form>
         </div>
+
+        <!-- BAGIAN 2: PUSAT UNDUHAN (DATABASE MANUAL) -->
+        <div id="tabDownload" class="hidden p-5 space-y-4 bg-slate-50 min-h-full transition-opacity duration-300">
+            <div class="text-center mb-4 pt-4">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-3 shadow-inner">
+                    <i class="fa-solid fa-folder-tree text-2xl text-blue-600"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800">Database File</h2>
+                <p class="text-xs text-slate-500 mt-1">Unduh Firmware dan RCGFX.</p>
+            </div>
+            
+            <!-- Breadcrumb Navigation -->
+            <div id="downloadBreadcrumb" class="bg-slate-200 py-2 px-3 rounded-lg text-xs font-medium mb-4 flex items-center overflow-x-auto whitespace-nowrap">
+                <!-- Diisi via JS -->
+            </div>
+
+            <!-- List Menu / File -->
+            <div id="downloadContent" class="space-y-3">
+                <!-- Data akan dimuat melalui Javascript -->
+            </div>
+            
+            <div class="pb-10"></div>
+        </div>
+        
     </div>
     
     <!-- WIDGET FLOATING: PROGRESS UPLOAD BACKGROUND -->
-    <div id="floatingProgress" class="fixed bottom-20 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 translate-y-10 opacity-0 pointer-events-none hidden">
+    <div id="floatingProgress" class="fixed bottom-24 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 translate-y-10 opacity-0 pointer-events-none hidden">
         <div class="flex items-center gap-3 mb-2">
             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
                 <i class="fa-solid fa-cloud-arrow-up fa-fade"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <h4 class="text-xs font-bold text-slate-700">Mengupload File: <span id="bgQueueCount">0</span></h4>
+                <h4 class="text-xs font-bold text-slate-700">Sisa Antrean: <span id="bgQueueCount">0</span></h4>
                 <p id="bgQueueFileName" class="text-[10px] text-slate-500 truncate w-full">Menyiapkan...</p>
             </div>
         </div>
@@ -263,31 +268,187 @@
         </div>
     </div>
 
-    <!-- FOOTER DESIGN -->
-    <div class="text-center text-slate-400 text-xs py-6 font-medium">
-        WebDesign by KurniawanDidi
+    <!-- === BOTTOM NAVIGATION BAR (PWA STYLE) === -->
+    <div class="fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors">
+            <i class="fa-solid fa-camera-retro text-xl mb-1"></i> 
+            <span class="text-[10px] font-bold">Input QC</span>
+        </button>
+        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors">
+            <i class="fa-solid fa-cloud-arrow-down text-xl mb-1"></i> 
+            <span class="text-[10px] font-bold">Unduh File</span>
+        </button>
     </div>
 
     <!-- TOAST NOTIFICATION STANDAR -->
-    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-50 text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-[90] text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
         <i id="toastIcon"></i>
         <span id="toastMessage"></span>
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHsmGuJX7xIGo9ICzJqk48yVCrp15PpMZb4ilvf_Af4ZYbcm-dRLJuYE35f-ZUY9M0/exec"; 
+        // ==========================================
+        // DATABASE LINK DOWNLOAD (MANUAL)
+        // ==========================================
+        // Anda bisa menambahkan, mengedit, atau menghapus link di sini!
+        const downloadDB = {
+            "INDOOR": {
+                "P1.20": {
+                    "Batch 2411": {
+                        "Firmware": "https://drive.google.com/link-contoh-firmware-2411",
+                        "RCGFX": "https://drive.google.com/link-contoh-rcgfx-2411"
+                    },
+                    "Batch 2510": {
+                        "Firmware": "https://drive.google.com/link-contoh-firmware-2510",
+                        "RCGFX": "https://drive.google.com/link-contoh-rcgfx-2510"
+                    }
+                },
+                "P1.50": {
+                    "Batch 2401": {
+                        "Firmware": "https://link...",
+                        "RCGFX": "https://link..."
+                    }
+                },
+                "P1.86": {}, 
+                "P2.00": {},
+                "P2.50": {},
+                "P4.00": {}
+            },
+            "OUTDOOR": {
+                "P4.00": {},
+                "P5.00": {},
+                "P6.00": {},
+                "P8.00": {},
+                "P10.00": {}
+            }
+        };
+
+        let currentNavPath = []; 
+
+        function renderDownloadMenu() {
+            const container = document.getElementById('downloadContent');
+            const breadcrumb = document.getElementById('downloadBreadcrumb');
+
+            if (currentNavPath.length === 0) {
+                breadcrumb.innerHTML = '<span class="text-slate-500"><i class="fa-solid fa-home"></i> Kategori Utama</span>';
+            } else {
+                let bcHtml = `<button onclick="navDownloadTo('back')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-white rounded shadow-sm mr-2"><i class="fa-solid fa-arrow-left"></i> Kembali</button> <span class="text-slate-600 font-semibold truncate">`;
+                bcHtml += currentNavPath.join(' > ');
+                bcHtml += `</span>`;
+                breadcrumb.innerHTML = bcHtml;
+            }
+
+            let currentData = downloadDB;
+            for (let key of currentNavPath) {
+                currentData = currentData[key];
+            }
+
+            container.innerHTML = '';
+
+            if (!currentData || Object.keys(currentData).length === 0) {
+                 container.innerHTML = `
+                    <div class="text-center py-10 opacity-50">
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-400 mb-3"></i>
+                        <p class="text-sm font-medium text-slate-500">Folder masih kosong.</p>
+                    </div>`;
+                 return;
+            }
+
+            const isFileLevel = typeof Object.values(currentData)[0] === 'string';
+
+            for (let key in currentData) {
+                if (isFileLevel) {
+                    const linkUrl = currentData[key];
+                    const icon = key.toLowerCase().includes('firmware') ? 'fa-microchip text-green-500' : 'fa-file-code text-blue-500';
+                    
+                    container.innerHTML += `
+                        <a href="${linkUrl}" target="_blank" class="w-full bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex items-center justify-between group mb-3">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100">
+                                    <i class="fa-solid ${icon} text-xl"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-800">${key}</h4>
+                                    <p class="text-[10px] text-slate-400 font-mono">Klik untuk unduh file</p>
+                                </div>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
+                                <i class="fa-solid fa-download"></i>
+                            </div>
+                        </a>
+                    `;
+                } else {
+                    let folderIcon = "fa-folder text-yellow-400";
+                    if(key === 'INDOOR') folderIcon = "fa-house text-blue-500";
+                    if(key === 'OUTDOOR') folderIcon = "fa-tree text-green-500";
+                    if(key.includes('Batch')) folderIcon = "fa-box-archive text-orange-400";
+
+                    container.innerHTML += `
+                        <button onclick="navDownloadTo('${key}')" class="w-full bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-blue-400 hover:bg-blue-50 transition flex items-center justify-between mb-3 text-left">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100">
+                                    <i class="fa-solid ${folderIcon} text-xl"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-700 text-sm">${key}</h4>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                        </button>
+                    `;
+                }
+            }
+        }
+
+        function navDownloadTo(target) {
+            if (target === 'back') {
+                currentNavPath.pop(); 
+            } else {
+                currentNavPath.push(target); 
+            }
+            renderDownloadMenu(); 
+        }
+
+        // ==========================================
+        // LOGIKA APLIKASI UTAMA 
+        // ==========================================
+        // GANTI URL DI BAWAH INI DENGAN URL DEPLOY GOOGLE APPS SCRIPT ANDA
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHpJgqde08bJb6qE3lGIbmPYvROO-p0lY9KNKBz3awKvPbfO4da-kRkGa3Kggcp_qr/exec"; 
+
+        function switchTab(tabName) {
+            const tabQC = document.getElementById('tabQC');
+            const tabDownload = document.getElementById('tabDownload');
+            const navQC = document.getElementById('navQC');
+            const navDownload = document.getElementById('navDownload');
+            const headerCatBtn = document.getElementById('headerCatBtn');
+
+            if (tabName === 'qc') {
+                tabQC.classList.remove('hidden');
+                tabDownload.classList.add('hidden');
+                navQC.classList.replace('text-slate-400', 'text-blue-600');
+                navDownload.classList.replace('text-blue-600', 'text-slate-400');
+                headerCatBtn.classList.remove('opacity-0', 'pointer-events-none');
+            } else if (tabName === 'download') {
+                tabQC.classList.add('hidden');
+                tabDownload.classList.remove('hidden');
+                navDownload.classList.replace('text-slate-400', 'text-blue-600');
+                navQC.classList.replace('text-blue-600', 'text-slate-400');
+                headerCatBtn.classList.add('opacity-0', 'pointer-events-none');
+                
+                if(document.getElementById('downloadContent').children.length === 0) {
+                    renderDownloadMenu();
+                }
+            }
+        }
 
         let fileQueue = [];
-        let backgroundQueue = []; // Antrean untuk proses background
+        let backgroundQueue = []; 
         let isUploading = false;
-
         let videoStream = null;
         let mediaRecorder = null;
         let recordedChunks = [];
         let recordingTimerInterval = null;
         let recordingStartTime = null;
         let currentMode = 'photo'; 
-        let currentLocationStr = "Lokasi: Menunggu GPS..."; // Global GPS String
+        let currentLocationStr = "Lokasi: Menunggu GPS..."; 
 
         const categoryModal = document.getElementById('categoryModal');
         const categoryInput = document.getElementById('category');
@@ -304,7 +465,6 @@
         const canvasEl = document.getElementById('cameraCanvas');
         const gpsStatus = document.getElementById('gpsStatus');
         
-        // UI Camera
         const shutterInner = document.getElementById('shutterInner');
         const shutterBtn = document.getElementById('shutterBtn');
         const btnModePhoto = document.getElementById('btnModePhoto');
@@ -315,10 +475,9 @@
         const camCountBadge = document.getElementById('camCountBadge');
         const btnFinishCamera = document.getElementById('btnFinishCamera');
 
-        // === 1. LOGIKA KATEGORI, GPS, HISTORI SN & STARTUP ===
         document.addEventListener("DOMContentLoaded", () => {
-            initGPS(); // Nyalakan pelacak GPS saat web dibuka
-            updateLastSnDisplay(); // Tampilkan histori SN
+            initGPS(); 
+            updateLastSnDisplay(); 
             openModal();
         });
 
@@ -423,7 +582,6 @@
             }
         });
 
-        // === 2. CAMERA WEBRTC LOGIC (DIPERBARUI) ===
         async function startCamera() {
             const snValue = document.getElementById('sn').value.trim();
             if (!snValue) {
@@ -432,15 +590,13 @@
             }
 
             try {
-                // UPDATE: Mengembalikan setelan frameRate ke normal agar kamera tidak lag
-                // Namun tetap mempertahankan Mute Audio agar ukuran file tidak bengkak
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: { ideal: "environment" },
                         width: { ideal: 1920 }, 
                         height: { ideal: 1080 }
                     }, 
-                    audio: false // MUTE MIC DISINI
+                    audio: false // AUDIO DIMUTE
                 });
                 
                 videoEl.srcObject = videoStream;
@@ -480,7 +636,7 @@
                 shutterInner.className = "w-16 h-16 rounded-full bg-red-600 border-2 border-black transition-all duration-200 scale-90";
                 
                 recordingTimer.classList.add('hidden');
-                modeIndicator.textContent = "VIDEO MODE (MUTE)"; // Penanda bahwa video dimute
+                modeIndicator.textContent = "VIDEO MODE (MUTE)"; 
                 watermarkPreview.classList.add('hidden'); 
             }
         }
@@ -592,7 +748,6 @@
             if (!videoStream) return;
             recordedChunks = [];
             
-            // UPDATE: Mengembalikan setelan codec VP9 sebagai prioritas utama agar tidak lag
             let options = { mimeType: 'video/webm;codecs=vp9' }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                  options = { mimeType: 'video/webm' };
@@ -683,7 +838,6 @@
             }
         }
 
-        // === 3. LOGIKA PROJECT LIST (AUTOCOMPLETE) ===
         document.getElementById('refreshProjects').addEventListener('click', function() {
             const currentCat = categoryInput.value;
             const icon = this.querySelector('i'); 
@@ -713,7 +867,6 @@
             }
         }
 
-        // === 4. LOGIKA FILE INPUT (GALERI) & QUEUE ===
         document.getElementById('galleryInput').addEventListener('change', function(e) {
             handleFiles(e.target.files);
             this.value = ''; 
@@ -791,7 +944,9 @@
             }
         }
 
-        // === 5. LOGIKA UPLOAD BACKGROUND (BARU) ===
+        // ==========================================
+        // PROSES UPLOAD BACKGROUND 
+        // ==========================================
         document.getElementById('qcForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (fileQueue.length === 0) return;
@@ -805,11 +960,9 @@
             const sn = document.getElementById('sn').value;
             const notes = document.getElementById('notes').value;
 
-            // Simpan Histori Lokal
             localStorage.setItem(`lastProjectName_${category}`, project);
             localStorage.setItem(`lastUploadedSN_${category}`, sn);
 
-            // 1. Pindahkan semua file yang disubmit ke Antrean Background
             fileQueue.forEach(file => {
                 backgroundQueue.push({
                     fileObj: file,
@@ -822,28 +975,24 @@
 
             const totalAdded = fileQueue.length;
 
-            // 2. Langsung KOSONGKAN FORM agar User bisa lanjut scan SN berikutnya!
             clearAllFiles();
             document.getElementById('sn').value = ''; 
             document.getElementById('notes').value = '';
-            updateLastSnDisplay(); // Tampilkan SN yang barusan disubmit ke teks histori
+            updateLastSnDisplay(); 
 
             showToast(`${totalAdded} File masuk ke antrean upload!`, 'success');
 
-            // 3. Jalankan Mesin Background jika belum jalan
             if (!isUploading) {
                 processBackgroundQueue();
             }
         });
 
-        // MESIN BACKGROUND UPLOAD
         async function processBackgroundQueue() {
             const floatingProgress = document.getElementById('floatingProgress');
             const queueCount = document.getElementById('bgQueueCount');
             const queueFileName = document.getElementById('bgQueueFileName');
             const queueBar = document.getElementById('bgQueueBar');
 
-            // Jika antrean kosong, matikan mesin dan sembunyikan widget
             if (backgroundQueue.length === 0) {
                 isUploading = false;
                 floatingProgress.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
@@ -852,22 +1001,18 @@
                 return;
             }
 
-            // Nyalakan mesin & tampilkan widget
             isUploading = true;
             floatingProgress.classList.remove('hidden');
-            // Sedikit delay agar efek transisinya smooth
             setTimeout(() => {
                 floatingProgress.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
             }, 10);
 
-            // Ambil 1 data teratas dari antrean
             const currentItem = backgroundQueue.shift(); 
-            queueCount.textContent = (backgroundQueue.length + 1); // +1 karena yang currentItem sedang diproses
+            queueCount.textContent = (backgroundQueue.length + 1); 
             queueFileName.textContent = currentItem.fileObj.name;
             queueBar.style.width = "10%";
 
             try {
-                // Encode File ke Base64
                 const base64 = await toBase64(currentItem.fileObj);
                 
                 const payload = {
@@ -879,7 +1024,7 @@
                     file: base64
                 };
 
-                queueBar.style.width = "50%"; // Indikator proses kirim internet
+                queueBar.style.width = "50%"; 
 
                 const req = await fetch(SCRIPT_URL, {
                     method: "POST",
@@ -889,15 +1034,14 @@
                 const res = await req.json();
                 if (res.result !== 'success') throw new Error(res.error);
 
-                queueBar.style.width = "100%"; // Indikator Sukses
+                queueBar.style.width = "100%"; 
 
             } catch (err) {
                 console.error("Gagal Upload Background:", err);
                 showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error');
-                // Anda bisa mengembalikan file ke antrean jika mau (di sini saya biarkan drop/skip)
             }
 
-            // Jeda 1 detik lalu proses file berikutnya di antrean
+            // Jeda 1 detik sebelum proses file berikutnya di antrean
             setTimeout(processBackgroundQueue, 1000);
         }
 
@@ -916,10 +1060,10 @@
             const icon = document.getElementById('toastIcon');
             msg.textContent = message;
             if (type === 'success') {
-                toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium text-white flex items-center gap-2 bg-green-600";
+                toast.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[90] text-sm font-medium text-white flex items-center gap-2 bg-green-600";
                 icon.className = "fa-solid fa-check-circle";
             } else {
-                toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-medium text-white flex items-center gap-2 bg-red-600";
+                toast.className = "fixed bottom-20 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[90] text-sm font-medium text-white flex items-center gap-2 bg-red-600";
                 icon.className = "fa-solid fa-circle-exclamation";
             }
             toast.classList.remove('opacity-0', 'pointer-events-none');
