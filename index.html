@@ -294,25 +294,23 @@
             "INDOOR": {
                 "P1.20": {
                     "2507": {
-                        // CONTOH: Firmware memiliki Varian (Akan jadi menu lipat ke bawah)
                         "RCGFX": {
                             "MRV432": "https://drive.usercontent.google.com/download?id=1BHg9bxGmx1Is2P3Qz3Ig8NDqdZZzxE2I&export=download&authuser=0&confirm=t&uuid=6c4fd223-5a02-4f8c-89fd-526910a7d78a&at=APcXIO0_LSa_q5boCpfJrqfl1hzi:1771776005865",
                             "MRV532": "https://drive.usercontent.google.com/download?id=1cVV817VP3Qc9xEqJLFwN94b_5x9QTTFT&export=download&authuser=0&confirm=t&uuid=5f8e3388-44eb-46e0-8a4d-680099647669&at=APcXIO1YNQ0k8U81uiiWncGA3msC:1771776060491"
                         },
-                        // RCGFX tidak punya varian, langsung link (Akan jadi tombol download biasa)
                         "Firmware": {
                             "MRV432": "",
                             "MRV532": ""
                         }
                     },
                     "Lainnya": {
-                        "RCFGX": "https://drive.usercontent.google.com/download?id=1uaEaRf2FiYTIb6pDBRwwBK4oafYQxJsm&export=download&authuser=0&confirm=t&uuid=ef8d3f97-0d16-40d5-80de-3446b5122344&at=APcXIO2r3ufmTf97ZbnKGfPRfj0N:1771776391892",
+                        "RCGFX": "https://drive.usercontent.google.com/download?id=1uaEaRf2FiYTIb6pDBRwwBK4oafYQxJsm&export=download&authuser=0&confirm=t&uuid=ef8d3f97-0d16-40d5-80de-3446b5122344&at=APcXIO2r3ufmTf97ZbnKGfPRfj0N:1771776391892",
                         "Firmware": "https://drive.usercontent.google.com/download?id=12DiNRLOGm2P9j3E0sJca3PpW4wznMKql&export=download&authuser=0&confirm=t&uuid=3e890cc1-4442-4adb-b0a9-a77c14c26793&at=APcXIO3pph9VirhmUw2F7zfkJtAq:1771776425018"
                     }
                 },
                 "P1.50": {
                     "Lainnya": {
-                        "RCFGX": "https://drive.usercontent.google.com/download?id=155MZbJuToKSxyqYN3dgB9avBZcAMCJvo&export=download&authuser=0&confirm=t&uuid=4f63e20b-8f24-4585-b981-55057229f6cb&at=APcXIO313oNhIJeo84mTkQtLEvP4:1771776546070",
+                        "RCGFX": "https://drive.usercontent.google.com/download?id=155MZbJuToKSxyqYN3dgB9avBZcAMCJvo&export=download&authuser=0&confirm=t&uuid=4f63e20b-8f24-4585-b981-55057229f6cb&at=APcXIO313oNhIJeo84mTkQtLEvP4:1771776546070",
                         "Firmware": "https://drive.usercontent.google.com/download?id=1HuDar2rpU0ho4w-LdvBIL0BnhY31y5Re&export=download&authuser=0&confirm=t&uuid=4586592f-80b1-44db-8a3e-4775ee3d5120&at=APcXIO0ir0wxK4q8j0amPKukByoJ:1771776604307"
                         }
                 },
@@ -459,6 +457,30 @@
 
         let currentNavPath = []; 
 
+        // FUNGSI HELPER: MENGATUR IKON & WARNA DINAMIS (KONSISTEN)
+        function getFolderIconConfig(name) {
+            let nameLower = name.toLowerCase();
+            // Default styling
+            let config = { icon: "fa-folder", color: "text-slate-400" };
+
+            // === PENGATURAN KATEGORI & BATCH ===
+            if (nameLower === 'indoor') config = { icon: "fa-building", color: "text-blue-500" }; // Gedung
+            else if (nameLower === 'outdoor') config = { icon: "fa-sun", color: "text-orange-500" };
+            else if (/^p\d+\.\d+/.test(nameLower)) config = { icon: "fa-display", color: "text-indigo-500" }; // Ikon Layar (Display) untuk Pitch P1.20 dkk
+            else if (/^\d{4}$/.test(nameLower) || nameLower.includes('batch')) config = { icon: "fa-calendar-days", color: "text-emerald-500" };
+            
+            // === PENYERAGAMAN IKON FIRMWARE & RCGFX ===
+            else if (nameLower.includes('firmware')) config = { icon: "fa-microchip", color: "text-purple-500" }; // Selalu Ungu Microchip
+            else if (nameLower.includes('rcgfx') || nameLower.includes('rcfgx')) config = { icon: "fa-file-code", color: "text-pink-500" }; // Selalu Pink File Code
+            
+            // === LAINNYA ===
+            else if (nameLower.includes('lainnya')) config = { icon: "fa-folder-open", color: "text-slate-400" };
+            else if (nameLower.includes('versi')) config = { icon: "fa-code-branch", color: "text-teal-500" };
+            else if (nameLower.includes('x') || (!isNaN(nameLower) && nameLower.length !== 4)) config = { icon: "fa-expand", color: "text-cyan-500" };
+
+            return config;
+        }
+
         function renderDownloadMenu() {
             const container = document.getElementById('downloadContent');
             const breadcrumb = document.getElementById('downloadBreadcrumb');
@@ -466,7 +488,7 @@
             if (currentNavPath.length === 0) {
                 breadcrumb.innerHTML = '<span class="text-slate-500"><i class="fa-solid fa-home"></i> Kategori Utama</span>';
             } else {
-                let bcHtml = `<button onclick="navDownloadTo('back')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-white rounded shadow-sm mr-2"><i class="fa-solid fa-arrow-left"></i> Kembali</button> <span class="text-slate-600 font-semibold truncate">`;
+                let bcHtml = `<button onclick="navDownloadTo('back')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-white rounded shadow-sm mr-2 active:scale-95 transition-transform"><i class="fa-solid fa-arrow-left"></i> Kembali</button> <span class="text-slate-600 font-semibold truncate">`;
                 bcHtml += currentNavPath.join(' > ');
                 bcHtml += `</span>`;
                 breadcrumb.innerHTML = bcHtml;
@@ -482,83 +504,76 @@
             if (!currentData || Object.keys(currentData).length === 0) {
                  container.innerHTML = `
                     <div class="text-center py-10 opacity-50">
-                        <i class="fa-solid fa-folder-open text-4xl text-slate-400 mb-3"></i>
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
                         <p class="text-sm font-medium text-slate-500">Folder masih kosong.</p>
                     </div>`;
                  return;
             }
 
-            // MENGGABUNGKAN RENDER FOLDER, FILE, DAN VARIAN DALAM SATU TEMPAT
             for (let key in currentData) {
                 const itemData = currentData[key];
                 const isFile = typeof itemData === 'string'; 
                 
-                // Pengecekan apakah ini adalah Folder Varian (Isinya hanya link URL/String)
                 let isVariantFolder = false;
                 let childKeys = [];
                 if (typeof itemData === 'object' && itemData !== null) {
                     childKeys = Object.keys(itemData);
-                    // Cek jika isinya ada dan semuanya berupa String (Bukan folder di dalam folder lagi)
                     isVariantFolder = childKeys.length > 0 && Object.values(itemData).every(v => typeof v === 'string');
                 }
+
+                // Kita gunakan fungsi seragam untuk mendapatkan ikon yang tepat untuk setiap nama folder/file
+                const fConfig = getFolderIconConfig(key);
 
                 if (isFile) {
                     // 1. RENDER SEBAGAI FILE (TOMBOL DOWNLOAD LANGSUNG)
                     const linkUrl = itemData;
-                    const icon = key.toLowerCase().includes('firmware') ? 'fa-microchip text-green-500' : 'fa-file-code text-blue-500';
                     
                     container.innerHTML += `
-                        <a href="${linkUrl}" target="_blank" class="w-full bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex items-center justify-between group mb-3">
+                        <a href="${linkUrl}" target="_blank" class="w-full bg-white border border-slate-100 p-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-between mb-2 group active:scale-[0.98] active:bg-slate-50 hover:border-blue-200 hover:shadow-md">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100">
-                                    <i class="fa-solid ${icon} text-xl"></i>
+                                <div class="w-6 flex justify-center items-center transition-transform duration-300 group-hover:scale-110">
+                                    <i class="fa-solid ${fConfig.icon} ${fConfig.color} text-xl opacity-80 group-hover:opacity-100"></i>
                                 </div>
-                                <div class="text-left">
-                                    <h4 class="font-bold text-slate-800">${key}</h4>
-                                    <p class="text-[10px] text-slate-400 font-mono">Klik untuk unduh file</p>
+                                <div class="text-left transition-transform duration-300 group-hover:translate-x-1.5">
+                                    <h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-600">${key}</h4>
+                                    <p class="text-[10px] text-slate-400 font-mono transition-colors group-hover:text-blue-400">Unduh file</p>
                                 </div>
                             </div>
-                            <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
-                                <i class="fa-solid fa-download"></i>
-                            </div>
+                            <i class="fa-solid fa-cloud-arrow-down text-slate-300 group-hover:text-blue-600 transition-colors"></i>
                         </a>
                     `;
                 } else if (isVariantFolder) {
                     // 2. RENDER SEBAGAI ACCORDION VARIAN (MUNCUL KE BAWAH)
-                    const accId = 'acc-' + Math.random().toString(36).substr(2, 9); // ID unik
-                    let folderIcon = key.toLowerCase().includes('firmware') ? "fa-folder-tree text-purple-500" : "fa-layer-group text-blue-500";
+                    const accId = 'acc-' + Math.random().toString(36).substr(2, 9);
                     
                     let variantsHtml = '';
                     for(let vKey in itemData) {
                         variantsHtml += `
-                            <a href="${itemData[vKey]}" target="_blank" class="bg-white border border-slate-200 p-3 rounded-xl shadow-sm flex items-center justify-between hover:bg-blue-50 transition group">
+                            <a href="${itemData[vKey]}" target="_blank" class="py-2.5 px-3 rounded-lg flex items-center justify-between hover:bg-slate-50 transition-all duration-200 group/var active:scale-[0.98] mb-1">
                                 <div class="flex items-center gap-3">
-                                    <i class="fa-solid fa-file-arrow-down text-blue-400"></i>
-                                    <span class="text-xs font-bold text-slate-700">${vKey}</span>
+                                    <i class="fa-solid fa-arrow-turn-down text-slate-300 group-hover/var:text-blue-400 transition-colors"></i>
+                                    <span class="text-xs font-bold text-slate-600 transition-transform duration-300 group-hover/var:translate-x-1 group-active/var:text-blue-600">${vKey}</span>
                                 </div>
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
-                                    <i class="fa-solid fa-download text-sm"></i>
-                                </div>
+                                <i class="fa-solid fa-download text-slate-300 group-hover/var:text-blue-600 transition-colors text-xs"></i>
                             </a>
                         `;
                     }
 
                     container.innerHTML += `
-                        <div class="mb-3">
-                            <button onclick="toggleAccordion('${accId}')" class="w-full bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-blue-400 hover:bg-blue-50 transition flex items-center justify-between text-left">
+                        <div class="mb-2">
+                            <button onclick="toggleAccordion('${accId}')" class="w-full bg-white border border-slate-100 p-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-between group active:scale-[0.98] active:bg-slate-50 hover:border-blue-200">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100">
-                                        <i class="fa-solid ${folderIcon} text-xl"></i>
+                                    <div class="w-6 flex justify-center items-center transition-transform duration-300 group-hover:scale-110">
+                                        <i class="fa-solid ${fConfig.icon} ${fConfig.color} text-xl opacity-80 group-hover:opacity-100"></i>
                                     </div>
-                                    <div class="text-left">
-                                        <h4 class="font-bold text-slate-700 text-sm">${key}</h4>
-                                        <p class="text-[10px] text-slate-400 font-mono">${childKeys.length} Pilihan Varian</p>
+                                    <div class="text-left transition-transform duration-300 group-hover:translate-x-1.5">
+                                        <h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-600">${key}</h4>
+                                        <p class="text-[10px] text-slate-400 font-mono">${childKeys.length} Varian File</p>
                                     </div>
                                 </div>
-                                <i id="icon-${accId}" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-300"></i>
+                                <i id="icon-${accId}" class="fa-solid fa-chevron-down text-slate-300 transition-transform duration-300 group-hover:text-blue-500"></i>
                             </button>
-                            <!-- Daftar Varian yang tersembunyi -->
-                            <div id="${accId}" class="hidden flex-col gap-2 mt-2 pl-4 border-l-2 border-slate-200 ml-5">
+                            <div id="${accId}" class="hidden flex-col mt-1 pl-4 border-l-2 border-slate-100 ml-5 py-1">
                                 ${variantsHtml}
                             </div>
                         </div>
@@ -566,20 +581,17 @@
 
                 } else {
                     // 3. RENDER SEBAGAI FOLDER BIASA (BISA DIKLIK MASUK KE DALAM)
-                    let folderIcon = "fa-folder text-yellow-400";
-                    if(key === 'INDOOR') folderIcon = "fa-house text-blue-500";
-                    if(key === 'OUTDOOR') folderIcon = "fa-tree text-green-500";
-                    if(key.includes('Batch')) folderIcon = "fa-box-archive text-orange-400";
-
                     container.innerHTML += `
-                        <button onclick="navDownloadTo('${key}')" class="w-full bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-blue-400 hover:bg-blue-50 transition flex items-center justify-between mb-3 text-left">
+                        <button onclick="navDownloadTo('${key}')" class="w-full bg-white border border-slate-100 p-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-between mb-2 group active:scale-[0.98] active:bg-slate-50 hover:border-blue-200 hover:shadow-md">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100">
-                                    <i class="fa-solid ${folderIcon} text-xl"></i>
+                                <div class="w-6 flex justify-center items-center transition-transform duration-300 group-hover:scale-110">
+                                    <i class="fa-solid ${fConfig.icon} ${fConfig.color} text-xl opacity-80 group-hover:opacity-100"></i>
                                 </div>
-                                <h4 class="font-bold text-slate-700 text-sm">${key}</h4>
+                                <div class="text-left transition-transform duration-300 group-hover:translate-x-1.5">
+                                    <h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-600">${key}</h4>
+                                </div>
                             </div>
-                            <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                            <i class="fa-solid fa-chevron-right text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-blue-500"></i>
                         </button>
                     `;
                 }
