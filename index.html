@@ -45,6 +45,9 @@
             100% { transform: scale(1); opacity: 1; }
         }
         .animate-bounce-short { animation: bounceShort 0.3s ease-out forwards; }
+
+        /* Utilitas untuk menyembunyikan widget saat kamera aktif */
+        .hide-in-camera { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
@@ -252,8 +255,8 @@
         
     </div>
     
-    <!-- WIDGET FLOATING: PROGRESS UPLOAD BACKGROUND -->
-    <div id="floatingProgress" class="fixed bottom-24 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 translate-y-10 opacity-0 pointer-events-none hidden">
+    <!-- WIDGET FLOATING: PROGRESS UPLOAD BACKGROUND (Pindah ke Kanan Atas) -->
+    <div id="floatingProgress" class="fixed top-24 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 -translate-y-5 opacity-0 pointer-events-none hidden">
         <div class="flex items-center gap-3 mb-2">
             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
                 <i class="fa-solid fa-cloud-arrow-up fa-fade"></i>
@@ -460,17 +463,17 @@
         // FUNGSI HELPER: MENGATUR IKON & WARNA DINAMIS (KONSISTEN)
         function getFolderIconConfig(name) {
             let nameLower = name.toLowerCase();
-            // Default styling untuk Folder Umum (termasuk Batch angka tahun/bulan)
+            // Default styling untuk Semua Folder (termasuk Batch/Tahun)
             let config = { icon: "fa-folder", color: "text-slate-400" };
 
             // === PENGATURAN KATEGORI ===
-            if (nameLower === 'indoor') config = { icon: "fa-building", color: "text-blue-500" }; // Gedung
+            if (nameLower === 'indoor') config = { icon: "fa-building", color: "text-blue-500" }; 
             else if (nameLower === 'outdoor') config = { icon: "fa-sun", color: "text-orange-500" };
-            else if (/^p\d+\.\d+/.test(nameLower)) config = { icon: "fa-display", color: "text-indigo-500" }; // Ikon Layar (Display)
+            else if (/^p\d+\.\d+/.test(nameLower)) config = { icon: "fa-display", color: "text-indigo-500" }; 
             
             // === PENYERAGAMAN IKON FIRMWARE & RCGFX ===
-            else if (nameLower.includes('firmware')) config = { icon: "fa-microchip", color: "text-purple-500" }; // Selalu Ungu Microchip
-            else if (nameLower.includes('rcgfx') || nameLower.includes('rcfgx')) config = { icon: "fa-file-code", color: "text-pink-500" }; // Selalu Pink File Code
+            else if (nameLower.includes('firmware')) config = { icon: "fa-microchip", color: "text-purple-500" }; 
+            else if (nameLower.includes('rcgfx') || nameLower.includes('rcfgx')) config = { icon: "fa-file-code", color: "text-pink-500" }; 
             
             // === LAINNYA ===
             else if (nameLower.includes('lainnya')) config = { icon: "fa-folder-open", color: "text-slate-400" };
@@ -538,6 +541,7 @@
                                     <p class="text-[10px] text-slate-400 font-mono transition-colors group-hover:text-blue-400">Unduh file</p>
                                 </div>
                             </div>
+                            <!-- Icon Kertas Panah Kebawah -->
                             <i class="fa-solid fa-file-arrow-down text-slate-300 group-hover:text-blue-600 transition-colors text-xl"></i>
                         </a>
                     `;
@@ -550,10 +554,12 @@
                         variantsHtml += `
                             <a href="${itemData[vKey]}" target="_blank" class="py-2.5 px-3 rounded-lg flex items-center justify-between hover:bg-slate-50 transition-all duration-200 group/var active:scale-[0.98] mb-1">
                                 <div class="flex items-center gap-3">
-                                    <i class="fa-solid fa-file-lines text-slate-400 group-hover/var:text-blue-500 transition-colors"></i>
+                                    <!-- Icon Kertas Panah Kebawah -->
+                                    <i class="fa-solid fa-file-arrow-down text-slate-400 group-hover/var:text-blue-500 transition-colors"></i>
                                     <span class="text-xs font-bold text-slate-600 transition-transform duration-300 group-hover/var:translate-x-1 group-active/var:text-blue-600">${vKey}</span>
                                 </div>
-                                <i class="fa-solid fa-file-arrow-down text-slate-300 group-hover/var:text-blue-600 transition-colors text-sm"></i>
+                                <!-- Icon Download Standar Untuk Varian Terkecil -->
+                                <i class="fa-solid fa-download text-slate-300 group-hover/var:text-blue-600 transition-colors text-xs"></i>
                             </a>
                         `;
                     }
@@ -829,6 +835,9 @@
                 videoEl.srcObject = videoStream;
                 cameraOverlay.classList.remove('hidden');
                 
+                // Menyembunyikan widget upload saat kamera dibuka
+                document.getElementById('floatingProgress').classList.add('hide-in-camera');
+                
                 if (window.location.hash !== '#camera') {
                     window.location.hash = 'camera';
                 }
@@ -959,7 +968,7 @@
                 const fileName = `Foto_${Date.now()}.jpg`;
                 const file = new File([blob], fileName, { type: "image/jpeg" });
                 handleFiles([file]);
-                showToast("Foto & Watermark tersimpan!", "success");
+                // Notifikasi berhasil foto dihapus sesuai permintaan
             }, 'image/jpeg', 0.92);
         }
 
@@ -1006,7 +1015,7 @@
                 const file = new File([blob], fileName, { type: "video/webm" });
                 
                 handleFiles([file]);
-                showToast("Video tersimpan!", "success");
+                // Notifikasi berhasil video dihapus sesuai permintaan
                 
                 shutterInner.classList.remove('rounded-sm', 'scale-50');
                 shutterInner.classList.add('rounded-full', 'scale-90');
@@ -1048,6 +1057,9 @@
                 videoStream = null;
             }
             cameraOverlay.classList.add('hidden');
+            
+            // Memunculkan kembali widget upload saat kamera ditutup
+            document.getElementById('floatingProgress').classList.remove('hide-in-camera');
 
             if (!fromBackButton && window.location.hash === '#camera') {
                 window.history.back();
@@ -1223,7 +1235,7 @@
 
             if (backgroundQueue.length === 0) {
                 isUploading = false;
-                floatingProgress.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+                floatingProgress.classList.add('-translate-y-5', 'opacity-0', 'pointer-events-none');
                 setTimeout(() => floatingProgress.classList.add('hidden'), 300);
                 showToast("Semua antrean upload telah selesai!", "success");
                 return;
@@ -1232,7 +1244,7 @@
             isUploading = true;
             floatingProgress.classList.remove('hidden');
             setTimeout(() => {
-                floatingProgress.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+                floatingProgress.classList.remove('-translate-y-5', 'opacity-0', 'pointer-events-none');
             }, 10);
 
             const currentItem = backgroundQueue.shift(); 
