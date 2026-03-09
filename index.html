@@ -48,6 +48,50 @@
 
         /* Utilitas untuk menyembunyikan widget saat kamera aktif */
         .hide-in-camera { display: none !important; }
+	/* Penyesuaian khusus untuk Mode Landscape di Ponsel */
+@media screen and (orientation: landscape) {
+    #cameraOverlay {
+        flex-direction: row !important; /* Mengubah susunan dari vertikal ke horizontal */
+    }
+
+    /* Video memenuhi seluruh layar di belakang kontrol */
+    #cameraVideo {
+        object-fit: cover;
+        width: 100vw;
+        height: 100vh;
+    }
+
+    /* Panel kontrol dipindah ke sisi kanan */
+    #cameraOverlay > div:last-child {
+        width: 120px !important; /* Lebar area tombol di kanan */
+        height: 100vh !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        background: rgba(0, 0, 0, 0.5); /* Latar transparan agar video tetap terlihat */
+        position: relative;
+        z-index: 20;
+    }
+
+    /* Memutar selektor mode (Foto/Video) agar tegak lurus di mode landscape */
+    #cameraOverlay > div:last-child .flex.bg-gray-800 {
+        transform: rotate(90deg);
+        margin-bottom: 40px;
+        white-space: nowrap;
+    }
+
+    /* Penyesuaian tombol shutter agar tetap bulat sempurna di tengah kanan */
+    #shutterBtn {
+        width: 70px !important;
+        height: 70px !important;
+        margin: 0 auto;
+    }
+
+    /* Tombol selesai diletakkan di bawah tombol shutter */
+    #btnFinishCamera {
+        margin-top: 30px;
+    }
+}
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
