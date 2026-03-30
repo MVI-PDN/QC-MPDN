@@ -224,7 +224,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Nama Project</label>
+                    <label id="projectLabel" class="block text-sm font-bold text-slate-700 mb-1">Nama Project</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-building"></i></span>
                         <input type="text" id="project" name="project" list="projectList" required autocomplete="off" class="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-semibold" placeholder= "Ketik Nama Project...">
@@ -232,12 +232,23 @@
                         <datalist id="projectList"></datalist>
                     </div>
                 </div>
+
+                <!-- KOLOM PROJECT BARU (Disembunyikan secara default, dipindah ke bawah) -->
+                <div id="newProjectContainer" class="hidden">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Project</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-folder-open"></i></span>
+                        <input type="text" id="newProjectInput" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-semibold" placeholder="Ketik Nama Project Utama...">
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Serial Number (SN)</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-barcode"></i></span>
                         <input type="text" id="sn" name="sn" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide" placeholder="Scan / Ketik SN Unit">
                     </div>
+                    <p id="snError" class="text-xs font-bold text-red-500 mt-1.5 ml-1 hidden"><i class="fa-solid fa-circle-exclamation"></i> SN harus diisi!</p>
                     <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
                 </div>
                 <div>
@@ -768,6 +779,11 @@
             initGPS(); 
             updateLastSnDisplay(); 
             openModal();
+
+            // Sembunyikan pesan error SN saat user mulai mengetik
+            document.getElementById('sn').addEventListener('input', function() {
+                document.getElementById('snError').classList.add('hidden');
+            });
         });
 
         function updateLastSnDisplay() {
@@ -846,14 +862,23 @@
             const historyProject = localStorage.getItem(`lastProjectName_${catName}`);
             projectInput.value = historyProject || ''; 
 
-            if (catName === 'MVIFCO') {
-                projectInput.placeholder = "Contoh: MVIFCO5.0-2601-0001-0100";
-            } else if (catName === 'MVIFCI') {
-                projectInput.placeholder = "Contoh: MVIFCIL2.5-2601-0001-0100";
-            } else if (catName === 'MVIDCI') {
-                projectInput.placeholder = "Contoh: MVIDCI1.5-2601-0001-0100";
+            const isSpecialCategory = ['MVIFCI', 'MVIFCO', 'MVIDCI'].includes(catName);
+
+            if (isSpecialCategory) {
+                document.getElementById('newProjectContainer').classList.remove('hidden');
+                document.getElementById('projectLabel').textContent = "Range Serial number";
+                if (catName === 'MVIFCO') {
+                    projectInput.placeholder = "Contoh: MVIFCO5.0-2601-0001-0100";
+                } else if (catName === 'MVIFCI') {
+                    projectInput.placeholder = "Contoh: MVIFCIL2.5-2601-0001-0100";
+                } else if (catName === 'MVIDCI') {
+                    projectInput.placeholder = "Contoh: MVIDCI1.5-2601-0001-0100";
+                }
             } else {
-                projectInput.placeholder = "";
+                document.getElementById('newProjectContainer').classList.add('hidden');
+                document.getElementById('projectLabel').textContent = "Nama Project";
+                projectInput.placeholder = "Ketik Nama Project...";
+                document.getElementById('newProjectInput').value = ''; // Reset nilai
             }
 
             updateLastSnDisplay();
@@ -875,9 +900,14 @@
 
         async function startCamera() {
             const snValue = document.getElementById('sn').value.trim();
+            const snError = document.getElementById('snError');
+            
             if (!snValue) {
-                document.getElementById('snAlertModal').classList.remove('hidden');
+                snError.classList.remove('hidden');
+                document.getElementById('sn').focus();
                 return;
+            } else {
+                snError.classList.add('hidden');
             }
 
             try {
@@ -944,7 +974,9 @@
         }
 
         function drawWatermark(ctx, canvasWidth, canvasHeight) {
-            const projectName = document.getElementById('project').value || "PROJECT BELUM DIISI";
+            const currentCat = document.getElementById('category').value;
+            const newProjectName = document.getElementById('newProjectInput').value || "PROJECT KOSONG";
+            const rangeOrProjectName = document.getElementById('project').value || "BELUM DIISI";
             const snValue = document.getElementById('sn').value || "SN KOSONG";
             const now = new Date();
             
@@ -954,16 +986,31 @@
             const timeStr = now.toLocaleTimeString('id-ID', timeOptions);
             const dateTimeStr = `Waktu : ${dateStr} - ${timeStr} WIB`;
             
-            const fontSize = Math.max(20, Math.floor(canvasWidth * 0.025)); 
+            // Penyesuaian ukuran font untuk Landscape agar tidak terlalu besar
+            const isLandscape = canvasWidth > canvasHeight;
+            const baseDim = isLandscape ? canvasHeight : canvasWidth;
+            const fontSize = Math.max(16, Math.floor(baseDim * 0.035)); 
+            
             const padding = fontSize;
             const lineHeight = fontSize * 1.4;
 
-            const textLines = [
-                `Project : ${projectName.toUpperCase()}`,
-                `S/N     : ${snValue.toUpperCase()}`,
-                dateTimeStr,
-                currentLocationStr
-            ];
+            let textLines = [];
+            if (['MVIFCI', 'MVIFCO', 'MVIDCI'].includes(currentCat)) {
+                textLines = [
+                    `Project  : ${newProjectName.toUpperCase()}`,
+                    `Range SN : ${rangeOrProjectName.toUpperCase()}`,
+                    `S/N      : ${snValue.toUpperCase()}`,
+                    dateTimeStr,
+                    currentLocationStr
+                ];
+            } else {
+                textLines = [
+                    `Project : ${rangeOrProjectName.toUpperCase()}`,
+                    `S/N     : ${snValue.toUpperCase()}`,
+                    dateTimeStr,
+                    currentLocationStr
+                ];
+            }
 
             ctx.font = `bold ${fontSize}px sans-serif`;
             
@@ -1254,6 +1301,7 @@
             }
 
             const category = categoryInput.value;
+            const newProject = document.getElementById('newProjectInput').value;
             const project = projectInput.value;
             const sn = document.getElementById('sn').value;
             const notes = document.getElementById('notes').value;
@@ -1265,6 +1313,7 @@
                 backgroundQueue.push({
                     fileObj: file,
                     category: category,
+                    newProject: newProject,
                     project: project,
                     sn: sn,
                     notes: notes
@@ -1315,6 +1364,7 @@
                 
                 const payload = {
                     category: currentItem.category,
+                    newProject: currentItem.newProject,
                     project: currentItem.project,
                     sn: currentItem.sn,
                     notes: currentItem.notes,
