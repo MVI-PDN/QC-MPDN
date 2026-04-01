@@ -110,16 +110,29 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
 
-    <!-- === MODAL PREVIEW MEDIA (FULLSCREEN) === -->
-    <div id="mediaPreviewModal" class="hidden fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center backdrop-blur-md transition-opacity">
-        <div class="absolute top-0 w-full p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
+    <!-- === MODAL PREVIEW MEDIA (FULLSCREEN & INTERACTIVE) === -->
+    <div id="mediaPreviewModal" class="hidden fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center backdrop-blur-md transition-opacity" style="touch-action: none;">
+        <!-- Top bar -->
+        <div class="absolute top-0 w-full p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
             <span id="previewModalTitle" class="text-white text-sm font-bold truncate pr-4">Preview</span>
-            <button type="button" onclick="closeMediaPreview()" class="text-white bg-gray-800/50 rounded-full p-2 w-8 h-8 flex items-center justify-center backdrop-blur-sm hover:bg-gray-700">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <div class="flex items-center gap-3">
+                <span id="previewCounter" class="text-white text-xs font-mono bg-black/50 px-2 py-1 rounded">1 / 1</span>
+                <button type="button" onclick="closeMediaPreview()" class="text-white bg-gray-800/50 rounded-full p-2 w-8 h-8 flex items-center justify-center backdrop-blur-sm hover:bg-gray-700 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
-        <div id="mediaPreviewContainer" class="w-full h-full flex items-center justify-center overflow-hidden p-4">
-            <!-- Media akan dimuat di sini oleh JS -->
+
+        <!-- Tombol Panah Desktop / Kiri Kanan -->
+        <button onclick="prevMedia()" class="absolute left-3 top-1/2 -translate-y-1/2 z-50 bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/80 active:scale-90 transition">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button onclick="nextMedia()" class="absolute right-3 top-1/2 -translate-y-1/2 z-50 bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/80 active:scale-90 transition">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <div id="mediaPreviewContainer" class="w-full h-full flex items-center justify-center overflow-hidden relative">
+            <!-- Media (Gambar/Video) akan dimuat di sini oleh JS -->
         </div>
     </div>
 
@@ -1328,8 +1341,13 @@
         }
 
         // ==========================================
-        // RENDER & PREVIEW MEDIA MODAL
+        // RENDER & PREVIEW MEDIA MODAL (INTERAKTIF & ZOOM)
         // ==========================================
+        let previewIndex = 0;
+        let previewScale = 1;
+        let previewPanX = 0;
+        let previewPanY = 0;
+
         function renderPreview() {
             previewList.innerHTML = '';
             fileQueue.forEach((file, index) => {
@@ -1361,22 +1379,9 @@
         }
 
         function openMediaPreview(index) {
-            const file = fileQueue[index];
-            if(!file) return;
-
-            const container = document.getElementById('mediaPreviewContainer');
-            const title = document.getElementById('previewModalTitle');
-            title.textContent = file.name;
-            container.innerHTML = '';
-
-            const fileUrl = URL.createObjectURL(file);
-
-            if(file.type.startsWith('video')) {
-                container.innerHTML = `<video src="${fileUrl}" controls autoplay loop playsinline class="max-w-full max-h-full rounded-lg shadow-2xl"></video>`;
-            } else {
-                container.innerHTML = `<img src="${fileUrl}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">`;
-            }
-
+            if(fileQueue.length === 0) return;
+            previewIndex = index;
+            renderCurrentMedia();
             document.getElementById('mediaPreviewModal').classList.remove('hidden');
         }
 
@@ -1384,6 +1389,159 @@
             const container = document.getElementById('mediaPreviewContainer');
             container.innerHTML = ''; // Hapus elemen media agar video berhenti memutar
             document.getElementById('mediaPreviewModal').classList.add('hidden');
+        }
+
+        function nextMedia() {
+            if(fileQueue.length === 0) return;
+            previewIndex++;
+            if(previewIndex >= fileQueue.length) previewIndex = 0;
+            renderCurrentMedia();
+        }
+
+        function prevMedia() {
+            if(fileQueue.length === 0) return;
+            previewIndex--;
+            if(previewIndex < 0) previewIndex = fileQueue.length - 1;
+            renderCurrentMedia();
+        }
+
+        function renderCurrentMedia() {
+            const file = fileQueue[previewIndex];
+            const container = document.getElementById('mediaPreviewContainer');
+            const title = document.getElementById('previewModalTitle');
+            const counter = document.getElementById('previewCounter');
+
+            title.textContent = file.name;
+            counter.textContent = `${previewIndex + 1} / ${fileQueue.length}`;
+            container.innerHTML = '';
+
+            // Reset transformasi sebelum render file baru
+            previewScale = 1;
+            previewPanX = 0;
+            previewPanY = 0;
+
+            const fileUrl = URL.createObjectURL(file);
+            let mediaEl;
+
+            if(file.type.startsWith('video')) {
+                mediaEl = document.createElement('video');
+                mediaEl.src = fileUrl;
+                mediaEl.controls = true;
+                mediaEl.autoplay = true;
+                mediaEl.loop = true;
+                mediaEl.playsInline = true;
+                mediaEl.className = "max-w-full max-h-full rounded-lg shadow-2xl origin-center";
+            } else {
+                mediaEl = document.createElement('img');
+                mediaEl.src = fileUrl;
+                mediaEl.className = "max-w-full max-h-full object-contain rounded-lg shadow-2xl origin-center";
+            }
+
+            mediaEl.id = "previewMediaElement";
+            container.appendChild(mediaEl);
+
+            // Tambahkan kemampuan Gesture Zoom/Pan dan Swipe
+            setupGestures(mediaEl, container);
+        }
+
+        function setupGestures(mediaEl, container) {
+            let touchStartX = 0, touchStartY = 0;
+            let swipeStartX = 0, swipeStartY = 0;
+            let initialDistance = 0;
+            let lastScale = 1;
+            let lastTap = 0;
+
+            function updateTransform(withTransition = false) {
+                if (withTransition) {
+                    mediaEl.style.transition = "transform 0.2s ease-out";
+                } else {
+                    mediaEl.style.transition = "none";
+                }
+                
+                // Pastikan posisi tidak digeser jika zoom sudah normal
+                if (previewScale === 1) {
+                    previewPanX = 0;
+                    previewPanY = 0;
+                }
+                
+                mediaEl.style.transform = `translate(${previewPanX}px, ${previewPanY}px) scale(${previewScale})`;
+            }
+
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    swipeStartX = e.touches[0].clientX;
+                    swipeStartY = e.touches[0].clientY;
+                    
+                    touchStartX = e.touches[0].clientX - previewPanX;
+                    touchStartY = e.touches[0].clientY - previewPanY;
+
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    if (tapLength < 300 && tapLength > 0) {
+                        // Ketuk ganda (Double tap) untuk Zoom instan
+                        previewScale = previewScale > 1 ? 1 : 2.5;
+                        previewPanX = 0;
+                        previewPanY = 0;
+                        updateTransform(true);
+                        e.preventDefault();
+                    }
+                    lastTap = currentTime;
+                } else if (e.touches.length === 2) {
+                    // Pinch Zoom dimulai
+                    initialDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    lastScale = previewScale;
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && previewScale > 1) {
+                    // Menggeser gambar (Panning) saat sedang di Zoom
+                    previewPanX = e.touches[0].clientX - touchStartX;
+                    previewPanY = e.touches[0].clientY - touchStartY;
+                    updateTransform(false);
+                    e.preventDefault(); // Mencegah scrolling browser
+                } else if (e.touches.length === 2) {
+                    // Memperbesar/memperkecil dengan Pinch (Cubit)
+                    const currentDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const scaleModifier = currentDistance / initialDistance;
+                    previewScale = Math.max(1, Math.min(lastScale * scaleModifier, 5)); // Batas zoom 1x sampai 5x
+                    updateTransform(false);
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchend', (e) => {
+                // Hanya jalankan fungsi Swipe (Geser foto) jika foto dalam keadaan Normal (Tidak di-zoom)
+                if (previewScale === 1 && e.changedTouches.length === 1) {
+                    const swipeEndX = e.changedTouches[0].clientX;
+                    const swipeEndY = e.changedTouches[0].clientY;
+                    const diffX = swipeStartX - swipeEndX;
+                    const diffY = Math.abs(swipeStartY - swipeEndY);
+
+                    // Pastikan arah sentuhan lebih dominan horizontal daripada vertikal
+                    if (Math.abs(diffX) > 50 && diffY < 100) {
+                        if (diffX > 0) {
+                            nextMedia(); // Geser ke Kiri (Next)
+                        } else {
+                            prevMedia(); // Geser ke Kanan (Prev)
+                        }
+                    }
+                } else {
+                    // Jika layar dicubit terlalu kecil (<1x), kembalikan ke ukuran normal secara mulus
+                    if (previewScale < 1) {
+                        previewScale = 1;
+                        previewPanX = 0;
+                        previewPanY = 0;
+                        updateTransform(true);
+                    }
+                }
+            });
         }
 
         window.removeFile = (index) => {
