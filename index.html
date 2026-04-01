@@ -384,6 +384,29 @@
                 <!-- Data akan dimuat melalui Javascript -->
             </div>
             
+            <!-- Form Laporan Otomatis -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mt-6">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm">Generate Laporan (PDF)</h3>
+                        <p class="text-[10px] text-slate-500">Jadikan 1 folder foto menjadi PDF.</p>
+                    </div>
+                </div>
+                
+                <div class="relative mb-3">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="pdfProjectInput" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-red-500 outline-none text-sm bg-slate-50 font-semibold" placeholder="Ketik Range SN / Nama Project...">
+                </div>
+                <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition active:scale-95 text-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Bikin Laporan Sekarang!
+                </button>
+            </div>
+
             <div class="pb-10"></div>
         </div>
         
@@ -782,7 +805,7 @@
             renderDownloadMenu(); 
         }
 
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHsmGuJX7xIGo9ICzJqk48yVCrp15PpMZb4ilvf_Af4ZYbcm-dRLJuYE35f-ZUY9M0/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziXEwp7ZtIkO0zBKnrd02CW5ZMyEXET4o-7DAmeiyrosC2XdzIOHvpYmTi1IKlQ3rf/exec"; 
 
         function switchTab(tabName) {
             const tabQC = document.getElementById('tabQC');
@@ -1076,12 +1099,10 @@
             const timeStr = now.toLocaleTimeString('id-ID', timeOptions);
             const dateTimeStr = `Waktu : ${dateStr} - ${timeStr} WIB`;
             
-            // Penyesuaian ukuran font untuk Landscape & Portrait: Diperkecil (1x lebih kecil dari sebelumnya)
             const isLandscape = canvasWidth > canvasHeight;
             const baseDim = isLandscape ? canvasHeight : canvasWidth;
             let multiplier = isLandscape ? 0.010 : 0.017; 
 
-            // Set batas minimal font agar tetap terbaca meski di layar sangat kecil
             const fontSize = Math.max(10, Math.floor(baseDim * multiplier)); 
             const padding = fontSize;
             const lineHeight = fontSize * 1.4;
@@ -1118,7 +1139,6 @@
             const startX = padding;
             const startY = canvasHeight - boxHeight - padding;
 
-            // Tema Watermark kini permanen Gelap Transparan
             ctx.fillStyle = "rgba(0, 0, 0, 0.55)"; 
             ctx.fillRect(startX, startY, boxWidth, boxHeight);
             ctx.fillStyle = "#3b82f6"; 
@@ -1168,7 +1188,6 @@
             }, 'image/jpeg', 0.92);
         }
 
-        // Loop untuk menggambar video + watermark ke canvas secara live
         function drawVideoFrameLoop() {
             if(!isRecording) return;
             const ctx = canvasEl.getContext('2d');
@@ -1189,7 +1208,6 @@
             if (!videoStream) return;
             recordedChunks = [];
             
-            // Ambil resolusi stream untuk canvas
             const track = videoStream.getVideoTracks()[0];
             const settings = track.getSettings();
             canvasEl.width = settings.width || videoEl.videoWidth;
@@ -1207,7 +1225,6 @@
             }
 
             try {
-                // Mengambil stream langsung dari Canvas (agar watermark ikut terekam) 30 FPS
                 const canvasStream = canvasEl.captureStream(30);
                 mediaRecorder = new MediaRecorder(canvasStream, options);
             } catch (e) {
@@ -1228,7 +1245,7 @@
                 const file = new File([blob], fileName, { type: "video/webm" });
                 
                 handleFiles([file]);
-                isRecording = false; // Stop canvas render loop
+                isRecording = false; 
                 
                 shutterInner.classList.remove('rounded-sm', 'scale-50');
                 shutterInner.classList.add('rounded-full', 'scale-90');
@@ -1239,7 +1256,7 @@
 
             mediaRecorder.start();
             isRecording = true;
-            drawVideoFrameLoop(); // Mulai render loop untuk video stream di canvas
+            drawVideoFrameLoop(); 
             
             shutterInner.classList.remove('rounded-full', 'scale-90');
             shutterInner.classList.add('rounded-sm', 'scale-50');
@@ -1317,7 +1334,7 @@
                     });
                 }
             } catch (e) {
-                console.log("Info Jaringan: Gagal mengambil daftar project (Offline/Belum diset).", e.message);
+                console.log("Info Jaringan: Gagal mengambil daftar project.", e.message);
             }
         }
 
@@ -1387,7 +1404,7 @@
 
         function closeMediaPreview() {
             const container = document.getElementById('mediaPreviewContainer');
-            container.innerHTML = ''; // Hapus elemen media agar video berhenti memutar
+            container.innerHTML = ''; 
             document.getElementById('mediaPreviewModal').classList.add('hidden');
         }
 
@@ -1415,7 +1432,6 @@
             counter.textContent = `${previewIndex + 1} / ${fileQueue.length}`;
             container.innerHTML = '';
 
-            // Reset transformasi sebelum render file baru
             previewScale = 1;
             previewPanX = 0;
             previewPanY = 0;
@@ -1440,7 +1456,6 @@
             mediaEl.id = "previewMediaElement";
             container.appendChild(mediaEl);
 
-            // Tambahkan kemampuan Gesture Zoom/Pan dan Swipe
             setupGestures(mediaEl, container);
         }
 
@@ -1458,7 +1473,6 @@
                     mediaEl.style.transition = "none";
                 }
                 
-                // Pastikan posisi tidak digeser jika zoom sudah normal
                 if (previewScale === 1) {
                     previewPanX = 0;
                     previewPanY = 0;
@@ -1478,7 +1492,6 @@
                     const currentTime = new Date().getTime();
                     const tapLength = currentTime - lastTap;
                     if (tapLength < 300 && tapLength > 0) {
-                        // Ketuk ganda (Double tap) untuk Zoom instan
                         previewScale = previewScale > 1 ? 1 : 2.5;
                         previewPanX = 0;
                         previewPanY = 0;
@@ -1487,7 +1500,6 @@
                     }
                     lastTap = currentTime;
                 } else if (e.touches.length === 2) {
-                    // Pinch Zoom dimulai
                     initialDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
@@ -1498,42 +1510,37 @@
 
             container.addEventListener('touchmove', (e) => {
                 if (e.touches.length === 1 && previewScale > 1) {
-                    // Menggeser gambar (Panning) saat sedang di Zoom
                     previewPanX = e.touches[0].clientX - touchStartX;
                     previewPanY = e.touches[0].clientY - touchStartY;
                     updateTransform(false);
-                    e.preventDefault(); // Mencegah scrolling browser
+                    e.preventDefault(); 
                 } else if (e.touches.length === 2) {
-                    // Memperbesar/memperkecil dengan Pinch (Cubit)
                     const currentDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
                     );
                     const scaleModifier = currentDistance / initialDistance;
-                    previewScale = Math.max(1, Math.min(lastScale * scaleModifier, 5)); // Batas zoom 1x sampai 5x
+                    previewScale = Math.max(1, Math.min(lastScale * scaleModifier, 5)); 
                     updateTransform(false);
                     e.preventDefault();
                 }
             }, { passive: false });
 
             container.addEventListener('touchend', (e) => {
-                // Hanya jalankan fungsi Swipe (Geser foto) jika foto dalam keadaan Normal (Tidak di-zoom)
                 if (previewScale === 1 && e.changedTouches.length === 1) {
                     const swipeEndX = e.changedTouches[0].clientX;
                     const swipeEndY = e.changedTouches[0].clientY;
                     const diffX = swipeStartX - swipeEndX;
                     const diffY = Math.abs(swipeStartY - swipeEndY);
 
-                    // Pastikan arah sentuhan lebih dominan horizontal daripada vertikal
                     if (Math.abs(diffX) > 50 && diffY < 100) {
                         if (diffX > 0) {
-                            nextMedia(); // Geser ke Kiri (Next)
+                            nextMedia(); 
                         } else {
-                            prevMedia(); // Geser ke Kanan (Prev)
+                            prevMedia(); 
                         }
                     }
                 } else {
-                    // Jika layar dicubit terlalu kecil (<1x), kembalikan ke ukuran normal secara mulus
                     if (previewScale < 1) {
                         previewScale = 1;
                         previewPanX = 0;
@@ -1672,7 +1679,6 @@
                 showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error');
             }
 
-            // Jeda 1 detik sebelum proses file berikutnya di antrean
             setTimeout(processBackgroundQueue, 1000);
         }
 
@@ -1699,6 +1705,50 @@
             }
             toast.classList.remove('opacity-0', 'pointer-events-none');
             setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 3000);
+        }
+
+        // ==========================================
+        // FUNGSI REQUEST PDF KE BACKEND
+        // ==========================================
+        async function requestPDF() {
+            const projectName = document.getElementById('pdfProjectInput').value.trim();
+            const btn = document.getElementById('btnRequestPDF');
+            
+            if (!projectName) {
+                showToast("Nama Project/Range SN wajib diisi!", "error");
+                return;
+            }
+
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Meracik PDF... Tunggu sebentar!`;
+            btn.disabled = true;
+            btn.classList.replace('bg-slate-800', 'bg-slate-500');
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'generatePDF',
+                        projectName: projectName
+                    })
+                });
+                
+                const res = await response.json();
+                
+                if (res.result === 'success') {
+                    showToast("Laporan Berhasil Dibuat!", "success");
+                    window.open(res.link, '_blank'); // Otomatis buka PDF di tab baru
+                } else {
+                    showToast("Gagal: " + res.message, "error");
+                }
+            } catch (err) {
+                showToast("Terjadi kesalahan jaringan.", "error");
+                console.log(err);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.replace('bg-slate-500', 'bg-slate-800');
+            }
         }
     </script>
 </body>
