@@ -805,7 +805,7 @@
             renderDownloadMenu(); 
         }
 
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziXEwp7ZtIkO0zBKnrd02CW5ZMyEXET4o-7DAmeiyrosC2XdzIOHvpYmTi1IKlQ3rf/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2nPMuAGFopGp6DHQDvKUyLUMdWsrhs6ypINtiAwerRizdO-o-FcWopylzLUquvSZ_/exec"; 
 
         function switchTab(tabName) {
             const tabQC = document.getElementById('tabQC');
@@ -965,23 +965,14 @@
             const historyProject = localStorage.getItem(`lastProjectName_${catName}`);
             projectInput.value = historyProject || ''; 
 
-            const isSpecialCategory = ['MVIFCI', 'MVIFCO', 'MVIDCI'].includes(catName);
-
-            if (isSpecialCategory) {
-                document.getElementById('newProjectContainer').classList.remove('hidden');
-                document.getElementById('projectLabel').textContent = "Range Serial number";
-                if (catName === 'MVIFCO') {
-                    projectInput.placeholder = "Contoh: MVIFCO5.0-2601-0001-0100";
-                } else if (catName === 'MVIFCI') {
-                    projectInput.placeholder = "Contoh: MVIFCIL2.5-2601-0001-0100";
-                } else if (catName === 'MVIDCI') {
-                    projectInput.placeholder = "Contoh: MVIDCI1.5-2601-0001-0100";
-                }
+            if (catName === 'MVIFCO') {
+                projectInput.placeholder = "Contoh: MVIFCO5.0-2601-0001-0100";
+            } else if (catName === 'MVIFCI') {
+                projectInput.placeholder = "Contoh: MVIFCIL2.5-2601-0001-0100";
+            } else if (catName === 'MVIDCI') {
+                projectInput.placeholder = "Contoh: MVIDCI1.5-2601-0001-0100";
             } else {
-                document.getElementById('newProjectContainer').classList.add('hidden');
-                document.getElementById('projectLabel').textContent = "Nama Project";
-                projectInput.placeholder = "Ketik Nama Project...";
-                document.getElementById('newProjectInput').value = ''; 
+                projectInput.placeholder = "";
             }
 
             updateLastSnDisplay();
@@ -1003,14 +994,9 @@
 
         async function startCamera() {
             const snValue = document.getElementById('sn').value.trim();
-            const snError = document.getElementById('snError');
-            
             if (!snValue) {
-                snError.classList.remove('hidden');
-                document.getElementById('sn').focus();
+                document.getElementById('snAlertModal').classList.remove('hidden');
                 return;
-            } else {
-                snError.classList.add('hidden');
             }
 
             try {
@@ -1087,9 +1073,7 @@
         }
 
         function drawWatermark(ctx, canvasWidth, canvasHeight) {
-            const currentCat = document.getElementById('category').value;
-            const newProjectName = document.getElementById('newProjectInput').value || "PROJECT KOSONG";
-            const rangeOrProjectName = document.getElementById('project').value || "BELUM DIISI";
+            const projectName = document.getElementById('project').value || "PROJECT BELUM DIISI";
             const snValue = document.getElementById('sn').value || "SN KOSONG";
             const now = new Date();
             
@@ -1107,23 +1091,12 @@
             const padding = fontSize;
             const lineHeight = fontSize * 1.4;
 
-            let textLines = [];
-            if (['MVIFCI', 'MVIFCO', 'MVIDCI'].includes(currentCat)) {
-                textLines = [
-                    `Project  : ${newProjectName.toUpperCase()}`,
-                    `Range SN : ${rangeOrProjectName.toUpperCase()}`,
-                    `S/N      : ${snValue.toUpperCase()}`,
-                    dateTimeStr,
-                    currentLocationStr
-                ];
-            } else {
-                textLines = [
-                    `Project : ${rangeOrProjectName.toUpperCase()}`,
-                    `S/N     : ${snValue.toUpperCase()}`,
-                    dateTimeStr,
-                    currentLocationStr
-                ];
-            }
+            const textLines = [
+                `Project : ${projectName.toUpperCase()}`,
+                `S/N     : ${snValue.toUpperCase()}`,
+                dateTimeStr,
+                currentLocationStr
+            ];
 
             ctx.font = `bold ${fontSize}px sans-serif`;
             
@@ -1139,16 +1112,17 @@
             const startX = padding;
             const startY = canvasHeight - boxHeight - padding;
 
-            ctx.fillStyle = "rgba(0, 0, 0, 0.55)"; 
+            ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
             ctx.fillRect(startX, startY, boxWidth, boxHeight);
+
             ctx.fillStyle = "#3b82f6"; 
             ctx.fillRect(startX, startY, 6, boxHeight);
-            ctx.fillStyle = "#ffffff"; 
-            ctx.shadowColor = "black";
 
+            ctx.fillStyle = "#ffffff";
             ctx.textAlign = "left";
             ctx.textBaseline = "top";
             
+            ctx.shadowColor = "black";
             ctx.shadowBlur = 4;
             ctx.shadowOffsetX = 1;
             ctx.shadowOffsetY = 1;
@@ -1185,15 +1159,8 @@
                 const fileName = `Foto_${Date.now()}.jpg`;
                 const file = new File([blob], fileName, { type: "image/jpeg" });
                 handleFiles([file]);
+                // Notifikasi berhasil foto dihapus sesuai permintaan
             }, 'image/jpeg', 0.92);
-        }
-
-        function drawVideoFrameLoop() {
-            if(!isRecording) return;
-            const ctx = canvasEl.getContext('2d');
-            ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
-            drawWatermark(ctx, canvasEl.width, canvasEl.height);
-            requestAnimationFrame(drawVideoFrameLoop);
         }
 
         function toggleRecording() {
@@ -1208,11 +1175,6 @@
             if (!videoStream) return;
             recordedChunks = [];
             
-            const track = videoStream.getVideoTracks()[0];
-            const settings = track.getSettings();
-            canvasEl.width = settings.width || videoEl.videoWidth;
-            canvasEl.height = settings.height || videoEl.videoHeight;
-
             let options = { mimeType: 'video/webm;codecs=vp9' }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                  options = { mimeType: 'video/webm' };
@@ -1225,8 +1187,7 @@
             }
 
             try {
-                const canvasStream = canvasEl.captureStream(30);
-                mediaRecorder = new MediaRecorder(canvasStream, options);
+                mediaRecorder = new MediaRecorder(videoStream, options);
             } catch (e) {
                 console.log("Info Perekam: Gagal memulai perekam.", e.message);
                 showToast("Gagal memulai perekam.", "error");
@@ -1245,7 +1206,7 @@
                 const file = new File([blob], fileName, { type: "video/webm" });
                 
                 handleFiles([file]);
-                isRecording = false; 
+                // Notifikasi berhasil video dihapus sesuai permintaan
                 
                 shutterInner.classList.remove('rounded-sm', 'scale-50');
                 shutterInner.classList.add('rounded-full', 'scale-90');
@@ -1255,8 +1216,6 @@
             };
 
             mediaRecorder.start();
-            isRecording = true;
-            drawVideoFrameLoop(); 
             
             shutterInner.classList.remove('rounded-full', 'scale-90');
             shutterInner.classList.add('rounded-sm', 'scale-50');
@@ -1277,7 +1236,6 @@
         function stopRecording() {
             if(mediaRecorder) {
                 mediaRecorder.stop();
-                isRecording = false;
             }
         }
 
@@ -1291,6 +1249,7 @@
             }
             cameraOverlay.classList.add('hidden');
             
+            // Memunculkan kembali widget upload saat kamera ditutup
             document.getElementById('floatingProgress').classList.remove('hide-in-camera');
 
             if (!fromBackButton && window.location.hash === '#camera') {
@@ -1334,7 +1293,8 @@
                     });
                 }
             } catch (e) {
-                console.log("Info Jaringan: Gagal mengambil daftar project.", e.message);
+                console.log("Info Jaringan: Gagal mengambil daftar project (Offline/Belum diset).", e.message);
+                // Kita tidak memunculkan error keras di sini agar form tetap bisa diketik manual
             }
         }
 
@@ -1404,7 +1364,7 @@
 
         function closeMediaPreview() {
             const container = document.getElementById('mediaPreviewContainer');
-            container.innerHTML = ''; 
+            container.innerHTML = ''; // Hapus elemen media agar video berhenti memutar
             document.getElementById('mediaPreviewModal').classList.add('hidden');
         }
 
@@ -1432,6 +1392,7 @@
             counter.textContent = `${previewIndex + 1} / ${fileQueue.length}`;
             container.innerHTML = '';
 
+            // Reset transformasi sebelum render file baru
             previewScale = 1;
             previewPanX = 0;
             previewPanY = 0;
@@ -1456,6 +1417,7 @@
             mediaEl.id = "previewMediaElement";
             container.appendChild(mediaEl);
 
+            // Tambahkan kemampuan Gesture Zoom/Pan dan Swipe
             setupGestures(mediaEl, container);
         }
 
@@ -1473,6 +1435,7 @@
                     mediaEl.style.transition = "none";
                 }
                 
+                // Pastikan posisi tidak digeser jika zoom sudah normal
                 if (previewScale === 1) {
                     previewPanX = 0;
                     previewPanY = 0;
@@ -1492,6 +1455,7 @@
                     const currentTime = new Date().getTime();
                     const tapLength = currentTime - lastTap;
                     if (tapLength < 300 && tapLength > 0) {
+                        // Ketuk ganda (Double tap) untuk Zoom instan
                         previewScale = previewScale > 1 ? 1 : 2.5;
                         previewPanX = 0;
                         previewPanY = 0;
@@ -1500,6 +1464,7 @@
                     }
                     lastTap = currentTime;
                 } else if (e.touches.length === 2) {
+                    // Pinch Zoom dimulai
                     initialDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
@@ -1510,37 +1475,42 @@
 
             container.addEventListener('touchmove', (e) => {
                 if (e.touches.length === 1 && previewScale > 1) {
+                    // Menggeser gambar (Panning) saat sedang di Zoom
                     previewPanX = e.touches[0].clientX - touchStartX;
                     previewPanY = e.touches[0].clientY - touchStartY;
                     updateTransform(false);
-                    e.preventDefault(); 
+                    e.preventDefault(); // Mencegah scrolling browser
                 } else if (e.touches.length === 2) {
+                    // Memperbesar/memperkecil dengan Pinch (Cubit)
                     const currentDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
                     );
                     const scaleModifier = currentDistance / initialDistance;
-                    previewScale = Math.max(1, Math.min(lastScale * scaleModifier, 5)); 
+                    previewScale = Math.max(1, Math.min(lastScale * scaleModifier, 5)); // Batas zoom 1x sampai 5x
                     updateTransform(false);
                     e.preventDefault();
                 }
             }, { passive: false });
 
             container.addEventListener('touchend', (e) => {
+                // Hanya jalankan fungsi Swipe (Geser foto) jika foto dalam keadaan Normal (Tidak di-zoom)
                 if (previewScale === 1 && e.changedTouches.length === 1) {
                     const swipeEndX = e.changedTouches[0].clientX;
                     const swipeEndY = e.changedTouches[0].clientY;
                     const diffX = swipeStartX - swipeEndX;
                     const diffY = Math.abs(swipeStartY - swipeEndY);
 
+                    // Pastikan arah sentuhan lebih dominan horizontal daripada vertikal
                     if (Math.abs(diffX) > 50 && diffY < 100) {
                         if (diffX > 0) {
-                            nextMedia(); 
+                            nextMedia(); // Geser ke Kiri (Next)
                         } else {
-                            prevMedia(); 
+                            prevMedia(); // Geser ke Kanan (Prev)
                         }
                     }
                 } else {
+                    // Jika layar dicubit terlalu kecil (<1x), kembalikan ke ukuran normal secara mulus
                     if (previewScale < 1) {
                         previewScale = 1;
                         previewPanX = 0;
@@ -1679,6 +1649,7 @@
                 showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error');
             }
 
+            // Jeda 1 detik sebelum proses file berikutnya di antrean
             setTimeout(processBackgroundQueue, 1000);
         }
 
@@ -1727,13 +1698,26 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    redirect: 'follow', // Penting untuk memastikan redirect Google Apps Script ter-follow
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8",
+                    },
                     body: JSON.stringify({
                         action: 'generatePDF',
                         projectName: projectName
                     })
                 });
                 
-                const res = await response.json();
+                // Baca response sebagai teks mentah dulu untuk hindari error JSON parse kalau ditolak Google
+                const responseText = await response.text();
+                
+                let res;
+                try {
+                    res = JSON.parse(responseText);
+                } catch (e) {
+                    console.error("Error dari Google (Bukan JSON):", responseText);
+                    throw new Error("Server menolak akses. Pastikan Script sudah di-Otorisasi!");
+                }
                 
                 if (res.result === 'success') {
                     showToast("Laporan Berhasil Dibuat!", "success");
@@ -1742,8 +1726,8 @@
                     showToast("Gagal: " + res.message, "error");
                 }
             } catch (err) {
-                showToast("Terjadi kesalahan jaringan.", "error");
-                console.log(err);
+                showToast(err.message || "Terjadi kesalahan jaringan.", "error");
+                console.log("Detail Error:", err);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
