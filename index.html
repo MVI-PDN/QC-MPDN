@@ -130,16 +130,6 @@
         </div>
     </div>
 
-    <!-- === MODAL PERINGATAN SN KOSONG === -->
-    <div id="snAlertModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-3xl shadow-2xl p-6 max-w-xs w-full text-center transform transition-all animate-bounce-short">
-            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-red-50"><i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i></div>
-            <h3 class="text-xl font-black text-slate-800 mb-2">SN KOSONG!</h3>
-            <p class="text-slate-600 text-sm mb-6 font-medium">Serial Number (SN) wajib diisi terlebih dahulu sebelum membuka kamera.</p>
-            <button onclick="closeSnAlert()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-500/30 active:scale-95">Oke, Mengerti</button>
-        </div>
-    </div>
-
     <!-- === MODAL PROGRESS BIKIN PDF (UI/UX BARU) === -->
     <div id="pdfProgressModal" class="hidden fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div id="pdfModalBox" class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm text-center transform transition-all animate-bounce-short relative overflow-hidden">
@@ -309,7 +299,7 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-barcode"></i></span>
                         <input type="text" id="sn" name="sn" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide" placeholder="Scan / Ketik SN Unit">
                     </div>
-                    <p id="snError" class="text-xs font-bold text-red-500 mt-1.5 ml-1 hidden"><i class="fa-solid fa-circle-exclamation"></i> SN harus diisi!</p>
+                    <p id="snError" class="text-xs font-bold text-red-500 mt-1.5 ml-1 hidden"><i class="fa-solid fa-circle-exclamation"></i> SN harus diisi terlebih dahulu sebelum membuka kamera!</p>
                     <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
                 </div>
                 <div>
@@ -411,7 +401,7 @@
         // ==========================================
         // SCRIPT URL (GANTI JIKA PERLU)
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEmyHswlolFRrGSSpZfXkSjLRYg0Uvs8nn9uTGdjQgFi1cY4_5uwKuzDKg9_t2sgjT/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziXEwp7ZtIkO0zBKnrd02CW5ZMyEXET4o-7DAmeiyrosC2XdzIOHvpYmTi1IKlQ3rf/exec"; 
 
         // ==========================================
         // PENGATURAN & LAINNYA
@@ -513,8 +503,6 @@
             if (lastSn) { valueEl.textContent = lastSn; displayEl.classList.remove('hidden'); } else { displayEl.classList.add('hidden'); }
         }
 
-        function closeSnAlert() { document.getElementById('snAlertModal').classList.add('hidden'); document.getElementById('sn').focus(); }
-
         let lastFetchedCoords = { lat: null, lng: null };
         function initGPS() {
             if (navigator.geolocation) {
@@ -549,10 +537,14 @@
         }
 
         function openModal() { categoryModal.classList.remove('opacity-0', 'pointer-events-none'); }
-        window.addEventListener('hashchange', function() { if (window.location.hash !== '#camera') { if (!cameraOverlay.classList.contains('hidden')) { closeCamera(true); } } });
+        
+        window.addEventListener('hashchange', function() {
+            if (window.location.hash !== '#camera' && !cameraOverlay.classList.contains('hidden')) { closeCamera(true); }
+            if (window.location.hash !== '#preview' && !document.getElementById('mediaPreviewModal').classList.contains('hidden')) { closeMediaPreview(true); }
+        });
 
         async function startCamera() {
-            const snValue = document.getElementById('sn').value.trim(); if (!snValue) { document.getElementById('snAlertModal').classList.remove('hidden'); return; }
+            const snValue = document.getElementById('sn').value.trim(); if (!snValue) { document.getElementById('snError').classList.remove('hidden'); document.getElementById('sn').focus(); return; }
             try {
                 let idealWidth = 1920; let idealHeight = 1080;
                 if(appSettings.camQuality === '720') { idealWidth = 1280; idealHeight = 720; } else if(appSettings.camQuality === '480') { idealWidth = 854; idealHeight = 480; }
@@ -668,8 +660,8 @@
             if (fileQueue.length > 0) { previewContainer.classList.remove('hidden'); document.getElementById('fileCount').textContent = fileQueue.length; } else { previewContainer.classList.add('hidden'); }
         }
 
-        function openMediaPreview(index) { if(fileQueue.length === 0) return; previewIndex = index; renderCurrentMedia(); document.getElementById('mediaPreviewModal').classList.remove('hidden'); }
-        function closeMediaPreview() { document.getElementById('mediaPreviewContainer').innerHTML = ''; document.getElementById('mediaPreviewModal').classList.add('hidden'); }
+        function openMediaPreview(index) { if(fileQueue.length === 0) return; previewIndex = index; renderCurrentMedia(); if (window.location.hash !== '#preview') window.location.hash = 'preview'; document.getElementById('mediaPreviewModal').classList.remove('hidden'); }
+        function closeMediaPreview(fromBackButton = false) { document.getElementById('mediaPreviewContainer').innerHTML = ''; document.getElementById('mediaPreviewModal').classList.add('hidden'); if (!fromBackButton && window.location.hash === '#preview') window.history.back(); }
         function nextMedia() { if(fileQueue.length === 0) return; previewIndex = (previewIndex + 1) % fileQueue.length; renderCurrentMedia(); }
         function prevMedia() { if(fileQueue.length === 0) return; previewIndex = (previewIndex - 1 < 0) ? fileQueue.length - 1 : previewIndex - 1; renderCurrentMedia(); }
 
