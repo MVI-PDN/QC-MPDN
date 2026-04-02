@@ -166,11 +166,11 @@
             <div id="pdfStepContainer" class="flex flex-col gap-2 text-left mb-6 bg-slate-50 p-3 rounded-xl border border-slate-100 relative z-10">
                 <div id="step1" class="flex items-center gap-3 text-xs text-slate-400 font-bold transition-colors duration-300">
                     <i id="step1Icon" class="fa-regular fa-circle w-4 text-center"></i> 
-                    <span>1. Menghitung Total Foto</span>
+                    <span>1. Menyiapkan Dokumen</span>
                 </div>
                 <div id="step2" class="flex items-center gap-3 text-xs text-slate-400 font-bold transition-colors duration-300">
                     <i id="step2Icon" class="fa-regular fa-circle w-4 text-center"></i> 
-                    <span>2. Ekstrak & Konversi ke PDF</span>
+                    <span>2. Ekstrak Tabel per Batch</span>
                 </div>
                 <div id="step3" class="flex items-center gap-3 text-xs text-slate-400 font-bold transition-colors duration-300">
                     <i id="step3Icon" class="fa-regular fa-circle w-4 text-center"></i> 
@@ -411,7 +411,7 @@
         // ==========================================
         // SCRIPT URL (GANTI JIKA PERLU)
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0PE2aqEl1A_AYYUZgQL0snti4oT3UrTg6qAXYHj3c4wD3vBWs66jULaJQ7h2YNVCd/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziXEwp7ZtIkO0zBKnrd02CW5ZMyEXET4o-7DAmeiyrosC2XdzIOHvpYmTi1IKlQ3rf/exec"; 
 
         // ==========================================
         // PENGATURAN & LAINNYA
@@ -755,13 +755,12 @@
         }
 
         // ==========================================
-        // FUNGSI REQUEST PDF (ANIMASI EKSTRAK PRO UI)
+        // FUNGSI REQUEST PDF (ANIMASI EKSTRAK NYICIL)
         // ==========================================
         async function requestPDF() {
             const projectName = document.getElementById('pdfProjectInput').value.trim();
             if (!projectName) { showToast("Nama Project/Range SN wajib diisi!", "error"); return; }
 
-            // Element UI Modal
             const modal = document.getElementById('pdfProgressModal');
             const modalBox = document.getElementById('pdfModalBox');
             const glowEffect = document.getElementById('pdfGlowEffect');
@@ -775,150 +774,141 @@
             const btnDownload = document.getElementById('btnDownloadPDF');
             const errorActions = document.getElementById('pdfErrorActions');
 
-            // Element Steps
-            const step1 = document.getElementById('step1');
-            const step1Icon = document.getElementById('step1Icon');
-            const step2 = document.getElementById('step2');
-            const step2Icon = document.getElementById('step2Icon');
-            const step3 = document.getElementById('step3');
-            const step3Icon = document.getElementById('step3Icon');
+            const step1 = document.getElementById('step1'); const step1Icon = document.getElementById('step1Icon');
+            const step2 = document.getElementById('step2'); const step2Icon = document.getElementById('step2Icon');
+            const step3 = document.getElementById('step3'); const step3Icon = document.getElementById('step3Icon');
 
-            // Reset UI Modal ke posisi awal (Loading)
+            // Reset UI Modal
             modal.classList.remove('hidden');
             modalBox.classList.remove('animate-shake', 'ring-4', 'ring-red-500');
             glowEffect.classList.remove('opacity-100', 'bg-red-500', 'bg-green-500');
             glowEffect.classList.add('opacity-0');
-            
             actions.classList.add('hidden'); actions.classList.remove('flex');
             errorActions.classList.add('hidden'); errorActions.classList.remove('flex');
             
             icon.className = "w-16 h-16 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce relative z-10 shadow-sm border border-blue-50";
             icon.innerHTML = '<i class="fa-solid fa-folder-magnifying-glass"></i>';
-            title.textContent = "Mencari Folder...";
-            text.textContent = "Memindai server dan mencari folder project...";
+            title.textContent = "Mencari & Menyiapkan...";
+            text.textContent = "Mendata seluruh foto di folder project...";
             
-            bar.className = "bg-blue-600 h-3 rounded-full transition-all duration-500 progress-striped"; // Tambah efek belang jalan
+            bar.className = "bg-blue-600 h-3 rounded-full transition-all duration-500 progress-striped";
             bar.style.width = "5%";
             percentTxt.textContent = "5% MEMPROSES";
             percentTxt.className = "text-blue-500 animate-pulse";
-            countTxt.textContent = "? / ? FILE";
+            countTxt.textContent = "0 / ? FILE";
 
-            // Reset Steps
             [step1, step2, step3].forEach(s => s.classList.replace('text-slate-800', 'text-slate-400'));
             [step1Icon, step2Icon, step3Icon].forEach(i => i.className = "fa-regular fa-circle w-4 text-center");
 
-            // Step 1 Aktif
             step1.classList.replace('text-slate-400', 'text-blue-600');
             step1Icon.className = "fa-solid fa-spinner fa-spin w-4 text-center text-blue-500";
 
             try {
-                // LANGKAH 1: Tanya Google ada berapa file di dalam folder ini
-                let countResponse = await fetch(SCRIPT_URL, {
+                // LANGKAH 1: INISIASI (BIKIN DOKUMEN & CARI FOTO)
+                let initResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: 'countFiles', projectName: projectName })
+                    body: JSON.stringify({ action: 'initPDF', projectName: projectName })
                 });
                 
-                let countRes;
-                try {
-                    countRes = JSON.parse(await countResponse.text());
-                } catch(e) {
-                    throw new Error("Server menolak akses. Pastikan Script sudah di-Otorisasi!");
-                }
+                let initRes;
+                try { initRes = JSON.parse(await initResponse.text()); } 
+                catch(e) { throw new Error("Server menolak akses. Pastikan Deploy Versi Baru!"); }
 
-                if (countRes.result !== 'success') throw new Error(countRes.message);
+                if (initRes.result !== 'success') throw new Error(initRes.message);
 
-                const totalFiles = countRes.count;
-                if (totalFiles === 0) throw new Error("Folder kosong atau tidak ada file foto di dalamnya.");
+                const totalFiles = initRes.total;
+                const fileIds = initRes.fileIds;
+                const docId = initRes.docId;
 
-                // Step 1 Selesai
                 step1.classList.replace('text-blue-600', 'text-green-600');
                 step1Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
                 
-                // Step 2 Aktif
                 step2.classList.replace('text-slate-400', 'text-blue-600');
                 step2Icon.className = "fa-solid fa-spinner fa-spin w-4 text-center text-blue-500";
 
-                // LANGKAH 2: Mulai Animasi Progress Ekstrak
                 icon.className = "w-16 h-16 mx-auto bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl mb-4 relative z-10 shadow-sm border border-indigo-50";
                 icon.innerHTML = '<i class="fa-solid fa-file-pdf fa-beat-fade"></i>';
-                title.textContent = "Mengekstrak Laporan...";
-                bar.style.width = "10%";
-                percentTxt.textContent = "10% MENYUSUN PDF";
-                countTxt.textContent = `0 / ${totalFiles} FILE`;
-                
+                title.textContent = "Menyusun PDF (Nyicil)...";
                 glowEffect.classList.remove('opacity-0');
-                glowEffect.classList.add('opacity-30', 'bg-indigo-500'); // Glow tipis saat proses
+                glowEffect.classList.add('opacity-30', 'bg-indigo-500');
 
-                // Animasi bohongan biar progress bar jalan (sinkron dengan jumlah foto)
-                let simulatedCount = 0;
-                let animInterval = setInterval(() => {
-                    if (simulatedCount < totalFiles - 1) { 
-                        simulatedCount++;
-                        let percent = Math.floor((simulatedCount / totalFiles) * 90); 
-                        bar.style.width = percent + "%";
-                        percentTxt.textContent = percent + "% MENYUSUN PDF";
-                        text.innerHTML = `Mengambil dan menyusun foto ke-<b>${simulatedCount}</b> ke dalam tabel PDF...`;
-                        countTxt.textContent = `${simulatedCount} / ${totalFiles} FILE`;
-                    } else {
-                        text.textContent = "Tinggal finishing tata letak, tunggu sebentar...";
-                        bar.style.width = "95%";
-                        percentTxt.textContent = "95% FINISHING";
-                    }
-                }, 800); 
+                // LANGKAH 2: BATCH PROCESSING (KIRIM 30 FOTO SEKALI JALAN)
+                const batchSize = 30; 
+                let processed = 0;
 
-                // Request Asli bikin PDF ke Google
-                let pdfResponse = await fetch(SCRIPT_URL, {
-                    method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: 'generatePDF', projectName: projectName })
-                });
-                let pdfRes = JSON.parse(await pdfResponse.text());
-
-                clearInterval(animInterval); 
-
-                if (pdfRes.result === 'success') {
-                    // LANGKAH 3: SUKSES
-                    step2.classList.replace('text-blue-600', 'text-green-600');
-                    step2Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
-                    step3.classList.replace('text-slate-400', 'text-green-600');
-                    step3Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
-
-                    bar.className = "bg-green-500 h-3 rounded-full transition-all duration-500"; // Hilangkan striped
-                    bar.style.width = "100%";
-                    percentTxt.textContent = "100% SELESAI";
-                    percentTxt.className = "text-green-600";
-                    countTxt.textContent = `${totalFiles} / ${totalFiles} FILE`;
+                for (let i = 0; i < fileIds.length; i += batchSize) {
+                    const chunk = fileIds.slice(i, i + batchSize);
                     
-                    title.textContent = "Mantap! Selesai!";
-                    title.className = "text-2xl font-black text-green-600 mb-1 relative z-10";
-                    text.textContent = "Laporan PDF berhasil diracik dan siap untuk diunduh/dicetak.";
+                    text.innerHTML = `Menyusun foto <b>${processed + 1} - ${processed + chunk.length}</b> dari ${totalFiles}...`;
+                    let percent = Math.floor((processed / totalFiles) * 80) + 10; // 10% ke 90%
+                    bar.style.width = percent + "%";
+                    percentTxt.textContent = percent + "% MENYUSUN";
+                    countTxt.textContent = `${processed} / ${totalFiles} FILE`;
 
-                    icon.className = "w-20 h-20 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mb-4 relative z-10 shadow-lg border-4 border-white";
-                    icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    let batchResponse = await fetch(SCRIPT_URL, {
+                        method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({ action: 'processBatch', docId: docId, fileIds: chunk })
+                    });
 
-                    glowEffect.classList.replace('bg-indigo-500', 'bg-green-400');
-                    glowEffect.classList.replace('opacity-30', 'opacity-40');
-
-                    btnDownload.href = pdfRes.link;
-                    actions.classList.remove('hidden');
-                    actions.classList.add('flex');
+                    let batchRes = JSON.parse(await batchResponse.text());
+                    if (batchRes.result !== 'success') throw new Error(batchRes.message);
                     
-                    showToast("Laporan PDF berhasil dibuat!", "success");
-                } else {
-                    throw new Error(pdfRes.message);
+                    processed += chunk.length;
                 }
 
-            } catch (err) {
-                // LANGKAH ERROR: Tampilkan Pesan Gagal yang Jelas
-                modalBox.classList.add('animate-shake', 'ring-4', 'ring-red-500');
+                // BATCH SELESAI, TINGGAL FINISHING
+                bar.style.width = "95%";
+                percentTxt.textContent = "95% FINISHING";
+                countTxt.textContent = `${totalFiles} / ${totalFiles} FILE`;
+                text.textContent = "Menyelesaikan dokumen dan konversi ke PDF...";
+
+                // LANGKAH 3: FINALIZE PDF (CONVERT & DAPETIN LINK)
+                let finalResponse = await fetch(SCRIPT_URL, {
+                    method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: 'finalizePDF', docId: docId, projectName: projectName })
+                });
+
+                let finalRes = JSON.parse(await finalResponse.text());
+                if (finalRes.result !== 'success') throw new Error(finalRes.message);
+
+                // SEMUA SUKSES
+                step2.classList.replace('text-blue-600', 'text-green-600');
+                step2Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
+                step3.classList.replace('text-slate-400', 'text-green-600');
+                step3Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
+
+                bar.className = "bg-green-500 h-3 rounded-full transition-all duration-500";
+                bar.style.width = "100%";
+                percentTxt.textContent = "100% SELESAI";
+                percentTxt.className = "text-green-600";
                 
+                title.textContent = "Mantap! Selesai!";
+                title.className = "text-2xl font-black text-green-600 mb-1 relative z-10";
+                text.textContent = "Laporan PDF berhasil diracik dan siap untuk diunduh/dicetak.";
+
+                icon.className = "w-20 h-20 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mb-4 relative z-10 shadow-lg border-4 border-white";
+                icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+
+                glowEffect.classList.replace('bg-indigo-500', 'bg-green-400');
+                glowEffect.classList.replace('opacity-30', 'opacity-40');
+
+                btnDownload.href = finalRes.link;
+                actions.classList.remove('hidden');
+                actions.classList.add('flex');
+                
+                showToast("Laporan PDF berhasil dibuat!", "success");
+
+            } catch (err) {
+                // ERROR HANDLER
+                modalBox.classList.add('animate-shake', 'ring-4', 'ring-red-500');
                 bar.className = "bg-red-500 h-3 rounded-full transition-all duration-300";
                 bar.style.width = "100%";
                 percentTxt.textContent = "GAGAL EKSTRAK";
                 percentTxt.className = "text-red-600";
                 
-                // Matikan icon spinner kalau lagi error
                 if(step1Icon.classList.contains('fa-spin')) step1Icon.className = "fa-solid fa-circle-xmark w-4 text-center text-red-500";
                 if(step2Icon.classList.contains('fa-spin')) step2Icon.className = "fa-solid fa-circle-xmark w-4 text-center text-red-500";
+                if(step3Icon.classList.contains('fa-spin')) step3Icon.className = "fa-solid fa-circle-xmark w-4 text-center text-red-500";
                 
                 title.textContent = "Ekstraksi Gagal!";
                 title.className = "text-xl font-black text-red-600 mb-1 relative z-10";
