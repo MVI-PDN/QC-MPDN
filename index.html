@@ -64,7 +64,6 @@
             from { background-position: 1rem 0; }
             to { background-position: 0 0; }
         }
-        /* --------------------------------------- */
 
         /* Utilitas untuk menyembunyikan widget saat kamera aktif */
         .hide-in-camera { display: none !important; }
@@ -88,6 +87,11 @@
             #shutterBtn { width: 70px !important; height: 70px !important; margin: 0 auto; }
             #btnFinishCamera { margin-top: 0 !important; margin-bottom: 10px; }
         }
+        
+        /* Scrollbar styling untuk area download */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
@@ -136,11 +140,11 @@
                 <h2 class="text-white font-bold text-lg"><i class="fa-solid fa-database mr-2"></i>Tambah Database File</h2>
                 <button onclick="closeAdminPanel()" class="text-blue-200 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-5 overflow-y-auto space-y-4 flex-1">
+            <div class="p-5 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
                 <form id="adminForm" class="space-y-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Kategori</label>
-                        <select id="dbKat" required class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                        <select id="dbKat" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                             <option value="">Pilih Kategori...</option>
                             <option value="INDOOR">INDOOR</option>
                             <option value="OUTDOOR">OUTDOOR</option>
@@ -148,31 +152,31 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tipe (Produk/Pitch)</label>
-                        <input type="text" id="dbTipe" required placeholder="Contoh: P1.86 / P4.00 / KIOSK" class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none uppercase">
+                        <input type="text" id="dbTipe" required placeholder="Contoh: P1.86 / P4.00 / KIOSK" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none uppercase transition">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Batch / Jenis</label>
-                            <input type="text" id="dbBatch" required placeholder="Contoh: 2411 / Lainnya" class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Batch / Folder Utama</label>
+                            <input type="text" id="dbBatch" required placeholder="Contoh: 2411 / Lainnya" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Jenis File</label>
-                            <select id="dbJenis" required class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                            <select id="dbJenis" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                                 <option value="RCGFX">RCGFX</option>
                                 <option value="Firmware">Firmware</option>
                             </select>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Varian Khusus (Opsional)</label>
-                        <input type="text" id="dbVarian" placeholder="Contoh: MRV432 / Versi-1 (Kosongkan jika tidak ada)" class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Sub-Folder / Varian Khusus (Opsional)</label>
+                        <input type="text" id="dbVarian" placeholder="Contoh: MRV432 (Kosongkan jika tidak ada)" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Link Google Drive</label>
-                        <input type="url" id="dbLink" required placeholder="Paste Link GDrive di sini..." class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                        <input type="url" id="dbLink" required placeholder="Paste Link GDrive di sini..." class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                     </div>
                     
-                    <button type="submit" id="btnSimpanDB" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-md active:scale-95 mt-4 flex justify-center items-center gap-2">
+                    <button type="submit" id="btnSimpanDB" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/30 active:scale-95 mt-4 flex justify-center items-center gap-2">
                         <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Database
                     </button>
                 </form>
@@ -349,7 +353,7 @@
                             <span>Siap Diupload: <b id="fileCount">0</b> file</span>
                             <button type="button" onclick="clearAllFiles()" class="text-red-500 hover:text-red-700 text-xs font-bold">Hapus Semua</button>
                         </div>
-                        <div id="previewList" class="max-h-60 overflow-y-auto space-y-2 pr-1"></div>
+                        <div id="previewList" class="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar"></div>
                     </div>
                 </div>
                 <button type="submit" id="submitBtn" disabled class="w-full bg-slate-400 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition flex justify-center items-center gap-2 cursor-not-allowed mt-2">
@@ -360,41 +364,61 @@
         </div>
 
         <!-- BAGIAN 2: PUSAT UNDUHAN (DATABASE DINAMIS) -->
-        <div id="tabDownload" class="hidden p-5 space-y-4 bg-slate-50 min-h-full transition-opacity duration-300">
-            <div class="flex justify-between items-start mb-2">
-                <div></div> <!-- Placeholder -->
-                <!-- TOMBOL ADMIN PANEL DI SINI -->
-                <button onclick="openAdminPanel()" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-200 transition shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-database"></i> Tambah Data</button>
-            </div>
+        <div id="tabDownload" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
             
-            <div class="text-center mb-4">
-                <div class="inline-flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-3 shadow-inner">
-                    <i class="fa-solid fa-folder-tree text-2xl text-blue-600"></i>
-                </div>
-                <h2 class="text-xl font-bold text-slate-800">Database File</h2>
-                <p class="text-xs text-slate-500 mt-1">Unduh Firmware dan RCGFX.</p>
-            </div>
-            
-            <div id="downloadBreadcrumb" class="bg-slate-200 py-2 px-3 rounded-lg text-xs font-medium mb-4 flex items-center overflow-x-auto whitespace-nowrap"></div>
-            <div id="downloadContent" class="space-y-3">
-                <div class="text-center py-10 opacity-50"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Sinkronisasi Database...</p></div>
-            </div>
-            
-            <!-- Form Laporan Otomatis -->
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mt-6">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-file-pdf"></i></div>
+            <!-- HEADER PUSAT UNDUHAN -->
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-folder-tree text-lg"></i>
+                    </div>
                     <div>
-                        <h3 class="font-bold text-slate-800 text-sm">Generate Laporan (PDF)</h3>
-                        <p class="text-[10px] text-slate-500">Jadikan 1 folder foto menjadi PDF.</p>
+                        <h2 class="text-lg font-black text-slate-800 leading-tight">Pusat Unduhan</h2>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">RCGFX & Firmware</p>
                     </div>
                 </div>
-                <div class="relative mb-3">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" id="pdfProjectInput" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-red-500 outline-none text-sm bg-slate-50 font-semibold" placeholder="Ketik Range SN / Nama Project...">
-                </div>
-                <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition active:scale-95 text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Bikin Laporan Sekarang!</button>
+                <!-- TOMBOL ADMIN PANEL -->
+                <button onclick="openAdminPanel()" class="bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-600 p-2.5 rounded-xl text-xs font-bold border border-slate-200 hover:border-blue-200 transition-all shadow-sm flex items-center gap-2 active:scale-95 group">
+                    <i class="fa-solid fa-plus text-slate-400 group-hover:text-blue-500 transition-colors"></i> 
+                    <span class="hidden sm:inline">Tambah Data</span>
+                </button>
             </div>
+            
+            <!-- BREADCRUMB MODERN -->
+            <div id="downloadBreadcrumb" class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 text-sm font-medium text-slate-600"></div>
+            
+            <!-- CONTENT FOLDER/FILE -->
+            <div id="downloadContent" class="space-y-3 min-h-[150px]">
+                <div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                    <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i>
+                    <p class="text-sm font-medium text-slate-500">Menyinkronkan Database...</p>
+                </div>
+            </div>
+            
+            <!-- Generate Laporan (PDF) - TEMA BIRU PUTIH -->
+            <div class="bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-500/5 mt-8 p-6 relative overflow-hidden group">
+                <div class="flex items-center gap-4 mb-4 relative z-10">
+                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-800 text-base tracking-wide">Laporan QC (PDF)</h3>
+                        <p class="text-[11px] font-medium text-slate-500">Jadikan 1 folder foto menjadi Dokumen.</p>
+                    </div>
+                </div>
+                
+                <div class="relative mb-4 group/input z-10">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="pdfProjectInput" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Ketik Nama Project / Range SN...">
+                </div>
+                
+                <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 relative z-10">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Bikin Laporan Sekarang!
+                </button>
+            </div>
+
             <div class="pb-10"></div>
         </div>
     </div>
@@ -414,7 +438,7 @@
     <!-- === BOTTOM NAVIGATION BAR === -->
     <div class="fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors"><i class="fa-solid fa-camera-retro text-xl mb-1"></i><span class="text-[10px] font-bold">Input QC</span></button>
-        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-cloud-arrow-down text-xl mb-1"></i><span class="text-[10px] font-bold">Unduh File</span></button>
+        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-cloud-arrow-down text-xl mb-1"></i><span class="text-[10px] font-bold">Pusat Unduhan</span></button>
     </div>
 
     <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-[90] text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
@@ -440,7 +464,7 @@
                 const res = await req.json();
                 if (res.result === 'success') { downloadDB = res.db; isDbLoaded = true; renderDownloadMenu(); }
                 else throw new Error("Gagal baca DB");
-            } catch(e) { document.getElementById('downloadContent').innerHTML = `<div class="text-center py-10 opacity-50"><i class="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-3"></i><p class="text-sm font-medium text-slate-500">Gagal memuat Database Excel.</p></div>`; }
+            } catch(e) { document.getElementById('downloadContent').innerHTML = `<div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200"><i class="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-3"></i><p class="text-sm font-medium text-slate-500">Gagal memuat Database Excel.</p></div>`; }
         }
 
         // ==========================================
@@ -470,7 +494,7 @@
                     showToast("Berhasil tersimpan ke Excel!", "success");
                     closeAdminPanel();
                     isDbLoaded = false; // Reset status biar dia nge-fetch ulang dari Excel
-                    document.getElementById('downloadContent').innerHTML = `<div class="text-center py-10 opacity-50"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Menyinkronkan data baru...</p></div>`;
+                    document.getElementById('downloadContent').innerHTML = `<div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200 shadow-sm"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Menyinkronkan data baru...</p></div>`;
                     fetchDatabase(); 
                 } else { throw new Error("Gagal menyimpan"); }
             } catch(e) { showToast("Gagal menyimpan data ke server", "error"); }
@@ -488,45 +512,74 @@
         function saveSettings() { appSettings.camQuality = document.querySelector('input[name="set_cam"]:checked').value; localStorage.setItem('qc_camQuality', appSettings.camQuality); closeSettings(); showToast("Pengaturan disimpan!", "success"); }
 
         let currentNavPath = []; 
-        function getFolderIconConfig(name) {
-            let n = name.toLowerCase(); let c = { icon: "fa-folder", color: "text-slate-400" };
-            if (n === 'indoor') c = { icon: "fa-building", color: "text-blue-500" }; 
-            else if (n === 'outdoor') c = { icon: "fa-sun", color: "text-orange-500" };
-            else if (/^p\d+\.\d+/.test(n)) c = { icon: "fa-display", color: "text-indigo-500" }; 
-            else if (n.includes('firmware')) c = { icon: "fa-microchip", color: "text-purple-500" }; 
-            else if (n.includes('rcgfx') || n.includes('rcfgx')) c = { icon: "fa-file-code", color: "text-pink-500" }; 
-            else if (n.includes('lainnya')) c = { icon: "fa-folder-open", color: "text-slate-400" };
-            else if (n.includes('versi')) c = { icon: "fa-code-branch", color: "text-teal-500" };
-            else if (n.includes('x') || (!isNaN(n) && n.length !== 4)) c = { icon: "fa-expand", color: "text-cyan-500" };
-            return c;
-        }
-
+        
         function renderDownloadMenu() {
             const container = document.getElementById('downloadContent'); const breadcrumb = document.getElementById('downloadBreadcrumb');
-            if (currentNavPath.length === 0) { breadcrumb.innerHTML = '<span class="text-slate-500"><i class="fa-solid fa-home"></i> Kategori Utama</span>'; } else {
-                breadcrumb.innerHTML = `<button onclick="navDownloadTo('back')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-white rounded shadow-sm mr-2 active:scale-95 transition-transform"><i class="fa-solid fa-arrow-left"></i> Kembali</button> <span class="text-slate-600 font-semibold truncate">${currentNavPath.join(' > ')}</span>`;
+            
+            // Render Breadcrumb (Gaya Root Windows Explorer)
+            if (currentNavPath.length === 0) { 
+                breadcrumb.innerHTML = `<div class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg flex items-center gap-2 font-bold"><i class="fa-solid fa-hard-drive"></i> Root Database</div>`; 
+            } else {
+                breadcrumb.innerHTML = `<button onclick="navDownloadTo('back')" class="text-slate-500 hover:text-slate-800 bg-white border border-slate-200 hover:border-slate-300 font-bold px-3 py-1.5 rounded-lg shadow-sm mr-1 active:scale-95 transition-all flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i></button> <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 shadow-sm flex items-center gap-2"><i class="fa-solid fa-folder-open text-blue-500"></i> ${currentNavPath.join(' <span class="text-slate-300 mx-1">/</span> ')}</div>`;
             }
+
             let currentData = downloadDB; for (let key of currentNavPath) { currentData = currentData[key]; }
             container.innerHTML = '';
-            if (!currentData || Object.keys(currentData).length === 0) { container.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i><p class="text-sm font-medium text-slate-500">Folder masih kosong.</p></div>`; return; }
+            
+            // Empty State
+            if (!currentData || Object.keys(currentData).length === 0) { 
+                container.innerHTML = `<div class="text-center py-12 bg-white rounded-2xl border border-slate-200 shadow-sm"><i class="fa-regular fa-folder-open text-4xl text-slate-300 mb-3"></i><p class="text-sm font-bold text-slate-400">Folder masih kosong.</p></div>`; 
+                return; 
+            }
+
+            // Render Items (Logika File Explorer Standar)
             for (let key in currentData) {
-                const itemData = currentData[key]; const isFile = typeof itemData === 'string'; 
-                let isVariantFolder = false; let childKeys = [];
-                if (typeof itemData === 'object' && itemData !== null) { childKeys = Object.keys(itemData); isVariantFolder = childKeys.length > 0 && Object.values(itemData).every(v => typeof v === 'string'); }
-                const fConfig = getFolderIconConfig(key);
+                const itemData = currentData[key]; 
+                const isFile = typeof itemData === 'string'; // Kalau datanya string, berarti dia link GDrive (File)
+                
                 if (isFile) {
-                    container.innerHTML += `<a href="${itemData}" target="_blank" class="w-full bg-white border border-slate-100 p-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-between mb-2 group active:scale-[0.98] active:bg-slate-50 hover:border-blue-200 hover:shadow-md"><div class="flex items-center gap-4"><div class="w-6 flex justify-center items-center transition-transform duration-300 group-hover:scale-110"><i class="fa-solid ${fConfig.icon} ${fConfig.color} text-xl opacity-80 group-hover:opacity-100"></i></div><div class="text-left transition-transform duration-300 group-hover:translate-x-1.5"><h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-600">${key}</h4><p class="text-[10px] text-slate-400 font-mono transition-colors group-hover:text-blue-400">Unduh file</p></div></div><i class="fa-solid fa-file-arrow-down text-slate-300 group-hover:text-blue-600 transition-colors text-xl"></i></a>`;
-                } else if (isVariantFolder) {
-                    const accId = 'acc-' + Math.random().toString(36).substr(2, 9); let variantsHtml = '';
-                    for(let vKey in itemData) { variantsHtml += `<a href="${itemData[vKey]}" target="_blank" class="py-2.5 px-3 rounded-lg flex items-center justify-between hover:bg-slate-50 transition-all duration-200 group/var active:scale-[0.98] mb-1"><div class="flex items-center gap-3"><i class="fa-solid fa-file-arrow-down text-slate-400 group-hover/var:text-blue-500 transition-colors"></i><span class="text-xs font-bold text-slate-600 transition-transform duration-300 group-hover/var:translate-x-1 group-active/var:text-blue-600">${vKey}</span></div><i class="fa-solid fa-download text-slate-300 group-hover/var:text-blue-600 transition-colors text-xs"></i></a>`; }
-                    container.innerHTML += `<div class="mb-2"><button onclick="toggleAccordion('${accId}')" class="w-full bg-white border border-slate-100 p-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-between group active:scale-[0.98] active:bg-slate-50 hover:border-blue-200"><div class="flex items-center gap-4"><div class="w-6 flex justify-center items-center transition-transform duration-300 group-hover:scale-110"><i class="fa-solid ${fConfig.icon} ${fConfig.color} text-xl opacity-80 group-hover:opacity-100"></i></div><div class="text-left transition-transform duration-300 group-hover:translate-x-1.5"><h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-600">${key}</h4><p class="text-[10px] text-slate-400 font-mono">${childKeys.length} Varian File</p></div></div><i id="icon-${accId}" class="fa-solid fa-chevron-down text-slate-300 transition-transform duration-300 group-hover:text-blue-500"></i></button><div id="${accId}" class="hidden flex-col mt-1 pl-4 border-l-2 border-slate-100 ml-5 py-1">${variantsHtml}</div></div>`;
+                    // UI KHUSUS FILE (DOKUMEN)
+                    let iconClass = "fa-file-lines"; let colorClass = "text-slate-500"; let bgClass = "bg-slate-50";
+                    if(key.toLowerCase().includes('rcgfx')) { iconClass = "fa-file-code"; colorClass = "text-pink-600"; bgClass = "bg-pink-50"; }
+                    else if(key.toLowerCase().includes('firmware')) { iconClass = "fa-microchip"; colorClass = "text-purple-600"; bgClass = "bg-purple-50"; }
+
+                    container.innerHTML += `
+                    <a href="${itemData}" target="_blank" class="w-full bg-white border border-slate-200 p-4 rounded-2xl shadow-sm transition-all duration-300 flex items-center justify-between group hover:border-blue-300 hover:shadow-md active:scale-[0.98] relative overflow-hidden mb-2">
+                        <div class="absolute left-0 top-0 h-full w-1 bg-transparent group-hover:bg-blue-500 transition-colors"></div>
+                        <div class="flex items-center gap-4 pl-2">
+                            <div class="w-10 h-10 rounded-xl ${bgClass} flex justify-center items-center transition-transform duration-300 group-hover:scale-110 border border-slate-100 group-hover:border-blue-100">
+                                <i class="fa-solid ${iconClass} ${colorClass} text-lg"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-700">${key}</h4>
+                                <p class="text-[10px] text-slate-400 font-mono font-semibold uppercase tracking-wider">File Siap Unduh</p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                            <i class="fa-solid fa-download"></i>
+                        </div>
+                    </a>`;
                 } else {
-                    container.innerHTML += `<button onclick="navDownloadTo('${key}')" class="w-full bg-white border border-slate-100 p-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-between mb-2 group active:scale-[0.98] active:bg-slate-50 hover:border-blue-200 hover:shadow-md"><div class="flex items-center gap-4"><div class="w-6 flex justify-center items-center transition-transform duration-300 group-hover:scale-110"><i class="fa-solid ${fConfig.icon} ${fConfig.color} text-xl opacity-80 group-hover:opacity-100"></i></div><div class="text-left transition-transform duration-300 group-hover:translate-x-1.5"><h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-600">${key}</h4></div></div><i class="fa-solid fa-chevron-right text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-blue-500"></i></button>`;
+                    // UI KHUSUS FOLDER (DIKLIK MASUK KE DALAM)
+                    const itemCount = Object.keys(itemData).length;
+                    container.innerHTML += `
+                    <button onclick="navDownloadTo('${key}')" class="w-full bg-white border border-slate-200 p-4 rounded-2xl shadow-sm transition-all duration-300 flex items-center justify-between group hover:border-blue-300 hover:shadow-md active:scale-[0.98] relative overflow-hidden mb-2">
+                        <div class="absolute left-0 top-0 h-full w-1 bg-transparent group-hover:bg-blue-500 transition-colors"></div>
+                        <div class="flex items-center gap-4 pl-2">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 flex justify-center items-center transition-transform duration-300 group-hover:scale-110 border border-blue-100 group-hover:bg-blue-100">
+                                <i class="fa-solid fa-folder text-blue-500 text-lg"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="font-bold text-slate-700 text-sm transition-colors group-hover:text-blue-700">${key}</h4>
+                                <p class="text-[10px] text-slate-400 font-mono font-semibold uppercase tracking-wider">${itemCount} Item di dalam</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-blue-500"></i>
+                    </button>`;
                 }
             }
         }
 
-        function toggleAccordion(id) { const content = document.getElementById(id); const icon = document.getElementById('icon-' + id); if (content.classList.contains('hidden')) { content.classList.remove('hidden'); content.classList.add('flex'); icon.classList.add('rotate-180'); } else { content.classList.add('hidden'); content.classList.remove('flex'); icon.classList.remove('rotate-180'); } }
         function navDownloadTo(target) { if (target === 'back') { currentNavPath.pop(); } else { currentNavPath.push(target); } renderDownloadMenu(); }
 
         function switchTab(tabName) {
