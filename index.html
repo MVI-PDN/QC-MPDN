@@ -123,66 +123,89 @@
                         <label class="cursor-pointer"><input type="radio" name="set_cam" value="720" class="peer sr-only" checked><div class="text-center p-2 rounded-lg border-2 border-slate-200 text-xs font-bold text-slate-500 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">Medium<br><span class="text-[10px] font-normal">720p</span></div></label>
                         <label class="cursor-pointer"><input type="radio" name="set_cam" value="480" class="peer sr-only"><div class="text-center p-2 rounded-lg border-2 border-slate-200 text-xs font-bold text-slate-500 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">Low<br><span class="text-[10px] font-normal">480p</span></div></label>
                     </div>
-                    <p class="text-[10px] text-slate-500 mt-2">* Watermark sekarang diaktifkan permanen secara bawaan.</p>
                 </div>
                 <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg active:scale-95 mt-2">Simpan Pengaturan</button>
             </div>
         </div>
     </div>
 
-    <!-- === MODAL PROGRESS BIKIN PDF (UI/UX BARU) === -->
+    <!-- === MODAL PANEL ADMIN (TAMBAH DATA) === -->
+    <div id="adminPanelModal" class="hidden fixed inset-0 z-[90] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-bounce-short flex flex-col max-h-[90vh]">
+            <div class="bg-blue-800 p-4 flex justify-between items-center shrink-0">
+                <h2 class="text-white font-bold text-lg"><i class="fa-solid fa-database mr-2"></i>Tambah Database File</h2>
+                <button onclick="closeAdminPanel()" class="text-blue-200 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-4 flex-1">
+                <form id="adminForm" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori</label>
+                        <select id="dbKat" required class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                            <option value="">Pilih Kategori...</option>
+                            <option value="INDOOR">INDOOR</option>
+                            <option value="OUTDOOR">OUTDOOR</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tipe (Produk/Pitch)</label>
+                        <input type="text" id="dbTipe" required placeholder="Contoh: P1.86 / P4.00 / KIOSK" class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none uppercase">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Batch / Jenis</label>
+                            <input type="text" id="dbBatch" required placeholder="Contoh: 2411 / Lainnya" class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Jenis File</label>
+                            <select id="dbJenis" required class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                                <option value="RCGFX">RCGFX</option>
+                                <option value="Firmware">Firmware</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Varian Khusus (Opsional)</label>
+                        <input type="text" id="dbVarian" placeholder="Contoh: MRV432 / Versi-1 (Kosongkan jika tidak ada)" class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Link Google Drive</label>
+                        <input type="url" id="dbLink" required placeholder="Paste Link GDrive di sini..." class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 outline-none">
+                    </div>
+                    
+                    <button type="submit" id="btnSimpanDB" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-md active:scale-95 mt-4 flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Database
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- === MODAL PROGRESS BIKIN PDF === -->
     <div id="pdfProgressModal" class="hidden fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div id="pdfModalBox" class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm text-center transform transition-all animate-bounce-short relative overflow-hidden">
-            <!-- Background Glow Effect (Tersembunyi, muncul saat selesai/loading) -->
             <div id="pdfGlowEffect" class="absolute inset-0 bg-blue-500 opacity-0 blur-3xl transition-opacity duration-1000 -z-10 pointer-events-none"></div>
-
             <div id="pdfProgressIcon" class="w-16 h-16 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce relative z-10 shadow-sm border border-blue-50">
                 <i class="fa-solid fa-folder-magnifying-glass"></i>
             </div>
-            
             <h3 id="pdfProgressTitle" class="text-xl font-black text-slate-800 mb-1 relative z-10">Mencari Folder...</h3>
-            <p id="pdfProgressText" class="text-xs text-slate-500 font-medium mb-5 relative z-10 min-h-[36px]">Melakukan pemindaian server dan menghitung total foto yang akan diracik...</p>
-
-            <!-- Progress Bar UI dengan Efek Striped -->
+            <p id="pdfProgressText" class="text-xs text-slate-500 font-medium mb-5 relative z-10 min-h-[36px]">Melakukan pemindaian server dan menghitung total foto...</p>
             <div class="w-full bg-slate-100 rounded-full h-3 mb-2 overflow-hidden relative z-10 shadow-inner">
-                <div id="pdfProgressBar" class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: 5%"></div>
+                <div id="pdfProgressBar" class="bg-blue-600 h-3 rounded-full transition-all duration-300 progress-striped" style="width: 5%"></div>
             </div>
             <div class="flex justify-between text-[10px] font-extrabold text-slate-400 mb-5 tracking-wide relative z-10 uppercase">
-                <span id="pdfProgressPercent">5% MEMPROSES</span>
-                <span id="pdfProgressCount">? / ? FILE</span>
+                <span id="pdfProgressPercent">5% MEMPROSES</span><span id="pdfProgressCount">? / ? FILE</span>
             </div>
-
-            <!-- Indikator Step-by-Step (BARU) -->
             <div id="pdfStepContainer" class="flex flex-col gap-2 text-left mb-6 bg-slate-50 p-3 rounded-xl border border-slate-100 relative z-10">
-                <div id="step1" class="flex items-center gap-3 text-xs text-slate-400 font-bold transition-colors duration-300">
-                    <i id="step1Icon" class="fa-regular fa-circle w-4 text-center"></i> 
-                    <span>1. Menyiapkan Dokumen</span>
-                </div>
-                <div id="step2" class="flex items-center gap-3 text-xs text-slate-400 font-bold transition-colors duration-300">
-                    <i id="step2Icon" class="fa-regular fa-circle w-4 text-center"></i> 
-                    <span>2. Ekstrak Tabel per Batch</span>
-                </div>
-                <div id="step3" class="flex items-center gap-3 text-xs text-slate-400 font-bold transition-colors duration-300">
-                    <i id="step3Icon" class="fa-regular fa-circle w-4 text-center"></i> 
-                    <span>3. Laporan Siap Unduh</span>
-                </div>
+                <div id="step1" class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step1Icon" class="fa-regular fa-circle w-4 text-center"></i><span>1. Menyiapkan Dokumen</span></div>
+                <div id="step2" class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step2Icon" class="fa-regular fa-circle w-4 text-center"></i><span>2. Ekstrak Tabel per Batch</span></div>
+                <div id="step3" class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step3Icon" class="fa-regular fa-circle w-4 text-center"></i><span>3. Laporan Siap Unduh</span></div>
             </div>
-
-            <!-- Tombol Aksi Hasil -->
             <div id="pdfResultActions" class="hidden flex-col gap-3 relative z-10">
-                <a id="btnDownloadPDF" href="#" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 active:scale-95 transition flex items-center justify-center gap-2 group">
-                    <i class="fa-solid fa-cloud-arrow-down text-lg group-hover:animate-bounce"></i> Buka & Download PDF
-                </a>
-                <button onclick="closePdfProgress()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition active:scale-95 text-sm">
-                    Tutup
-                </button>
+                <a id="btnDownloadPDF" href="#" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 active:scale-95 transition flex items-center justify-center gap-2 group"><i class="fa-solid fa-cloud-arrow-down text-lg group-hover:animate-bounce"></i> Buka & Download PDF</a>
+                <button onclick="closePdfProgress()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition active:scale-95 text-sm">Tutup</button>
             </div>
-            
-            <!-- Tombol Tutup Khusus Error -->
             <div id="pdfErrorActions" class="hidden flex-col gap-3 relative z-10 mt-4">
-                <button onclick="closePdfProgress()" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-3 rounded-xl transition active:scale-95 text-sm border border-red-200">
-                    Oke, Saya Paham
-                </button>
+                <button onclick="closePdfProgress()" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-3 rounded-xl transition active:scale-95 text-sm border border-red-200">Oke, Saya Paham</button>
             </div>
         </div>
     </div>
@@ -336,9 +359,15 @@
             </form>
         </div>
 
-        <!-- BAGIAN 2: PUSAT UNDUHAN (DATABASE MANUAL) -->
+        <!-- BAGIAN 2: PUSAT UNDUHAN (DATABASE DINAMIS) -->
         <div id="tabDownload" class="hidden p-5 space-y-4 bg-slate-50 min-h-full transition-opacity duration-300">
-            <div class="text-center mb-4 pt-4">
+            <div class="flex justify-between items-start mb-2">
+                <div></div> <!-- Placeholder -->
+                <!-- TOMBOL ADMIN PANEL DI SINI -->
+                <button onclick="openAdminPanel()" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-200 transition shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-database"></i> Tambah Data</button>
+            </div>
+            
+            <div class="text-center mb-4">
                 <div class="inline-flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-3 shadow-inner">
                     <i class="fa-solid fa-folder-tree text-2xl text-blue-600"></i>
                 </div>
@@ -347,35 +376,30 @@
             </div>
             
             <div id="downloadBreadcrumb" class="bg-slate-200 py-2 px-3 rounded-lg text-xs font-medium mb-4 flex items-center overflow-x-auto whitespace-nowrap"></div>
-            <div id="downloadContent" class="space-y-3"></div>
+            <div id="downloadContent" class="space-y-3">
+                <div class="text-center py-10 opacity-50"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Sinkronisasi Database...</p></div>
+            </div>
             
             <!-- Form Laporan Otomatis -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mt-6">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-file-pdf"></i>
-                    </div>
+                    <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-file-pdf"></i></div>
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm">Generate Laporan (PDF)</h3>
                         <p class="text-[10px] text-slate-500">Jadikan 1 folder foto menjadi PDF.</p>
                     </div>
                 </div>
-                
                 <div class="relative mb-3">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" id="pdfProjectInput" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-red-500 outline-none text-sm bg-slate-50 font-semibold" placeholder="Ketik Range SN / Nama Project...">
                 </div>
-                <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition active:scale-95 text-xs flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Bikin Laporan Sekarang!
-                </button>
+                <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition active:scale-95 text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Bikin Laporan Sekarang!</button>
             </div>
-
             <div class="pb-10"></div>
         </div>
     </div>
     
+    <!-- === WIDGET PROGRESS BG === -->
     <div id="floatingProgress" class="fixed top-24 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 -translate-y-5 opacity-0 pointer-events-none hidden">
         <div class="flex items-center gap-3 mb-2">
             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0"><i class="fa-solid fa-cloud-arrow-up fa-fade"></i></div>
@@ -399,9 +423,60 @@
 
     <script>
         // ==========================================
-        // SCRIPT URL (GANTI JIKA PERLU)
+        // PASTIIN URL DI BAWAH INI ADALAH URL DEPLOY YANG BARU LU DAPET YA BRAY!
         // ==========================================
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygFlCBP28e3eYtMuy9kvDD1syt_V-jstO6WEYi4xudnPA5OmmLYpgc1teSb1oceeim/exec"; 
+
+        // ==========================================
+        // DATABASE DINAMIS DARI EXCEL
+        // ==========================================
+        let downloadDB = {}; 
+        let isDbLoaded = false;
+
+        async function fetchDatabase() {
+            if (isDbLoaded) return;
+            try {
+                const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: 'getDownloadDB' }) });
+                const res = await req.json();
+                if (res.result === 'success') { downloadDB = res.db; isDbLoaded = true; renderDownloadMenu(); }
+                else throw new Error("Gagal baca DB");
+            } catch(e) { document.getElementById('downloadContent').innerHTML = `<div class="text-center py-10 opacity-50"><i class="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-3"></i><p class="text-sm font-medium text-slate-500">Gagal memuat Database Excel.</p></div>`; }
+        }
+
+        // ==========================================
+        // FUNGSI ADMIN PANEL
+        // ==========================================
+        function openAdminPanel() { document.getElementById('adminPanelModal').classList.remove('hidden'); }
+        function closeAdminPanel() { document.getElementById('adminPanelModal').classList.add('hidden'); document.getElementById('adminForm').reset(); }
+        
+        document.getElementById('adminForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSimpanDB'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+            
+            const dataDB = {
+                action: 'addDownloadDB',
+                kategori: document.getElementById('dbKat').value,
+                tipe: document.getElementById('dbTipe').value.toUpperCase(),
+                batch: document.getElementById('dbBatch').value,
+                jenisFile: document.getElementById('dbJenis').value,
+                varian: document.getElementById('dbVarian').value,
+                link: document.getElementById('dbLink').value
+            };
+
+            try {
+                const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(dataDB) });
+                const res = await req.json();
+                if (res.result === 'success') {
+                    showToast("Berhasil tersimpan ke Excel!", "success");
+                    closeAdminPanel();
+                    isDbLoaded = false; // Reset status biar dia nge-fetch ulang dari Excel
+                    document.getElementById('downloadContent').innerHTML = `<div class="text-center py-10 opacity-50"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Menyinkronkan data baru...</p></div>`;
+                    fetchDatabase(); 
+                } else { throw new Error("Gagal menyimpan"); }
+            } catch(e) { showToast("Gagal menyimpan data ke server", "error"); }
+            
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Database';
+        });
 
         // ==========================================
         // PENGATURAN & LAINNYA
@@ -411,24 +486,6 @@
         function openSettings() { document.querySelector(`input[name="set_cam"][value="${appSettings.camQuality}"]`).checked = true; document.getElementById('settingsModal').classList.remove('hidden'); }
         function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
         function saveSettings() { appSettings.camQuality = document.querySelector('input[name="set_cam"]:checked').value; localStorage.setItem('qc_camQuality', appSettings.camQuality); closeSettings(); showToast("Pengaturan disimpan!", "success"); }
-
-        const downloadDB = {
-            "INDOOR": {
-                "P1.20": { "2507": { "RCGFX": { "MRV432": "https://drive.usercontent.google.com/download?id=1BHg9bxGmx1Is2P3Qz3Ig8NDqdZZzxE2I&export=download&authuser=0&confirm=t&uuid=6c4fd223-5a02-4f8c-89fd-526910a7d78a&at=APcXIO0_LSa_q5boCpfJrqfl1hzi:1771776005865", "MRV532": "https://drive.usercontent.google.com/download?id=1cVV817VP3Qc9xEqJLFwN94b_5x9QTTFT&export=download&authuser=0&confirm=t&uuid=5f8e3388-44eb-46e0-8a4d-680099647669&at=APcXIO1YNQ0k8U81uiiWncGA3msC:1771776060491" }, "Firmware": { "MRV432": "", "MRV532": "" } }, "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=1uaEaRf2FiYTIb6pDBRwwBK4oafYQxJsm&export=download&authuser=0&confirm=t&uuid=ef8d3f97-0d16-40d5-80de-3446b5122344&at=APcXIO2r3ufmTf97ZbnKGfPRfj0N:1771776391892", "Firmware": "https://drive.usercontent.google.com/download?id=12DiNRLOGm2P9j3E0sJca3PpW4wznMKql&export=download&authuser=0&confirm=t&uuid=3e890cc1-4442-4adb-b0a9-a77c14c26793&at=APcXIO3pph9VirhmUw2F7zfkJtAq:1771776425018" } },
-                "P1.50": { "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=155MZbJuToKSxyqYN3dgB9avBZcAMCJvo&export=download&authuser=0&confirm=t&uuid=4f63e20b-8f24-4585-b981-55057229f6cb&at=APcXIO313oNhIJeo84mTkQtLEvP4:1771776546070", "Firmware": "https://drive.usercontent.google.com/download?id=1HuDar2rpU0ho4w-LdvBIL0BnhY31y5Re&export=download&authuser=0&confirm=t&uuid=4586592f-80b1-44db-8a3e-4775ee3d5120&at=APcXIO0ir0wxK4q8j0amPKukByoJ:1771776604307" } },
-                "P1.86": { "2406": { "RCGFX": "https://drive.usercontent.google.com/download?id=1trXlletWNIrqEUkXCchminIijj9PNfEh&export=download&authuser=0&confirm=t&uuid=9fba217b-38d5-448c-8fc8-232ad6289f11&at=APcXIO0jDIMIn-u1T6b92H1_66fX:1771779257161", "Firmware": "https://drive.usercontent.google.com/download?id=1OMtB-h_me_1DWuvscld5djDDVKcYkjv2&export=download&authuser=0&confirm=t&uuid=2effe16a-3b61-46e8-923e-d26aa9ac5909&at=APcXIO2_Ll5-wMa4-wob6xFLTEdi:1771779251631" }, "2411": { "RCGFX": "https://drive.usercontent.google.com/download?id=1xL5DESv_G-Im_Ee6GqKqrMk3NDHwaQ4B&export=download&authuser=0&confirm=t&uuid=a62c9cdd-834b-46ac-8549-759519b0b838&at=APcXIO2QJi7H7v3SkWdeew3IfL_S:1771780729982", "Firmware": "https://drive.usercontent.google.com/download?id=1_lT23ppWvTioZeLSvkzeL4ZqaxvrmENT&export=download&authuser=0&confirm=t&uuid=2d804c5b-903e-4a9f-9594-5299c0acb5a9&at=APcXIO06ZAzhpJgaI6dQKtJslx3b:1771780706294" }, "2501": { "RCGFX": "https://drive.usercontent.google.com/download?id=1njciLAUnqAvk5ORX6kt_qGWud0x3auRm&export=download&authuser=0&confirm=t&uuid=257291e3-dfc8-43b7-aefd-381d13042b25&at=APcXIO3iVObPB59rR7_-F2IABi7M:1771780760226", "Firmware": "https://drive.usercontent.google.com/download?id=1w35j92a4gWh_pO-BCdjj3oLthKShZbbO&export=download&authuser=0&confirm=t&uuid=942e1c34-85c5-4576-b123-90931bb97c52&at=APcXIO0uTGKeTOacM7WEWXV6YTCh:1771780754367" }, "2507": { "RCGFX": "https://drive.usercontent.google.com/download?id=1f9neASSlujBKkf11919ZzfSdgpvWyvdK&export=download&authuser=0&confirm=t&uuid=a7751812-7faf-4494-9746-67419492263a&at=APcXIO1_gv2M-WAK6WTx-T2rJu21:1771780796737", "Firmware": "https://drive.usercontent.google.com/download?id=1UCP0uxZZFSdZDJdw7ZqA_uVHOlvLVoNB&export=download&authuser=0&confirm=t&uuid=8b0b4bdd-b757-425d-8373-5e2cc97a956f&at=APcXIO0mAByiF035oww0FUbXiT4m:1771780800701" }, "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=1fBV_1L-eyT8YlVuACqxxMerfylwappPF&export=download&authuser=0&confirm=t&uuid=6b800034-9774-46a1-96e5-a57123f18e0d&at=APcXIO1MNCMhs0TTZ263ZmZ7hrww:1771780907102", "Firmware": "https://drive.usercontent.google.com/download?id=1e8l_p7wtEy9Tn6pEKGX5QVHg8KJWJI8o&export=download&authuser=0&confirm=t&uuid=ab86a387-83bd-4f3b-b350-7a6217f6d12a&at=APcXIO3dG3uJGPoR4sly_88oPC1k:1771780902544" } }, 
-                "P2.00": { "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=10dJV52Uq3uyqHpxL-csvfKgAxpJMAs_T&export=download&authuser=0&confirm=t&uuid=4bf5ea65-41c3-4932-a5e1-1834d850d5b5&at=APcXIO0CN9GEZGyetVBC6EbRwKck:1771780995010", "Firmware": "https://drive.usercontent.google.com/download?id=1JkxgPjvvg93zWct167t-thrwr5sZHGGs&export=download&authuser=0&confirm=t&uuid=c62f3e6a-e57f-460b-bdcf-1cdb2bd722e3&at=APcXIO2myu740KKTfA42f2wIWvhL:1771781052200" } },
-                "P2.50": { "2410": { "16x16": { "RCGFX": "https://drive.usercontent.google.com/download?id=1bfIsAepX-QJ7OSuov0dBit30aBQc8H6e&export=download&authuser=0&confirm=t&uuid=e81932f3-aeb5-4d3e-83aa-cb3b5d8f2a12&at=APcXIO1Hqet1R6ia-ruYJrSkj5wd:1771781365096", "Firmware": "https://drive.usercontent.google.com/download?id=1pY4InUopG68pSfGOXCucc5YBvZltKkgV&export=download&authuser=0&confirm=t&uuid=a0bdc41d-19bd-4431-9a18-582b262108b6&at=APcXIO0dmrLr7Ad-Nh4zbO8QDNNA:1771781360195" }, "3216": { "RCGFX": "https://drive.usercontent.google.com/download?id=1b0QJZX7GOcyYbndOdu_NAZOY6EEzFnmP&export=download&authuser=0&confirm=t&uuid=7d8bf90a-3637-4810-b137-f2cae2a547be&at=APcXIO2vUKzVXyb-h3PPIO75eoib:1771781410745", "Firmware": "https://drive.usercontent.google.com/download?id=1AKAjV3cLua52zgAjdorgJUt5fyzhOxtE&export=download&authuser=0&confirm=t&uuid=71a1ff03-8d58-463f-84ae-a36b7c83f54d&at=APcXIO1L1VrpLBSNDOEJaOXyKVgc:1771781407146" } }, "2505": { "Versi-1": { "RCGFX": "https://drive.usercontent.google.com/download?id=1jKcWTx-Sn0x8ZKPBpv54iOSQ-NLjsA8d&export=download&authuser=0&confirm=t&uuid=7db11505-a269-4272-8208-85eb3ad5be63&at=APcXIO1RaZMKifL6_VutPhp1RvJ7:1771781723504", "Firmware": "https://drive.usercontent.google.com/download?id=1PfeVnlXZg8AgNF9LXOZSAwXb4rUWH5Lm&export=download&authuser=0&confirm=t&uuid=0997d42f-56ef-4e57-8550-2e84a8c9804b&at=APcXIO1JczcGtBo1ppAroIqKwoGD:1771781727249" }, "Versi-2": { "RCGFX": "https://drive.usercontent.google.com/download?id=1tObO2yuy_d_HEmuvSTQArNK_OGuIUbET&export=download&authuser=0&confirm=t&uuid=86d8ec8f-8358-4782-a369-8d193c83eba2&at=APcXIO3B_Z28LVnP0jkHETjpX0oS:1771781773977", "Firmware": "https://drive.usercontent.google.com/download?id=16i079Mwmn0Vdk8FfqcrS3LLZa0Uqb4HV&export=download&authuser=0&confirm=t&uuid=1876686c-5be2-4c37-b3dd-dbebab544519&at=APcXIO2qKfaf9A64F-6NVBiahWyO:1771781769701" } }, "2507": { "RCGFX": "https://drive.usercontent.google.com/download?id=1XqTgmjiZEc4kUzllvvIJ3m782T4Cq4cY&export=download&authuser=0&confirm=t&uuid=6fd4b5cd-5294-435b-89fc-93fd6c531b3e&at=APcXIO1rBf1Tp4gy7HM8YnTn7gJr:1771781815488", "Firmware": "https://drive.usercontent.google.com/download?id=1P7EL4dbHHCX3VoAEgeYMeJp5_MbixUiq&export=download&authuser=0&confirm=t&uuid=056da1a7-58a2-494b-bff5-3fc7726e901a&at=APcXIO2uDOne5b5Mvr0ZC7mCkfyV:1771781818526" }, "2511": { "RCGFX": "https://drive.usercontent.google.com/download?id=1uv6g6wChN74eCsupoF8FDanZkFfJIfwF&export=download&authuser=0&confirm=t&uuid=e4323a3f-457a-4ca3-9a67-0c8fe4795160&at=APcXIO1VaceWDcdSp0lBuexqQQlJ:1771781857142", "Firmware": "https://drive.usercontent.google.com/download?id=1aA8mnUL24iYgtTeJtk7Jg-3nrK09Wr7E&export=download&authuser=0&confirm=t&uuid=78a2081a-4819-4315-8334-3d155546a6c7&at=APcXIO05K51-32x63oTwsIjwiFc8:1771781851150" }, "2512": { "RCGFX": "https://drive.usercontent.google.com/download?id=1fVkLjnOyP9hdlfnwVjh9BxmP0kvnMjRs&export=download&authuser=0&confirm=t&uuid=c3db6a84-6f28-4049-9966-247fa8cc9de4&at=APcXIO3wqW9srNwe1BxdthgS-eho:1771781904018", "Firmware": "https://drive.usercontent.google.com/download?id=1mkdpK7K6lF8dqBMghsgshPDIaAS2F-RB&export=download&authuser=0&confirm=t&uuid=284e7962-5e7d-48d3-a391-ae2d27c97791&at=APcXIO3pjdIJ-XsxmDS1n0x5sW8C:1771781909297" }, "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=1G4VDtjWB4wtC846kQhIp9htpXmOEfggy&export=download&authuser=0&confirm=t&uuid=89cc88ff-101f-4f9e-8812-09ebe74c92d1&at=APcXIO2aL7xrNMbc8MqLtdAfrELS:1771781938976", "Firmware": "https://drive.usercontent.google.com/download?id=1RNR-UtKAbX7qX9TLr9EC88GeABsKIMcc&export=download&authuser=0&confirm=t&uuid=5aacf856-4fd7-4148-8d69-da69b16df326&at=APcXIO11z3DJ14Vgulg3meqQKDof:1771781943036" } },
-                "P4.00": { "2409": { "RCGFX": "https://drive.usercontent.google.com/download?id=1Yq30i0X9ZgsdOEPrtD56ZclbtuubedQb&export=download&authuser=0&confirm=t&uuid=bba2e5b1-d25a-4000-ae47-7fe80192ef31&at=APcXIO0t5qXiL-0lRIumJuPcmWzn:1771782001592", "Firmware": "https://drive.usercontent.google.com/download?id=10xledjJj_irs4mqNwnsuFw1UN75bsRoR&export=download&authuser=0&confirm=t&uuid=67afadd8-e668-478e-8292-6524e17b61c3&at=APcXIO2qzZKcioI5xwJQb4NSnnz-:1771781995705" }, "2603": { "RCGFX": "https://drive.usercontent.google.com/download?id=1MuJOPwFUaIaWRcd2KlXZRgon__utdhJ-&export=download&authuser=0&confirm=t&uuid=054ba096-7bed-4bde-8f70-63565cc60b04&at=AGN2oQ0Pya0TTHBQDKBVq6Nre4dW:1773737544839", "Firmware": "https://drive.usercontent.google.com/download?id=1Ebs2WLBbDqN2umvd-BWyJzEdokGU51Aw&export=download&authuser=0&confirm=t&uuid=afc588ed-42db-4f2f-a9e4-01e1c898cdec&at=AGN2oQ1iq7bNUv4iTXGs0n3iaPss:1773737529502" }, "2411": { "RCGFX": "https://drive.usercontent.google.com/download?id=1sOE9MG763Pj9ervzCRNjBswVtSfj16vr&export=download&authuser=0&confirm=t&uuid=2eeec300-668d-4d8f-ba85-34ad0ba67bbc&at=AGN2oQ1c9jYZBTG68xM3uz33wkz3:1773737556489", "Firmware": "https://drive.usercontent.google.com/download?id=13L8CUjnd94eMY4w8o3I-vH0L6vKlQopS&export=download&authuser=0&confirm=t&uuid=2f14cfd9-a02b-40ea-aa2e-7e46a3aed734&at=AGN2oQ1Hf9ecL5Ashal5Eb7EwE9o:1773737525312" } }
-            },
-            "OUTDOOR": {
-                "P4.00": { "2411": { "RCGFX": "https://drive.usercontent.google.com/download?id=1xSMLMZLIOAKGjuBPbrOX02Twrrf5e7LO&export=download&authuser=0&confirm=t&uuid=61258fdf-b040-4ce5-8091-469a2e474b05&at=APcXIO1d1AQfCDGy3N1Uks_WRodn:1771782055519", "Firmware": "https://drive.usercontent.google.com/download?id=1WveGglE-kN3pFWKqgqqnKD8qderCjdbn&export=download&authuser=0&confirm=t&uuid=a0af3421-1160-4381-a3ad-2f27d18ef225&at=APcXIO0uH6hQDyD9WJNyVJ96-EHP:1771782049799" }, "2510": { "RCGFX": "https://drive.usercontent.google.com/download?id=1UnAB2hOB9pOjfZdSbs3zwZ17mSolyNu7&export=download&authuser=0&confirm=t&uuid=94f2df02-4baf-4b4b-afbf-e2cae731aa58&at=APcXIO2Gl0Ewka4z8R9164mwHbn6:1771782094281", "Firmware": "https://drive.usercontent.google.com/download?id=1N2S8HQLrftGQ7X5Ey5neq5Y72buBnT23&export=download&authuser=0&confirm=t&uuid=79978ad1-46b1-4523-bf24-5ae8321dfa31&at=APcXIO1ELMdnzDEg5NevOKhO8E4H:1771782090128" }, "2511": { "RCGFX": "https://drive.usercontent.google.com/download?id=1JbRNlFhWRBRQVdmypBumMGZBNvhXXo0B&export=download&authuser=0&confirm=t&uuid=2d559a2d-c9b5-41e9-a3ae-8e2ebd83837d&at=APcXIO1pXMzsjeSfTF8GrrLAAPK_:1771782125357", "Firmware": "https://drive.usercontent.google.com/download?id=1Qsa908w7-IUYhKTzds30a2XWoxMJMKh7&export=download&authuser=0&confirm=t&uuid=9728349d-40df-41db-bb10-8324f680450e&at=APcXIO35_nY9pq8_uo9w4iPaxcvN:1771782129210" }, "2512": { "RCGFX": "https://drive.usercontent.google.com/download?id=17kzmyWrA34HYpvMuee20FiQX6O9yaA1U&export=download&authuser=0&confirm=t&uuid=bf44e551-784b-49de-abbb-6125334ec068&at=APcXIO1dj6oREJjzSUes9OwBfniP:1771782190461", "Firmware": "https://drive.usercontent.google.com/download?id=1xGjJ2APD9RdcGY1HdDZlRSLRfUf6UdSX&export=download&authuser=0&confirm=t&uuid=15f3d2ac-26ad-449e-ac73-4a07a4a9734a&at=APcXIO2YgG1WEOfpwf8X7kHcrVT4:1771782186348" }, "Lainnya": { "Versi-1": { "RCGFX": "https://drive.usercontent.google.com/download?id=1N2Jk1E1Ui5cRBli3Tv8jNvXJJHXhsrhy&export=download&authuser=0&confirm=t&uuid=f78e63a1-12d4-4378-99ec-3a8b35d12d14&at=APcXIO0uIo55RdojRX3oHd8SSDsN:1771782463567", "Firmware": "https://drive.usercontent.google.com/download?id=1elOajFmrfilFWcvUGdjzwV3oLXNywBwB&export=download&authuser=0&confirm=t&uuid=26fbfacb-0d69-49f6-9855-de9c737d98e6&at=APcXIO0SyfBSlvIU02K2VohN3_Vs:1771782458205" }, "Versi-2": { "RCGFX": "https://drive.usercontent.google.com/download?id=1yu_oFCF_7kpjCSep2Fd-ErmBXgnhLl8o&export=download&authuser=0&confirm=t&uuid=8ed062b9-46ee-4568-81bd-64d97fb5e384&at=APcXIO0xc25Hku6igfzFbWaDcY2K:1771782495131", "Firmware": "https://drive.usercontent.google.com/download?id=1lavu0-sMA-FmEWmA565WUQgjiEaybrjm&export=download&authuser=0&confirm=t&uuid=73bcbed7-db7c-4b9b-b560-d585ea7a6323&at=APcXIO0aQ4h1MlllKcUOMV56G8kf:1771782498998" } } },
-                "P5.00": { "2402": { "RCGFX": "https://drive.usercontent.google.com/download?id=1f3JnSWOUeniR6E54THx30q0t2rZ9iI3P&export=download&authuser=0&confirm=t&uuid=2653039d-6b4d-4a4d-863f-e1577ab2df79&at=APcXIO1nidRgTgfmBR1llbKzLq24:1771782540100", "Firmware": "https://drive.usercontent.google.com/download?id=1drwg2NJJclQhXF8pxt1uPay-2a7v8w67&export=download&authuser=0&confirm=t&uuid=0c561d72-14cc-4c1b-9bc2-29bbb400863a&at=APcXIO2i5Ow46LOQG-fZVZi6PQ4b:1771782543910" }, "2406": { "RCGFX": "https://drive.usercontent.google.com/download?id=1hiGetYH9BNevZF3v31Og-phOuHcV0WsK&export=download&authuser=0&confirm=t&uuid=3af0dcd6-3c65-42b3-9634-3d9bd770bccc&at=APcXIO2Sq3SQC6Wib3iyD7nqxGAt:1771782579866", "Firmware": "https://drive.usercontent.google.com/download?id=1iP7BtykaaKUg5ct4gTq7LQvxLTPPf4J2&export=download&authuser=0&confirm=t&uuid=f47dbd4a-9aa0-442a-954e-68b767fc1a6a&at=APcXIO3QXDeCLBr6mXIwUgufIRPe:1771782578052" }, "2511": { "RCGFX": "https://drive.usercontent.google.com/download?id=1j-f07cO4zCZ-SfHf0rS7ygbe-F4Jt2pI&export=download&authuser=0&confirm=t&uuid=355e5608-ba96-4587-bfde-c30799824b2e&at=APcXIO3F866gNR89dY-g--pziAFM:1771782646288", "Firmware": "https://drive.usercontent.google.com/download?id=1VTqrUhQjDeH50AbMZ281FVfIN0Cxfwsr&export=download&authuser=0&confirm=t&uuid=d73aea05-62cd-423b-925a-5ce4fd97b6bc&at=APcXIO2cuvaXq0ITAPPhKWKRS0dz:1771782652641" }, "2512": { "RCGFX": "https://drive.usercontent.google.com/download?id=1jXfA1Rsgo_uN4U4FMKqN7fjAGQ9WbjYw&export=download&authuser=0&confirm=t&uuid=7c6991da-724d-4c99-9ab6-24986b1e744c&at=APcXIO1dsD8NQamHzm1p3Z_2irCj:1771782707850", "Firmware": "https://drive.usercontent.google.com/download?id=1n0I1C_50XeqZkW5Cb9KFC60e6N5ge_aH&export=download&authuser=0&confirm=t&uuid=ce2b8587-d797-498d-b80f-469e9934ea04&at=APcXIO3otTEvVtNK8jvathN-Zu7A:1771782701583" } },
-                "P6.00": { "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=1sIet4_pRAnLSHeCb-Q-Mf_nWh33kna6X&export=download&authuser=0&confirm=t&uuid=36938956-cf59-4405-9533-ea10084b473c&at=APcXIO27AhW92cJHQCODpyaGLboy:1771782748690", "Firmware": "https://drive.usercontent.google.com/download?id=129yOR5OpUQqHcNkjI7CenOao9AuaDhAp&export=download&authuser=0&confirm=t&uuid=3a144a20-132b-495e-9f69-f41fb66dc6d2&at=APcXIO2rxOAqvFbAJdxRCod6CK8n:1771782744189" } },
-                "P8.00": { "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=155ZeZmLTtuO-rEXc95I4LPqg5LrMdXSB&export=download&authuser=0&confirm=t&uuid=4db314c4-2403-4f0d-ab61-ce5735dcea5b&at=APcXIO0kSqdQFsobbJQ8wz0RRgTo:1771782813968", "Firmware": "https://drive.usercontent.google.com/download?id=1qIZCjFgogBABsN7lZh2JUSu88yEkoVy0&export=download&authuser=0&confirm=t&uuid=c0a778c3-0e4f-4c76-9a3e-70d6b084c1e1&at=APcXIO1qTYCydQsR6YXxQbNDfugK:1771782809423" } },
-                "P10.00": { "2405": { "RCGFX": "https://drive.usercontent.google.com/download?id=1F5Cix06gLBXQtX03ONqqO5fG6TBQbIBX&export=download&authuser=0&confirm=t&uuid=611fb10c-3c18-4930-bf1d-c1e7df3fdca8&at=AGN2oQ3FBWf1mIW9lwPjbbypg8fA:1773388337363", "Firmware": "https://drive.usercontent.google.com/download?id=1PfeVnlXZg8AgNF9LXOZSAwXb4rUWH5Lm&export=download&authuser=0&confirm=t&uuid=3d838590-eea8-4a82-8d6f-541ea7ebe888&at=AGN2oQ227jOAUEozb5dLN4m_3vEW:1773388731417" }, "Lainnya": { "RCGFX": "https://drive.usercontent.google.com/download?id=1P3_YPzC_anAD-qDLbDmj3UAPZoD5sNIx&export=download&authuser=0&confirm=t&uuid=390074ee-3c30-4f07-b899-a3321c11c3be&at=AGN2oQ1dPABlEFxXjq5rjJ2eRZbB:1773391519118", "Firmware": "https://drive.usercontent.google.com/download?id=1JHtiGNzfufTEMKCAIY23HY_wGoQ7CN5z&export=download&authuser=0&confirm=t&uuid=91af7637-4d28-4fc5-929a-78842c7dd48a&at=APcXIO0AhxIofr3THQbJSOgiQTQs:1771782858428" } }
-            }
-        };
 
         let currentNavPath = []; 
         function getFolderIconConfig(name) {
@@ -445,11 +502,9 @@
         }
 
         function renderDownloadMenu() {
-            const container = document.getElementById('downloadContent');
-            const breadcrumb = document.getElementById('downloadBreadcrumb');
+            const container = document.getElementById('downloadContent'); const breadcrumb = document.getElementById('downloadBreadcrumb');
             if (currentNavPath.length === 0) { breadcrumb.innerHTML = '<span class="text-slate-500"><i class="fa-solid fa-home"></i> Kategori Utama</span>'; } else {
-                let bcHtml = `<button onclick="navDownloadTo('back')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-white rounded shadow-sm mr-2 active:scale-95 transition-transform"><i class="fa-solid fa-arrow-left"></i> Kembali</button> <span class="text-slate-600 font-semibold truncate">${currentNavPath.join(' > ')}</span>`;
-                breadcrumb.innerHTML = bcHtml;
+                breadcrumb.innerHTML = `<button onclick="navDownloadTo('back')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-white rounded shadow-sm mr-2 active:scale-95 transition-transform"><i class="fa-solid fa-arrow-left"></i> Kembali</button> <span class="text-slate-600 font-semibold truncate">${currentNavPath.join(' > ')}</span>`;
             }
             let currentData = downloadDB; for (let key of currentNavPath) { currentData = currentData[key]; }
             container.innerHTML = '';
@@ -488,7 +543,7 @@
                 navDownload.classList.replace('text-slate-400', 'text-blue-600'); navQC.classList.replace('text-blue-600', 'text-slate-400');
                 headerCatBtn.classList.add('opacity-0', 'pointer-events-none');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
-                if(document.getElementById('downloadContent').children.length === 0) { renderDownloadMenu(); }
+                fetchDatabase(); // Panggil fungsi buat sedot DB dari Excel
             }
         }
 
@@ -820,7 +875,7 @@
 
                 icon.className = "w-16 h-16 mx-auto bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl mb-4 relative z-10 shadow-sm border border-indigo-50";
                 icon.innerHTML = '<i class="fa-solid fa-file-pdf fa-beat-fade"></i>';
-                title.textContent = "Menyusun PDF...";
+                title.textContent = "Menyusun PDF (Nyicil)...";
                 glowEffect.classList.remove('opacity-0');
                 glowEffect.classList.add('opacity-30', 'bg-indigo-500');
 
