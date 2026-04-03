@@ -152,12 +152,13 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tipe (Produk/Pitch)</label>
-                        <input type="text" id="dbTipe" required placeholder="Contoh: P1.86 / P4.00 / KIOSK" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none uppercase transition">
+                        <!-- Tambah autocomplete off biar gak nutupin layar pake riwayat ketikan -->
+                        <input type="text" id="dbTipe" required autocomplete="off" placeholder="Contoh: P1.86 / P4.00 / KIOSK" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none uppercase transition">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Batch / Folder Utama</label>
-                            <input type="text" id="dbBatch" required placeholder="Contoh: 2411 / Lainnya" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
+                            <input type="text" id="dbBatch" required autocomplete="off" placeholder="Contoh: 2411 / Lainnya" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Jenis File</label>
@@ -169,11 +170,11 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Sub-Folder / Varian Khusus (Opsional)</label>
-                        <input type="text" id="dbVarian" placeholder="Contoh: MRV432 (Kosongkan jika tidak ada)" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
+                        <input type="text" id="dbVarian" autocomplete="off" placeholder="Contoh: MRV432 (Kosongkan jika tidak ada)" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Link Google Drive</label>
-                        <input type="url" id="dbLink" required placeholder="Paste Link GDrive di sini..." class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
+                        <input type="url" id="dbLink" required autocomplete="off" placeholder="Paste Link GDrive di sini..." class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
                     </div>
                     
                     <button type="submit" id="btnSimpanDB" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/30 active:scale-95 mt-4 flex justify-center items-center gap-2">
@@ -289,10 +290,10 @@
         </div>
     </div>
 
-    <!-- === KONTEN UTAMA: DIBAGI 2 TAB === -->
+    <!-- === KONTEN UTAMA: DIBAGI 3 TAB (QC, DOWNLOAD, PDF) === -->
     <div class="max-w-xl mx-auto bg-white min-h-[85vh] sm:min-h-0 sm:rounded-b-xl sm:shadow-xl overflow-hidden relative mb-20">
         
-        <!-- BAGIAN 1: FORMULIR QC -->
+        <!-- TAB 1: FORMULIR QC -->
         <div id="tabQC" class="p-5 space-y-5 block transition-opacity duration-300">
             <form id="qcForm" class="space-y-4">
                 <input type="hidden" id="category" name="category">
@@ -365,9 +366,8 @@
             </form>
         </div>
 
-        <!-- BAGIAN 2: PUSAT UNDUHAN (DATABASE DINAMIS) -->
+        <!-- TAB 2: PUSAT UNDUHAN (DATABASE DINAMIS) -->
         <div id="tabDownload" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
-            
             <!-- HEADER PUSAT UNDUHAN -->
             <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center gap-3">
@@ -396,9 +396,24 @@
                     <p class="text-sm font-medium text-slate-500">Menyinkronkan Database...</p>
                 </div>
             </div>
-            
+            <div class="pb-10"></div>
+        </div>
+
+        <!-- TAB 3: LAPORAN PDF -->
+        <div id="tabPDF" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
+             <!-- HEADER LAPORAN -->
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
+                    <i class="fa-solid fa-file-pdf text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-slate-800 leading-tight">Buat Laporan</h2>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Generate Dokumen QC</p>
+                </div>
+            </div>
+
             <!-- Generate Laporan (PDF) - TEMA BIRU PUTIH -->
-            <div class="bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-500/5 mt-8 p-6 relative overflow-hidden group">
+            <div class="bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-500/5 p-6 relative overflow-hidden group">
                 <div class="flex items-center gap-4 mb-4 relative z-10">
                     <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                         <i class="fa-solid fa-file-pdf"></i>
@@ -420,9 +435,9 @@
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Bikin Laporan Sekarang!
                 </button>
             </div>
-
             <div class="pb-10"></div>
         </div>
+
     </div>
     
     <!-- === WIDGET PROGRESS BG === -->
@@ -440,7 +455,8 @@
     <!-- === BOTTOM NAVIGATION BAR === -->
     <div class="fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors"><i class="fa-solid fa-camera-retro text-xl mb-1"></i><span class="text-[10px] font-bold">Input QC</span></button>
-        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-cloud-arrow-down text-xl mb-1"></i><span class="text-[10px] font-bold">Pusat Unduhan</span></button>
+        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-cloud-arrow-down text-xl mb-1"></i><span class="text-[10px] font-bold">Unduh File</span></button>
+        <button onclick="switchTab('pdf')" id="navPDF" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-file-pdf text-xl mb-1"></i><span class="text-[10px] font-bold">Laporan</span></button>
     </div>
 
     <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-[90] text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
@@ -494,8 +510,14 @@
                 const res = await req.json();
                 if (res.result === 'success') {
                     showToast("Berhasil tersimpan ke Excel!", "success");
-                    closeAdminPanel();
-                    isDbLoaded = false; // Reset status biar dia nge-fetch ulang dari Excel
+                    
+                    // --- FITUR NYAMAN: Kosongin cuma Link doang, fokus ke Link lagi, form tetap kebuka ---
+                    const linkInput = document.getElementById('dbLink');
+                    linkInput.value = '';
+                    linkInput.focus();
+                    
+                    // Refresh database secara background
+                    isDbLoaded = false; 
                     document.getElementById('downloadContent').innerHTML = `<div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200 shadow-sm"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Menyinkronkan data baru...</p></div>`;
                     fetchDatabase(); 
                 } else { throw new Error("Gagal menyimpan"); }
@@ -585,25 +607,47 @@
         function navDownloadTo(target) { if (target === 'back') { currentNavPath.pop(); } else { currentNavPath.push(target); } renderDownloadMenu(); }
 
         function switchTab(tabName) {
-            const tabQC = document.getElementById('tabQC'); const tabDownload = document.getElementById('tabDownload');
-            const navQC = document.getElementById('navQC'); const navDownload = document.getElementById('navDownload');
+            const tabQC = document.getElementById('tabQC'); 
+            const tabDownload = document.getElementById('tabDownload');
+            const tabPDF = document.getElementById('tabPDF');
+
+            const navQC = document.getElementById('navQC'); 
+            const navDownload = document.getElementById('navDownload');
+            const navPDF = document.getElementById('navPDF');
+
             const headerCatBtn = document.getElementById('headerCatBtn'); 
             const headerSettingBtn = document.getElementById('headerSettingBtn');
             const modalKategori = document.getElementById('categoryModal');
             
+            // Reset Semua Tab & Tombol
+            tabQC.classList.add('hidden'); 
+            tabDownload.classList.add('hidden');
+            tabPDF.classList.add('hidden');
+            
+            navQC.classList.replace('text-blue-600', 'text-slate-400'); 
+            navDownload.classList.replace('text-blue-600', 'text-slate-400');
+            navPDF.classList.replace('text-blue-600', 'text-slate-400');
+
             if (tabName === 'qc') {
-                tabQC.classList.remove('hidden'); tabDownload.classList.add('hidden');
-                navQC.classList.replace('text-slate-400', 'text-blue-600'); navDownload.classList.replace('text-blue-600', 'text-slate-400');
+                tabQC.classList.remove('hidden');
+                navQC.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.remove('hidden');
                 headerSettingBtn.classList.remove('hidden');
-                if (modalKategori) { modalKategori.classList.remove('opacity-0', 'pointer-events-none'); }
+                // Cuma pop up milih kategori kalau emang kategorinya masih kosong
+                if (modalKategori && !document.getElementById('category').value) { modalKategori.classList.remove('opacity-0', 'pointer-events-none'); }
             } else if (tabName === 'download') {
-                tabQC.classList.add('hidden'); tabDownload.classList.remove('hidden');
-                navDownload.classList.replace('text-slate-400', 'text-blue-600'); navQC.classList.replace('text-blue-600', 'text-slate-400');
+                tabDownload.classList.remove('hidden');
+                navDownload.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.add('hidden');
                 headerSettingBtn.classList.add('hidden');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
                 fetchDatabase(); // Panggil fungsi buat sedot DB dari Excel
+            } else if (tabName === 'pdf') {
+                tabPDF.classList.remove('hidden');
+                navPDF.classList.replace('text-slate-400', 'text-blue-600');
+                headerCatBtn.classList.add('hidden');
+                headerSettingBtn.classList.add('hidden');
+                if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
             }
         }
 
