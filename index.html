@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QC-PDN PRO - Microvision</title>
     
-    <!-- TAG PWA (Progressive Web App) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="QC-PDN PRO">
     <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true">
-    <!-- END TAG PWA -->
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -22,73 +19,33 @@
         .modal-enter { opacity: 0; transform: scale(0.9); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.3s, transform 0.3s; }
         
-        /* Animasi Flash Kamera */
-        @keyframes flash {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; background: white; }
-            100% { opacity: 1; }
-        }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; background: white; } 100% { opacity: 1; } }
         .flash-anim { animation: flash 0.2s ease-out; }
 
-        /* Animasi Pulse Record */
-        @keyframes pulse-red {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
+        @keyframes pulse-red { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .record-pulse { animation: pulse-red 1.5s infinite; }
 
-        /* Animasi Pop-up Tengah Layar */
-        @keyframes bounceShort {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes bounceShort { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .animate-bounce-short { animation: bounceShort 0.3s ease-out forwards; }
 
-        /* --- ANIMASI BARU UNTUK PROGRESS PDF --- */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px) rotate(-2deg); }
-            50% { transform: translateX(5px) rotate(2deg); }
-            75% { transform: translateX(-5px) rotate(-2deg); }
-        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-2deg); } 50% { transform: translateX(5px) rotate(2deg); } 75% { transform: translateX(-5px) rotate(-2deg); } }
         .animate-shake { animation: shake 0.4s ease-in-out; }
 
-        .progress-striped {
-            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent);
-            background-size: 1rem 1rem;
-            animation: progress-stripes 1s linear infinite;
-        }
-        @keyframes progress-stripes {
-            from { background-position: 1rem 0; }
-            to { background-position: 0 0; }
-        }
+        .progress-striped { background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent); background-size: 1rem 1rem; animation: progress-stripes 1s linear infinite; }
+        @keyframes progress-stripes { from { background-position: 1rem 0; } to { background-position: 0 0; } }
 
-        /* Utilitas untuk menyembunyikan widget saat kamera aktif */
         .hide-in-camera { display: none !important; }
 
-        /* Penyesuaian khusus untuk Mode Landscape di Ponsel */
         @media screen and (orientation: landscape) {
             #cameraOverlay { flex-direction: row !important; }
             #cameraVideo { object-fit: cover; width: 100vw; height: 100vh; }
-            #cameraOverlay > div:last-child {
-                width: 120px !important; height: 100vh !important; flex-direction: column !important;
-                justify-content: center !important; padding: 0 !important; background: rgba(0, 0, 0, 0.5); 
-                position: relative; z-index: 20;
-            }
-            #cameraOverlay > div:last-child .flex.bg-gray-800 {
-                position: fixed !important; top: 20px !important; left: 50% !important;
-                transform: translateX(-50%) !important; margin-bottom: 0 !important; z-index: 100 !important;
-            }
-            #cameraOverlay > div:last-child .flex.items-center.justify-between {
-                flex-direction: column-reverse !important; height: auto; gap: 30px; width: 100%; justify-content: center;
-            }
+            #cameraOverlay > div:last-child { width: 120px !important; height: 100vh !important; flex-direction: column !important; justify-content: center !important; padding: 0 !important; background: rgba(0, 0, 0, 0.5); position: relative; z-index: 20; }
+            #cameraOverlay > div:last-child .flex.bg-gray-800 { position: fixed !important; top: 20px !important; left: 50% !important; transform: translateX(-50%) !important; margin-bottom: 0 !important; z-index: 100 !important; }
+            #cameraOverlay > div:last-child .flex.items-center.justify-between { flex-direction: column-reverse !important; height: auto; gap: 30px; width: 100%; justify-content: center; }
             #shutterBtn { width: 70px !important; height: 70px !important; margin: 0 auto; }
             #btnFinishCamera { margin-top: 0 !important; margin-bottom: 10px; }
         }
         
-        /* Scrollbar styling untuk area download */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -96,15 +53,12 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
 
-    <!-- === MODAL PREVIEW MEDIA === -->
     <div id="mediaPreviewModal" class="hidden fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center backdrop-blur-md transition-opacity" style="touch-action: none;">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
             <span id="previewModalTitle" class="text-white text-sm font-bold truncate pr-4">Preview</span>
             <div class="flex items-center gap-3">
                 <span id="previewCounter" class="text-white text-xs font-mono bg-black/50 px-2 py-1 rounded">1 / 1</span>
-                <button type="button" onclick="closeMediaPreview()" class="text-white bg-gray-800/50 rounded-full p-2 w-8 h-8 flex items-center justify-center backdrop-blur-sm hover:bg-gray-700 transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <button type="button" onclick="closeMediaPreview()" class="text-white bg-gray-800/50 rounded-full p-2 w-8 h-8 flex items-center justify-center backdrop-blur-sm hover:bg-gray-700 transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
         <button onclick="prevMedia()" class="absolute left-3 top-1/2 -translate-y-1/2 z-50 bg-black/50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/80 active:scale-90 transition"><i class="fa-solid fa-chevron-left"></i></button>
@@ -112,7 +66,6 @@
         <div id="mediaPreviewContainer" class="w-full h-full flex items-center justify-center overflow-hidden relative"></div>
     </div>
 
-    <!-- === MODAL PENGATURAN === -->
     <div id="settingsModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-bounce-short">
             <div class="bg-slate-800 p-4 flex justify-between items-center">
@@ -133,7 +86,47 @@
         </div>
     </div>
 
-    <!-- === MODAL PANEL ADMIN (TAMBAH DATA) === -->
+    <div id="helpModal" class="hidden fixed inset-0 z-[85] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-bounce-short flex flex-col max-h-[85vh]">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center shrink-0">
+                <h2 class="text-white font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Panduan Aplikasi</h2>
+                <button onclick="closeHelp()" class="text-blue-200 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-6 flex-1 custom-scrollbar text-sm text-slate-700">
+                <div class="space-y-2">
+                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-camera-retro mr-1"></i> 1. Menu Input QC</h3>
+                    <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
+                        <li>Pilih <b>Kategori Produk</b> di bagian atas layar.</li>
+                        <li>Ketik/Pilih <b>Range Serial Number</b> dan <b>Nama Project</b>.</li>
+                        <li>Scan atau ketik <b>Serial Number (SN)</b> unit. <span class="text-red-500 font-bold">Wajib diisi sebelum buka kamera!</span></li>
+                        <li>Klik tombol <b>Buka Kamera</b>. Bukti foto akan otomatis tertempel Watermark (Project, Range SN, Waktu & Lokasi).</li>
+                        <li>Klik <b>Upload File</b>. Sistem akan otomatis membuat folder di Drive sesuai data yang diisi.</li>
+                    </ul>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> 2. Pusat Unduhan</h3>
+                    <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
+                        <li>Gunakan menu ini untuk mencari file <b>RCGFX</b> dan <b>Firmware</b>.</li>
+                        <li>Navigasi bekerja seperti Folder di Komputer. Klik folder untuk masuk, tekan tombol <b>Kembali</b> untuk keluar.</li>
+                        <li>Untuk menambahkan Link Download baru ke dalam database, klik tombol <b>+ Tambah Data</b> di pojok kanan atas.</li>
+                    </ul>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-file-pdf mr-1"></i> 3. Menu Laporan (PDF)</h3>
+                    <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
+                        <li>Gunakan menu ini saat proses foto QC telah selesai.</li>
+                        <li>Ketik <b>Nama Folder (Range SN / Project)</b> tempat foto disimpan.</li>
+                        <li>Isi <b>Tambahan Judul</b> (opsional) untuk menggabungkan teks di dokumen.</li>
+                        <li>Klik <b>Bikin Laporan Sekarang!</b>. Sistem meracik foto menjadi PDF.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                <button onclick="closeHelp()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg active:scale-95">Tutup Panduan</button>
+            </div>
+        </div>
+    </div>
+
     <div id="adminPanelModal" class="hidden fixed inset-0 z-[90] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-bounce-short flex flex-col max-h-[90vh]">
             <div class="bg-blue-800 p-4 flex justify-between items-center shrink-0">
@@ -152,7 +145,6 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tipe (Produk/Pitch)</label>
-                        <!-- Tambah autocomplete off biar gak nutupin layar pake riwayat ketikan -->
                         <input type="text" id="dbTipe" required autocomplete="off" placeholder="Contoh: P1.86 / P4.00 / KIOSK" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none uppercase transition">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
@@ -185,7 +177,6 @@
         </div>
     </div>
 
-    <!-- === MODAL PROGRESS BIKIN PDF === -->
     <div id="pdfProgressModal" class="hidden fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div id="pdfModalBox" class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm text-center transform transition-all animate-bounce-short relative overflow-hidden">
             <div id="pdfGlowEffect" class="absolute inset-0 bg-blue-500 opacity-0 blur-3xl transition-opacity duration-1000 -z-10 pointer-events-none"></div>
@@ -215,7 +206,6 @@
         </div>
     </div>
 
-    <!-- === MODAL PILIH KATEGORI === -->
     <div id="categoryModal" class="fixed inset-0 z-50 bg-slate-900 bg-opacity-95 flex flex-col justify-center items-center p-4 transition-all duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
             <div class="bg-blue-800 p-5 text-center">
@@ -233,7 +223,6 @@
         </div>
     </div>
 
-    <!-- === CAMERA OVERLAY (WEBRTC) === -->
     <div id="cameraOverlay" class="hidden fixed inset-0 z-[60] bg-black flex flex-col">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
             <div id="recordingTimer" class="hidden bg-red-600 text-white px-3 py-1 rounded-full text-sm font-mono font-bold flex items-center gap-2">
@@ -274,8 +263,7 @@
         </div>
     </div>
 
-    <!-- === HEADER GLOBAL === -->
-    <div class="bg-white p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
+    <div class="bg-white/90 backdrop-blur-md p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
         <div class="flex items-center gap-3">
             <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
             <div id="gpsStatus" class="flex items-center justify-center w-8 h-8 bg-slate-100 rounded-md border border-slate-200" title="Mencari GPS..."><i class="fa-solid fa-location-crosshairs fa-spin text-slate-400 text-sm"></i></div>
@@ -284,16 +272,17 @@
             <button id="headerCatBtn" onclick="openModal()" class="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 hover:bg-blue-100 transition">
                 <span id="currentCategoryDisplay">PILIH KATEGORI</span><i class="fa-solid fa-chevron-down"></i>
             </button>
+            <button id="headerHelpBtn" onclick="openHelp()" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition" title="Panduan Aplikasi">
+                <i class="fa-solid fa-circle-question text-lg"></i>
+            </button>
             <button id="headerSettingBtn" onclick="openSettings()" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" title="Pengaturan">
                 <i class="fa-solid fa-gear text-lg"></i>
             </button>
         </div>
     </div>
 
-    <!-- === KONTEN UTAMA: DIBAGI 3 TAB (QC, DOWNLOAD, PDF) === -->
     <div class="max-w-xl mx-auto bg-white min-h-[85vh] sm:min-h-0 sm:rounded-b-xl sm:shadow-xl overflow-hidden relative mb-20">
         
-        <!-- TAB 1: FORMULIR QC -->
         <div id="tabQC" class="p-5 space-y-5 block transition-opacity duration-300">
             <form id="qcForm" class="space-y-4">
                 <input type="hidden" id="category" name="category">
@@ -306,20 +295,20 @@
                 </div>
 
                 <div>
-                    <label id="projectLabel" class="block text-sm font-bold text-slate-700 mb-1">Nama Project</label>
+                    <label id="rangeSNLabel" class="block text-sm font-bold text-slate-700 mb-1">Range Serial Number / Batch</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-building"></i></span>
-                        <input type="text" id="project" name="project" list="projectList" required autocomplete="off" class="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-semibold" placeholder= "Ketik Nama Project...">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-layer-group"></i></span>
+                        <input type="text" id="rangeSN" name="rangeSN" list="projectList" autocomplete="off" class="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-semibold" placeholder= "Ketik Range SN...">
                         <button type="button" id="refreshProjects" class="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-500 hover:text-blue-700" title="Refresh list project"><i class="fa-solid fa-sync"></i></button>
                         <datalist id="projectList"></datalist>
                     </div>
                 </div>
 
-                <div id="newProjectContainer" class="hidden">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Project</label>
+                <div>
+                    <label id="projectLabel" class="block text-sm font-bold text-slate-700 mb-1">Nama Project (Opsional)</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-folder-open"></i></span>
-                        <input type="text" id="newProjectInput" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-semibold" placeholder="Ketik Nama Project Utama...">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-building"></i></span>
+                        <input type="text" id="project" name="project" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-semibold" placeholder="Ketik Nama Project...">
                     </div>
                 </div>
 
@@ -366,9 +355,7 @@
             </form>
         </div>
 
-        <!-- TAB 2: PUSAT UNDUHAN (DATABASE DINAMIS) -->
         <div id="tabDownload" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
-            <!-- HEADER PUSAT UNDUHAN -->
             <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
@@ -379,17 +366,14 @@
                         <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">RCGFX & Firmware</p>
                     </div>
                 </div>
-                <!-- TOMBOL ADMIN PANEL -->
                 <button onclick="openAdminPanel()" class="bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-600 p-2.5 rounded-xl text-xs font-bold border border-slate-200 hover:border-blue-200 transition-all shadow-sm flex items-center gap-2 active:scale-95 group">
                     <i class="fa-solid fa-plus text-slate-400 group-hover:text-blue-500 transition-colors"></i> 
                     <span class="hidden sm:inline">Tambah Data</span>
                 </button>
             </div>
             
-            <!-- BREADCRUMB MODERN -->
             <div id="downloadBreadcrumb" class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 text-sm font-medium text-slate-600"></div>
             
-            <!-- CONTENT FOLDER/FILE -->
             <div id="downloadContent" class="space-y-3 min-h-[150px]">
                 <div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200 shadow-sm">
                     <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i>
@@ -399,10 +383,8 @@
             <div class="pb-10"></div>
         </div>
 
-        <!-- TAB 3: LAPORAN PDF -->
         <div id="tabPDF" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
-             <!-- HEADER LAPORAN -->
-            <div class="flex items-center gap-3 mb-6">
+             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
                     <i class="fa-solid fa-file-pdf text-lg"></i>
                 </div>
@@ -412,7 +394,6 @@
                 </div>
             </div>
 
-            <!-- Generate Laporan (PDF) - TEMA BIRU PUTIH -->
             <div class="bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-500/5 p-6 relative overflow-hidden group">
                 <div class="flex items-center gap-4 mb-4 relative z-10">
                     <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
@@ -424,11 +405,18 @@
                     </div>
                 </div>
                 
+                <div class="relative mb-3 group/input z-10">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
+                        <i class="fa-solid fa-folder-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="pdfSearchFolder" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Ketik Nama Folder (Contoh: Range SN)...">
+                </div>
+
                 <div class="relative mb-4 group/input z-10">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
-                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <i class="fa-solid fa-heading"></i>
                     </span>
-                    <input type="text" id="pdfProjectInput" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Ketik Nama Project / Range SN...">
+                    <input type="text" id="pdfTitleAppend" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Tambahan Judul Dokumen (Opsional)...">
                 </div>
                 
                 <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 relative z-10">
@@ -440,7 +428,6 @@
 
     </div>
     
-    <!-- === WIDGET PROGRESS BG === -->
     <div id="floatingProgress" class="fixed top-24 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 -translate-y-5 opacity-0 pointer-events-none hidden">
         <div class="flex items-center gap-3 mb-2">
             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0"><i class="fa-solid fa-cloud-arrow-up fa-fade"></i></div>
@@ -452,8 +439,7 @@
         <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div id="bgQueueBar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div></div>
     </div>
 
-    <!-- === BOTTOM NAVIGATION BAR === -->
-    <div class="fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+    <div class="fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors"><i class="fa-solid fa-camera-retro text-xl mb-1"></i><span class="text-[10px] font-bold">Input QC</span></button>
         <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-cloud-arrow-down text-xl mb-1"></i><span class="text-[10px] font-bold">Unduh File</span></button>
         <button onclick="switchTab('pdf')" id="navPDF" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-file-pdf text-xl mb-1"></i><span class="text-[10px] font-bold">Laporan</span></button>
@@ -467,7 +453,7 @@
         // ==========================================
         // PASTIIN URL DI BAWAH INI ADALAH URL DEPLOY YANG BARU LU DAPET YA BRAY!
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygFlCBP28e3eYtMuy9kvDD1syt_V-jstO6WEYi4xudnPA5OmmLYpgc1teSb1oceeim/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6CuVEhoVzuivKLq_fZu65yc8VVJ6mO45uMx06GVkdsCjCTTEhcKsP92qB2EtYqusk/exec"; 
 
         // ==========================================
         // DATABASE DINAMIS DARI EXCEL
@@ -486,8 +472,11 @@
         }
 
         // ==========================================
-        // FUNGSI ADMIN PANEL
+        // FUNGSI BANTUAN (HELP) & ADMIN PANEL
         // ==========================================
+        function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
+        function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
+
         function openAdminPanel() { document.getElementById('adminPanelModal').classList.remove('hidden'); }
         function closeAdminPanel() { document.getElementById('adminPanelModal').classList.add('hidden'); document.getElementById('adminForm').reset(); }
         
@@ -511,12 +500,10 @@
                 if (res.result === 'success') {
                     showToast("Berhasil tersimpan ke Excel!", "success");
                     
-                    // --- FITUR NYAMAN: Kosongin cuma Link doang, fokus ke Link lagi, form tetap kebuka ---
                     const linkInput = document.getElementById('dbLink');
                     linkInput.value = '';
                     linkInput.focus();
                     
-                    // Refresh database secara background
                     isDbLoaded = false; 
                     document.getElementById('downloadContent').innerHTML = `<div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200 shadow-sm"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Menyinkronkan data baru...</p></div>`;
                     fetchDatabase(); 
@@ -540,7 +527,6 @@
         function renderDownloadMenu() {
             const container = document.getElementById('downloadContent'); const breadcrumb = document.getElementById('downloadBreadcrumb');
             
-            // Render Breadcrumb (Gaya Root Windows Explorer)
             if (currentNavPath.length === 0) { 
                 breadcrumb.innerHTML = `<div class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg flex items-center gap-2 font-bold"><i class="fa-solid fa-hard-drive"></i> Root Database</div>`; 
             } else {
@@ -550,19 +536,16 @@
             let currentData = downloadDB; for (let key of currentNavPath) { currentData = currentData[key]; }
             container.innerHTML = '';
             
-            // Empty State
             if (!currentData || Object.keys(currentData).length === 0) { 
                 container.innerHTML = `<div class="text-center py-12 bg-white rounded-2xl border border-slate-200 shadow-sm"><i class="fa-regular fa-folder-open text-4xl text-slate-300 mb-3"></i><p class="text-sm font-bold text-slate-400">Folder masih kosong.</p></div>`; 
                 return; 
             }
 
-            // Render Items (Logika File Explorer Standar)
             for (let key in currentData) {
                 const itemData = currentData[key]; 
-                const isFile = typeof itemData === 'string'; // Kalau datanya string, berarti dia link GDrive (File)
+                const isFile = typeof itemData === 'string';
                 
                 if (isFile) {
-                    // UI KHUSUS FILE (DOKUMEN)
                     let iconClass = "fa-file-lines"; let colorClass = "text-slate-500"; let bgClass = "bg-slate-50";
                     if(key.toLowerCase().includes('rcgfx')) { iconClass = "fa-file-code"; colorClass = "text-pink-600"; bgClass = "bg-pink-50"; }
                     else if(key.toLowerCase().includes('firmware')) { iconClass = "fa-microchip"; colorClass = "text-purple-600"; bgClass = "bg-purple-50"; }
@@ -584,7 +567,6 @@
                         </div>
                     </a>`;
                 } else {
-                    // UI KHUSUS FOLDER (DIKLIK MASUK KE DALAM)
                     const itemCount = Object.keys(itemData).length;
                     container.innerHTML += `
                     <button onclick="navDownloadTo('${key}')" class="w-full bg-white border border-slate-200 p-4 rounded-2xl shadow-sm transition-all duration-300 flex items-center justify-between group hover:border-blue-300 hover:shadow-md active:scale-[0.98] relative overflow-hidden mb-2">
@@ -617,6 +599,7 @@
 
             const headerCatBtn = document.getElementById('headerCatBtn'); 
             const headerSettingBtn = document.getElementById('headerSettingBtn');
+            const headerHelpBtn = document.getElementById('headerHelpBtn');
             const modalKategori = document.getElementById('categoryModal');
             
             // Reset Semua Tab & Tombol
@@ -633,6 +616,7 @@
                 navQC.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.remove('hidden');
                 headerSettingBtn.classList.remove('hidden');
+                headerHelpBtn.classList.remove('hidden');
                 // Cuma pop up milih kategori kalau emang kategorinya masih kosong
                 if (modalKategori && !document.getElementById('category').value) { modalKategori.classList.remove('opacity-0', 'pointer-events-none'); }
             } else if (tabName === 'download') {
@@ -640,19 +624,21 @@
                 navDownload.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.add('hidden');
                 headerSettingBtn.classList.add('hidden');
+                headerHelpBtn.classList.add('hidden');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
-                fetchDatabase(); // Panggil fungsi buat sedot DB dari Excel
+                fetchDatabase(); 
             } else if (tabName === 'pdf') {
                 tabPDF.classList.remove('hidden');
                 navPDF.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.add('hidden');
                 headerSettingBtn.classList.add('hidden');
+                headerHelpBtn.classList.add('hidden');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
             }
         }
 
         let fileQueue = []; let backgroundQueue = []; let isUploading = false; let videoStream = null; let mediaRecorder = null; let recordedChunks = []; let recordingTimerInterval = null; let recordingStartTime = null; let currentMode = 'photo'; let currentLocationStr = "Lokasi: Menunggu GPS..."; let isRecording = false; 
-        const categoryModal = document.getElementById('categoryModal'); const categoryInput = document.getElementById('category'); const categoryDisplay = document.getElementById('currentCategoryDisplay'); const categoryDisplayInput = document.getElementById('categoryDisplayInput'); const projectInput = document.getElementById('project'); const projectList = document.getElementById('projectList'); const submitBtn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const previewList = document.getElementById('previewList'); const previewContainer = document.getElementById('previewContainer'); const cameraOverlay = document.getElementById('cameraOverlay'); const videoEl = document.getElementById('cameraVideo'); const canvasEl = document.getElementById('cameraCanvas'); const gpsStatus = document.getElementById('gpsStatus'); const shutterInner = document.getElementById('shutterInner'); const shutterBtn = document.getElementById('shutterBtn'); const btnModePhoto = document.getElementById('btnModePhoto'); const btnModeVideo = document.getElementById('btnModeVideo'); const recordingTimer = document.getElementById('recordingTimer'); const timerText = document.getElementById('timerText'); const modeIndicator = document.getElementById('modeIndicator'); const camCountBadge = document.getElementById('camCountBadge'); const btnFinishCamera = document.getElementById('btnFinishCamera');
+        const categoryModal = document.getElementById('categoryModal'); const categoryInput = document.getElementById('category'); const categoryDisplay = document.getElementById('currentCategoryDisplay'); const categoryDisplayInput = document.getElementById('categoryDisplayInput'); const projectInput = document.getElementById('project'); const rangeSNInput = document.getElementById('rangeSN'); const projectList = document.getElementById('projectList'); const submitBtn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const previewList = document.getElementById('previewList'); const previewContainer = document.getElementById('previewContainer'); const cameraOverlay = document.getElementById('cameraOverlay'); const videoEl = document.getElementById('cameraVideo'); const canvasEl = document.getElementById('cameraCanvas'); const gpsStatus = document.getElementById('gpsStatus'); const shutterInner = document.getElementById('shutterInner'); const shutterBtn = document.getElementById('shutterBtn'); const btnModePhoto = document.getElementById('btnModePhoto'); const btnModeVideo = document.getElementById('btnModeVideo'); const recordingTimer = document.getElementById('recordingTimer'); const timerText = document.getElementById('timerText'); const modeIndicator = document.getElementById('modeIndicator'); const camCountBadge = document.getElementById('camCountBadge'); const btnFinishCamera = document.getElementById('btnFinishCamera');
 
         document.addEventListener("DOMContentLoaded", () => { initGPS(); updateLastSnDisplay(); openModal(); document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); });
 
@@ -684,14 +670,24 @@
 
         function selectCategory(catName) {
             categoryInput.value = catName; categoryDisplay.textContent = catName; if(categoryDisplayInput) { categoryDisplayInput.value = catName; }
-            projectInput.value = localStorage.getItem(`lastProjectName_${catName}`) || ''; 
+            
+            const rangeLabel = document.getElementById('rangeSNLabel');
+            const projLabel = document.getElementById('projectLabel');
+
             if (['MVIFCI', 'MVIFCO', 'MVIDCI'].includes(catName)) {
-                document.getElementById('newProjectContainer').classList.remove('hidden'); document.getElementById('projectLabel').textContent = "Range Serial number";
-                projectInput.placeholder = catName === 'MVIFCO' ? "Contoh: MVIFCO5.0-2601-0001-0100" : (catName === 'MVIFCI' ? "Contoh: MVIFCIL2.5-2601-0001-0100" : "Contoh: MVIDCI1.5-2601-0001-0100");
+                rangeLabel.textContent = "Range Serial Number / Batch";
+                rangeSNInput.placeholder = catName === 'MVIFCO' ? "Contoh: MVIFCO5.0-2601-0001-0100" : (catName === 'MVIFCI' ? "Contoh: MVIFCIL2.5-2601-0001-0100" : "Contoh: MVIDCI1.5-2601-0001-0100");
+                rangeSNInput.required = true;
             } else {
-                document.getElementById('newProjectContainer').classList.add('hidden'); document.getElementById('projectLabel').textContent = "Nama Project";
-                projectInput.placeholder = "Ketik Nama Project..."; document.getElementById('newProjectInput').value = ''; 
+                rangeLabel.textContent = "Range SN / Batch (Opsional)";
+                rangeSNInput.placeholder = "Contoh: Batch 1...";
+                rangeSNInput.required = false;
             }
+
+            // Project Name direset placeholder-nya
+            projectInput.placeholder = "Ketik Nama Project...";
+            projectInput.value = localStorage.getItem(`lastProjectName_${catName}`) || ''; 
+            
             updateLastSnDisplay(); categoryModal.classList.add('opacity-0', 'pointer-events-none'); fetchProjects(catName);
         }
 
@@ -730,11 +726,21 @@
         function handleShutter() { if(currentMode === 'photo') { takePicture(); } else { toggleRecording(); } }
 
         function drawWatermark(ctx, canvasWidth, canvasHeight) {
-            const projectName = document.getElementById('project').value || "PROJECT BELUM DIISI"; const snValue = document.getElementById('sn').value || "SN KOSONG"; const now = new Date();
+            const projectVal = document.getElementById('project').value.trim(); 
+            const rangeSNVal = document.getElementById('rangeSN').value.trim(); 
+            const snValue = document.getElementById('sn').value.trim() || "SN KOSONG"; 
+            const now = new Date();
             const dateTimeStr = `Waktu : ${now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} - ${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} WIB`;
             const isLandscape = canvasWidth > canvasHeight; const baseDim = isLandscape ? canvasHeight : canvasWidth;
             const fontSize = Math.max(10, Math.floor(baseDim * (isLandscape ? 0.010 : 0.017))); const padding = fontSize; const lineHeight = fontSize * 1.4;
-            const textLines = [ `Project : ${projectName.toUpperCase()}`, `S/N     : ${snValue.toUpperCase()}`, dateTimeStr, currentLocationStr ];
+            
+            const textLines = [];
+            if (projectVal) textLines.push(`Project : ${projectVal.toUpperCase()}`);
+            if (rangeSNVal) textLines.push(`Range SN : ${rangeSNVal.toUpperCase()}`);
+            textLines.push(`S/N      : ${snValue.toUpperCase()}`);
+            textLines.push(dateTimeStr);
+            textLines.push(currentLocationStr);
+
             ctx.font = `bold ${fontSize}px sans-serif`; let maxWidth = 0; textLines.forEach(text => { maxWidth = Math.max(maxWidth, ctx.measureText(text).width); });
             const boxWidth = maxWidth + (padding * 2); const boxHeight = (textLines.length * lineHeight) + padding;
             const startX = padding; const startY = canvasHeight - boxHeight - padding;
@@ -869,9 +875,16 @@
         document.getElementById('qcForm').addEventListener('submit', function(e) {
             e.preventDefault(); if (fileQueue.length === 0) return;
             if (!SCRIPT_URL.startsWith("http")) { showToast("URL Script belum diisi!", "error"); return; }
-            const category = categoryInput.value; const newProject = document.getElementById('newProjectInput').value; const project = projectInput.value; const sn = document.getElementById('sn').value; const notes = document.getElementById('notes').value;
+            
+            const category = categoryInput.value; 
+            const rangeSN = document.getElementById('rangeSN').value.trim(); 
+            const project = document.getElementById('project').value.trim(); 
+            const sn = document.getElementById('sn').value.trim(); 
+            const notes = document.getElementById('notes').value.trim();
+
             localStorage.setItem(`lastProjectName_${category}`, project); localStorage.setItem(`lastUploadedSN_${category}`, sn);
-            fileQueue.forEach(file => { backgroundQueue.push({ fileObj: file, category: category, newProject: newProject, project: project, sn: sn, notes: notes }); });
+            fileQueue.forEach(file => { backgroundQueue.push({ fileObj: file, category: category, rangeSN: rangeSN, project: project, sn: sn, notes: notes }); });
+            
             const totalAdded = fileQueue.length; clearAllFiles(); document.getElementById('sn').value = ''; document.getElementById('notes').value = ''; updateLastSnDisplay(); 
             showToast(`${totalAdded} File masuk ke antrean upload!`, 'success');
             if (!isUploading) processBackgroundQueue();
@@ -884,7 +897,15 @@
             const currentItem = backgroundQueue.shift(); queueCount.textContent = (backgroundQueue.length + 1); queueFileName.textContent = currentItem.fileObj.name; queueBar.style.width = "10%";
             try {
                 const base64 = await toBase64(currentItem.fileObj); queueBar.style.width = "50%"; 
-                const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ category: currentItem.category, newProject: currentItem.newProject, project: currentItem.project, sn: currentItem.sn, notes: currentItem.notes, filename: currentItem.fileObj.name, file: base64 }) });
+                const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ 
+                    category: currentItem.category, 
+                    rangeSN: currentItem.rangeSN, 
+                    project: currentItem.project, 
+                    sn: currentItem.sn, 
+                    notes: currentItem.notes, 
+                    filename: currentItem.fileObj.name, 
+                    file: base64 
+                }) });
                 const res = await req.json(); if (res.result !== 'success') throw new Error(res.error);
                 queueBar.style.width = "100%"; 
             } catch (err) { showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error'); }
@@ -906,11 +927,16 @@
         }
 
         // ==========================================
-        // FUNGSI REQUEST PDF (ANIMASI EKSTRAK NYICIL)
+        // FUNGSI REQUEST PDF
         // ==========================================
         async function requestPDF() {
-            const projectName = document.getElementById('pdfProjectInput').value.trim();
-            if (!projectName) { showToast("Nama Project/Range SN wajib diisi!", "error"); return; }
+            const folderQuery = document.getElementById('pdfSearchFolder').value.trim();
+            const titleAppend = document.getElementById('pdfTitleAppend').value.trim();
+            
+            if (!folderQuery) { showToast("Nama Folder untuk dicari wajib diisi!", "error"); return; }
+            
+            let finalTitle = folderQuery;
+            if(titleAppend) { finalTitle = folderQuery + " - " + titleAppend; }
 
             const modal = document.getElementById('pdfProgressModal');
             const modalBox = document.getElementById('pdfModalBox');
@@ -955,10 +981,10 @@
             step1Icon.className = "fa-solid fa-spinner fa-spin w-4 text-center text-blue-500";
 
             try {
-                // LANGKAH 1: INISIASI (BIKIN DOKUMEN & CARI FOTO)
+                // LANGKAH 1: INISIASI
                 let initResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: 'initPDF', projectName: projectName })
+                    body: JSON.stringify({ action: 'initPDF', folderQuery: folderQuery, pdfTitle: finalTitle })
                 });
                 
                 let initRes;
@@ -983,7 +1009,7 @@
                 glowEffect.classList.remove('opacity-0');
                 glowEffect.classList.add('opacity-30', 'bg-indigo-500');
 
-                // LANGKAH 2: BATCH PROCESSING (KIRIM 30 FOTO SEKALI JALAN)
+                // LANGKAH 2: BATCH PROCESSING
                 const batchSize = 30; 
                 let processed = 0;
 
@@ -991,7 +1017,7 @@
                     const chunk = fileIds.slice(i, i + batchSize);
                     
                     text.innerHTML = `Menyusun foto <b>${processed + 1} - ${processed + chunk.length}</b> dari ${totalFiles}...`;
-                    let percent = Math.floor((processed / totalFiles) * 80) + 10; // 10% ke 90%
+                    let percent = Math.floor((processed / totalFiles) * 80) + 10; 
                     bar.style.width = percent + "%";
                     percentTxt.textContent = percent + "% MENYUSUN";
                     countTxt.textContent = `${processed} / ${totalFiles} FILE`;
@@ -1007,16 +1033,15 @@
                     processed += chunk.length;
                 }
 
-                // BATCH SELESAI, TINGGAL FINISHING
+                // LANGKAH 3: FINALIZE PDF
                 bar.style.width = "95%";
                 percentTxt.textContent = "95% FINISHING";
                 countTxt.textContent = `${totalFiles} / ${totalFiles} FILE`;
                 text.textContent = "Menyelesaikan dokumen dan konversi ke PDF...";
 
-                // LANGKAH 3: FINALIZE PDF (CONVERT & DAPETIN LINK)
                 let finalResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: 'finalizePDF', docId: docId, projectName: projectName })
+                    body: JSON.stringify({ action: 'finalizePDF', docId: docId, pdfTitle: finalTitle })
                 });
 
                 let finalRes = JSON.parse(await finalResponse.text());
