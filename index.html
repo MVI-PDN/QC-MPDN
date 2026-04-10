@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QC-PDN PRO - Microvision</title>
     
+    <!-- TAG PWA (Progressive Web App) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="QC-PDN PRO">
     <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true">
+    <!-- END TAG PWA -->
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -19,15 +22,19 @@
         .modal-enter { opacity: 0; transform: scale(0.9); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.3s, transform 0.3s; }
         
+        /* Animasi Flash Kamera */
         @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; background: white; } 100% { opacity: 1; } }
         .flash-anim { animation: flash 0.2s ease-out; }
 
+        /* Animasi Pulse Record */
         @keyframes pulse-red { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .record-pulse { animation: pulse-red 1.5s infinite; }
 
+        /* Animasi Pop-up Tengah Layar */
         @keyframes bounceShort { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .animate-bounce-short { animation: bounceShort 0.3s ease-out forwards; }
 
+        /* Animasi Progress PDF */
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-2deg); } 50% { transform: translateX(5px) rotate(2deg); } 75% { transform: translateX(-5px) rotate(-2deg); } }
         .animate-shake { animation: shake 0.4s ease-in-out; }
 
@@ -53,6 +60,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
 
+    <!-- === MODAL PREVIEW MEDIA === -->
     <div id="mediaPreviewModal" class="hidden fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center backdrop-blur-md transition-opacity" style="touch-action: none;">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
             <span id="previewModalTitle" class="text-white text-sm font-bold truncate pr-4">Preview</span>
@@ -66,6 +74,7 @@
         <div id="mediaPreviewContainer" class="w-full h-full flex items-center justify-center overflow-hidden relative"></div>
     </div>
 
+    <!-- === MODAL PENGATURAN === -->
     <div id="settingsModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-bounce-short">
             <div class="bg-slate-800 p-4 flex justify-between items-center">
@@ -86,6 +95,7 @@
         </div>
     </div>
 
+    <!-- === MODAL PANDUAN PENGGUNAAN (HELP) === -->
     <div id="helpModal" class="hidden fixed inset-0 z-[85] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-bounce-short flex flex-col max-h-[85vh]">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center shrink-0">
@@ -104,11 +114,10 @@
                     </ul>
                 </div>
                 <div class="space-y-2">
-                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> 2. Pusat Unduhan</h3>
+                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-database mr-1"></i> 2. Menu Database</h3>
                     <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
-                        <li>Gunakan menu ini untuk mencari file <b>RCGFX</b> dan <b>Firmware</b>.</li>
+                        <li>Gunakan menu ini untuk mencari file <b>RCFGX</b> dan <b>Firmware</b>.</li>
                         <li>Navigasi bekerja seperti Folder di Komputer. Klik folder untuk masuk, tekan tombol <b>Kembali</b> untuk keluar.</li>
-                        <li>Untuk menambahkan Link Download baru ke dalam database, klik tombol <b>+ Tambah Data</b> di pojok kanan atas.</li>
                     </ul>
                 </div>
                 <div class="space-y-2">
@@ -127,56 +136,7 @@
         </div>
     </div>
 
-    <div id="adminPanelModal" class="hidden fixed inset-0 z-[90] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-bounce-short flex flex-col max-h-[90vh]">
-            <div class="bg-blue-800 p-4 flex justify-between items-center shrink-0">
-                <h2 class="text-white font-bold text-lg"><i class="fa-solid fa-database mr-2"></i>Tambah Database File</h2>
-                <button onclick="closeAdminPanel()" class="text-blue-200 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="p-5 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
-                <form id="adminForm" class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori</label>
-                        <select id="dbKat" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
-                            <option value="">Pilih Kategori...</option>
-                            <option value="INDOOR">INDOOR</option>
-                            <option value="OUTDOOR">OUTDOOR</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tipe (Produk/Pitch)</label>
-                        <input type="text" id="dbTipe" required autocomplete="off" placeholder="Contoh: P1.86 / P4.00 / KIOSK" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none uppercase transition">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Batch / Folder Utama</label>
-                            <input type="text" id="dbBatch" required autocomplete="off" placeholder="Contoh: 2411 / Lainnya" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Jenis File</label>
-                            <select id="dbJenis" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
-                                <option value="RCGFX">RCGFX</option>
-                                <option value="Firmware">Firmware</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Sub-Folder / Varian Khusus (Opsional)</label>
-                        <input type="text" id="dbVarian" autocomplete="off" placeholder="Contoh: MRV432 (Kosongkan jika tidak ada)" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Link Google Drive</label>
-                        <input type="url" id="dbLink" required autocomplete="off" placeholder="Paste Link GDrive di sini..." class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition">
-                    </div>
-                    
-                    <button type="submit" id="btnSimpanDB" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/30 active:scale-95 mt-4 flex justify-center items-center gap-2">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Database
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
+    <!-- === MODAL PROGRESS BIKIN PDF === -->
     <div id="pdfProgressModal" class="hidden fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div id="pdfModalBox" class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm text-center transform transition-all animate-bounce-short relative overflow-hidden">
             <div id="pdfGlowEffect" class="absolute inset-0 bg-blue-500 opacity-0 blur-3xl transition-opacity duration-1000 -z-10 pointer-events-none"></div>
@@ -206,6 +166,7 @@
         </div>
     </div>
 
+    <!-- === MODAL PILIH KATEGORI === -->
     <div id="categoryModal" class="fixed inset-0 z-50 bg-slate-900 bg-opacity-95 flex flex-col justify-center items-center p-4 transition-all duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
             <div class="bg-blue-800 p-5 text-center">
@@ -223,6 +184,7 @@
         </div>
     </div>
 
+    <!-- === CAMERA OVERLAY (WEBRTC) === -->
     <div id="cameraOverlay" class="hidden fixed inset-0 z-[60] bg-black flex flex-col">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
             <div id="recordingTimer" class="hidden bg-red-600 text-white px-3 py-1 rounded-full text-sm font-mono font-bold flex items-center gap-2">
@@ -263,6 +225,7 @@
         </div>
     </div>
 
+    <!-- === HEADER GLOBAL === -->
     <div class="bg-white/90 backdrop-blur-md p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
         <div class="flex items-center gap-3">
             <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
@@ -281,8 +244,10 @@
         </div>
     </div>
 
+    <!-- === KONTEN UTAMA: DIBAGI 3 TAB (QC, DOWNLOAD, PDF) === -->
     <div class="max-w-xl mx-auto bg-white min-h-[85vh] sm:min-h-0 sm:rounded-b-xl sm:shadow-xl overflow-hidden relative mb-20">
         
+        <!-- TAB 1: FORMULIR QC -->
         <div id="tabQC" class="p-5 space-y-5 block transition-opacity duration-300">
             <form id="qcForm" class="space-y-4">
                 <input type="hidden" id="category" name="category">
@@ -355,36 +320,44 @@
             </form>
         </div>
 
+        <!-- TAB 2: DATABASE -->
         <div id="tabDownload" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
-            <div class="flex justify-between items-center mb-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                        <i class="fa-solid fa-folder-tree text-lg"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-black text-slate-800 leading-tight">Pusat Unduhan</h2>
-                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">RCGFX & Firmware</p>
-                    </div>
+            <!-- HEADER DATABASE -->
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-database text-lg"></i>
                 </div>
-                <button onclick="openAdminPanel()" class="bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-600 p-2.5 rounded-xl text-xs font-bold border border-slate-200 hover:border-blue-200 transition-all shadow-sm flex items-center gap-2 active:scale-95 group">
-                    <i class="fa-solid fa-plus text-slate-400 group-hover:text-blue-500 transition-colors"></i> 
-                    <span class="hidden sm:inline">Tambah Data</span>
-                </button>
+                <div>
+                    <h2 class="text-lg font-black text-slate-800 leading-tight">Database</h2>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">RCFGX & Firmware</p>
+                </div>
             </div>
             
+            <!-- BREADCRUMB MODERN -->
             <div id="downloadBreadcrumb" class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 text-sm font-medium text-slate-600"></div>
             
+            <!-- CONTENT FOLDER/FILE -->
             <div id="downloadContent" class="space-y-3 min-h-[150px]">
-                <div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                    <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i>
-                    <p class="text-sm font-medium text-slate-500">Menyinkronkan Database...</p>
+                <!-- Animasi Loading Game/Sci-fi awal (Tema Putih/Bersih) -->
+                <div class="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(#93c5fd 1px, transparent 1px); background-size: 16px 16px;"></div>
+                    <div class="relative w-16 h-16 mb-4 flex items-center justify-center">
+                        <div class="absolute inset-0 border-4 border-blue-50 rounded-full"></div>
+                        <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" style="animation-duration: 0.8s;"></div>
+                        <div class="absolute inset-2 border-4 border-indigo-400 rounded-full border-b-transparent animate-spin" style="animation-duration: 1.2s; animation-direction: reverse;"></div>
+                        <i class="fa-solid fa-satellite-dish text-blue-500 text-lg animate-pulse"></i>
+                    </div>
+                    <h3 class="text-blue-600 font-black tracking-[0.3em] text-xs animate-pulse">LOADING DATA SERVER</h3>
+                    <p class="text-slate-400 text-[9px] font-mono mt-2 uppercase tracking-widest">Memproses Data...</p>
                 </div>
             </div>
             <div class="pb-10"></div>
         </div>
 
+        <!-- TAB 3: LAPORAN PDF -->
         <div id="tabPDF" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
-             <div class="flex items-center gap-3 mb-6">
+             <!-- HEADER LAPORAN -->
+            <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
                     <i class="fa-solid fa-file-pdf text-lg"></i>
                 </div>
@@ -394,6 +367,7 @@
                 </div>
             </div>
 
+            <!-- Generate Laporan (PDF) - TEMA BIRU PUTIH -->
             <div class="bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-500/5 p-6 relative overflow-hidden group">
                 <div class="flex items-center gap-4 mb-4 relative z-10">
                     <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
@@ -428,6 +402,7 @@
 
     </div>
     
+    <!-- === WIDGET PROGRESS BG === -->
     <div id="floatingProgress" class="fixed top-24 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 -translate-y-5 opacity-0 pointer-events-none hidden">
         <div class="flex items-center gap-3 mb-2">
             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0"><i class="fa-solid fa-cloud-arrow-up fa-fade"></i></div>
@@ -439,9 +414,10 @@
         <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div id="bgQueueBar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div></div>
     </div>
 
+    <!-- === BOTTOM NAVIGATION BAR === -->
     <div class="fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors"><i class="fa-solid fa-camera-retro text-xl mb-1"></i><span class="text-[10px] font-bold">Input QC</span></button>
-        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-cloud-arrow-down text-xl mb-1"></i><span class="text-[10px] font-bold">Unduh File</span></button>
+        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-database text-xl mb-1"></i><span class="text-[10px] font-bold">Database</span></button>
         <button onclick="switchTab('pdf')" id="navPDF" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-file-pdf text-xl mb-1"></i><span class="text-[10px] font-bold">Laporan</span></button>
     </div>
 
@@ -472,46 +448,10 @@
         }
 
         // ==========================================
-        // FUNGSI BANTUAN (HELP) & ADMIN PANEL
+        // FUNGSI BANTUAN (HELP)
         // ==========================================
         function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
         function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
-
-        function openAdminPanel() { document.getElementById('adminPanelModal').classList.remove('hidden'); }
-        function closeAdminPanel() { document.getElementById('adminPanelModal').classList.add('hidden'); document.getElementById('adminForm').reset(); }
-        
-        document.getElementById('adminForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSimpanDB'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
-            
-            const dataDB = {
-                action: 'addDownloadDB',
-                kategori: document.getElementById('dbKat').value,
-                tipe: document.getElementById('dbTipe').value.toUpperCase(),
-                batch: document.getElementById('dbBatch').value,
-                jenisFile: document.getElementById('dbJenis').value,
-                varian: document.getElementById('dbVarian').value,
-                link: document.getElementById('dbLink').value
-            };
-
-            try {
-                const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(dataDB) });
-                const res = await req.json();
-                if (res.result === 'success') {
-                    showToast("Berhasil tersimpan ke Excel!", "success");
-                    
-                    const linkInput = document.getElementById('dbLink');
-                    linkInput.value = '';
-                    linkInput.focus();
-                    
-                    isDbLoaded = false; 
-                    document.getElementById('downloadContent').innerHTML = `<div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200 shadow-sm"><i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500 mb-3"></i><p class="text-sm font-medium text-slate-500">Menyinkronkan data baru...</p></div>`;
-                    fetchDatabase(); 
-                } else { throw new Error("Gagal menyimpan"); }
-            } catch(e) { showToast("Gagal menyimpan data ke server", "error"); }
-            
-            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Database';
-        });
 
         // ==========================================
         // PENGATURAN & LAINNYA
@@ -547,7 +487,7 @@
                 
                 if (isFile) {
                     let iconClass = "fa-file-lines"; let colorClass = "text-slate-500"; let bgClass = "bg-slate-50";
-                    if(key.toLowerCase().includes('rcgfx')) { iconClass = "fa-file-code"; colorClass = "text-pink-600"; bgClass = "bg-pink-50"; }
+                    if(key.toLowerCase().includes('rcfgx') || key.toLowerCase().includes('rcgfx')) { iconClass = "fa-file-code"; colorClass = "text-pink-600"; bgClass = "bg-pink-50"; }
                     else if(key.toLowerCase().includes('firmware')) { iconClass = "fa-microchip"; colorClass = "text-purple-600"; bgClass = "bg-purple-50"; }
 
                     container.innerHTML += `
@@ -626,6 +566,21 @@
                 headerSettingBtn.classList.add('hidden');
                 headerHelpBtn.classList.add('hidden');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
+                
+                // Show cool loading state then fetch
+                const downloadContent = document.getElementById('downloadContent');
+                downloadContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(#93c5fd 1px, transparent 1px); background-size: 16px 16px;"></div>
+                    <div class="relative w-16 h-16 mb-4 flex items-center justify-center">
+                        <div class="absolute inset-0 border-4 border-blue-50 rounded-full"></div>
+                        <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" style="animation-duration: 0.8s;"></div>
+                        <div class="absolute inset-2 border-4 border-indigo-400 rounded-full border-b-transparent animate-spin" style="animation-duration: 1.2s; animation-direction: reverse;"></div>
+                        <i class="fa-solid fa-satellite-dish text-blue-500 text-lg animate-pulse"></i>
+                    </div>
+                    <h3 class="text-blue-600 font-black tracking-[0.3em] text-xs animate-pulse">LOADING DATA SERVER</h3>
+                    <p class="text-slate-400 text-[9px] font-mono mt-2 uppercase tracking-widest">Memproses Data...</p>
+                </div>`;
                 fetchDatabase(); 
             } else if (tabName === 'pdf') {
                 tabPDF.classList.remove('hidden');
