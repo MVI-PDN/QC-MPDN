@@ -197,6 +197,10 @@
         <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
             <video id="cameraVideo" autoplay playsinline muted class="absolute w-full h-full object-cover"></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
+            
+            <!-- Tambahan Kotak Animasi Tap-To-Focus -->
+            <div id="focusSquare" class="hidden absolute border-2 border-yellow-400 w-16 h-16 rounded-sm pointer-events-none transition-all duration-300 z-50 shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+            
             <div id="watermarkPreview" class="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded text-[10px] font-mono opacity-50 pointer-events-none border border-white/20">
                 <div class="font-bold text-blue-300">AUTO-WATERMARK AKTIF</div><div>Koordinat terdeteksi</div>
             </div>
@@ -639,9 +643,12 @@
                 rangeSNInput.required = false;
             }
 
-            // Project Name direset placeholder-nya
+            // Project Name direset placeholder-nya & Load dari Memory
             projectInput.placeholder = "Ketik Nama Project...";
             projectInput.value = localStorage.getItem(`lastProjectName_${catName}`) || ''; 
+            
+            // TAMBAHAN: Load Range SN dari Memory biar nempel terus
+            rangeSNInput.value = localStorage.getItem(`lastRangeSN_${catName}`) || ''; 
             
             updateLastSnDisplay(); categoryModal.classList.add('opacity-0', 'pointer-events-none'); fetchProjects(catName);
         }
@@ -658,7 +665,19 @@
             try {
                 let idealWidth = 1920; let idealHeight = 1080;
                 if(appSettings.camQuality === '720') { idealWidth = 1280; idealHeight = 720; } else if(appSettings.camQuality === '480') { idealWidth = 854; idealHeight = 480; }
-                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: idealWidth }, height: { ideal: idealHeight } }, audio: false });
+                
+                // TAMBAHAN: Panggil fitur Auto-Focus bawaan hardware HP kalau ada
+                const constraints = { 
+                    video: { 
+                        facingMode: { ideal: "environment" }, 
+                        width: { ideal: idealWidth }, 
+                        height: { ideal: idealHeight },
+                        advanced: [{ focusMode: "continuous" }] 
+                    }, 
+                    audio: false 
+                };
+
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 videoEl.srcObject = videoStream; cameraOverlay.classList.remove('hidden'); document.getElementById('floatingProgress').classList.add('hide-in-camera');
                 if (window.location.hash !== '#camera') { window.location.hash = 'camera'; }
                 setCameraMode('photo'); updateCamBadge();
@@ -837,7 +856,11 @@
             const sn = document.getElementById('sn').value.trim(); 
             const notes = document.getElementById('notes').value.trim();
 
-            localStorage.setItem(`lastProjectName_${category}`, project); localStorage.setItem(`lastUploadedSN_${category}`, sn);
+            localStorage.setItem(`lastProjectName_${category}`, project); 
+            // TAMBAHAN: Simpan Range SN ke dalam memori browser
+            localStorage.setItem(`lastRangeSN_${category}`, rangeSN); 
+            localStorage.setItem(`lastUploadedSN_${category}`, sn);
+            
             fileQueue.forEach(file => { backgroundQueue.push({ fileObj: file, category: category, rangeSN: rangeSN, project: project, sn: sn, notes: notes }); });
             
             const totalAdded = fileQueue.length; clearAllFiles(); document.getElementById('sn').value = ''; document.getElementById('notes').value = ''; updateLastSnDisplay(); 
@@ -880,6 +903,47 @@
         function closePdfProgress() {
             document.getElementById('pdfProgressModal').classList.add('hidden');
         }
+
+        // ==========================================
+        // FITUR TAP TO FOCUS KAMERA
+        // ==========================================
+        document.addEventListener("DOMContentLoaded", () => { 
+            initGPS(); updateLastSnDisplay(); openModal(); 
+            document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
+            
+            const videoContainer = document.getElementById('cameraVideo');
+            const focusSquare = document.getElementById('focusSquare');
+            
+            // Tangkap sentuhan layar saat buka kamera
+            videoContainer.addEventListener('touchstart', async (e) => {
+                if (!videoStream) return;
+                const touch = e.touches[0];
+                const rect = videoContainer.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+
+                // Animasi Kotak Fokus kuning
+                focusSquare.style.left = `${x - 32}px`;
+                focusSquare.style.top = `${y - 32}px`;
+                focusSquare.classList.remove('hidden', 'opacity-0', 'scale-150');
+                focusSquare.classList.add('opacity-100', 'scale-100');
+
+                // Paksa hardware kamera untuk refresh Auto-Focus
+                try {
+                    const track = videoStream.getVideoTracks()[0];
+                    const capabilities = track.getCapabilities();
+                    if (capabilities.focusMode) {
+                        await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
+                    }
+                } catch (err) { }
+
+                // Hilangkan kotak fokus setelah 800ms
+                setTimeout(() => { 
+                    focusSquare.classList.remove('scale-100'); 
+                    focusSquare.classList.add('opacity-0', 'scale-150'); 
+                }, 800);
+            });
+        });
 
         // ==========================================
         // FUNGSI REQUEST PDF
