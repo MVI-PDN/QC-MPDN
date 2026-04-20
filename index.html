@@ -666,7 +666,7 @@
                 let idealWidth = 1920; let idealHeight = 1080;
                 if(appSettings.camQuality === '720') { idealWidth = 1280; idealHeight = 720; } else if(appSettings.camQuality === '480') { idealWidth = 854; idealHeight = 480; }
                 
-                // TAMBAHAN: Panggil fitur Auto-Focus bawaan hardware HP kalau ada
+                // Panggil fitur Auto-Focus bawaan hardware HP
                 const constraints = { 
                     video: { 
                         facingMode: { ideal: "environment" }, 
@@ -857,7 +857,7 @@
             const notes = document.getElementById('notes').value.trim();
 
             localStorage.setItem(`lastProjectName_${category}`, project); 
-            // TAMBAHAN: Simpan Range SN ke dalam memori browser
+            // Simpan Range SN ke dalam memori browser
             localStorage.setItem(`lastRangeSN_${category}`, rangeSN); 
             localStorage.setItem(`lastUploadedSN_${category}`, sn);
             
@@ -925,23 +925,47 @@
                 // Animasi Kotak Fokus kuning
                 focusSquare.style.left = `${x - 32}px`;
                 focusSquare.style.top = `${y - 32}px`;
-                focusSquare.classList.remove('hidden', 'opacity-0', 'scale-150');
-                focusSquare.classList.add('opacity-100', 'scale-100');
+                focusSquare.classList.remove('hidden', 'opacity-0', 'scale-150', 'border-green-400');
+                focusSquare.classList.add('opacity-100', 'scale-100', 'border-yellow-400');
 
-                // Paksa hardware kamera untuk refresh Auto-Focus
+                // Paksa hardware kamera untuk refresh Auto-Focus ke titik yang disentuh
                 try {
                     const track = videoStream.getVideoTracks()[0];
                     const capabilities = track.getCapabilities();
-                    if (capabilities.focusMode) {
-                        await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
-                    }
-                } catch (err) { }
+                    
+                    // Hitung koordinat relatif (0.0 sampai 1.0) untuk pointsOfInterest
+                    const focusX = x / rect.width;
+                    const focusY = y / rect.height;
 
-                // Hilangkan kotak fokus setelah 800ms
+                    let advancedSettings = {};
+                    
+                    if (capabilities.focusMode && capabilities.focusMode.includes('single-shot')) {
+                        advancedSettings.focusMode = 'single-shot';
+                    }
+                    
+                    if (capabilities.pointsOfInterest) {
+                        advancedSettings.pointsOfInterest = [{ x: focusX, y: focusY }];
+                    } else if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+                        // Fallback kalau gak support point of interest
+                        advancedSettings.focusMode = 'continuous';
+                    }
+
+                    if (Object.keys(advancedSettings).length > 0) {
+                        await track.applyConstraints({ advanced: [advancedSettings] });
+                    }
+                } catch (err) { console.log("Auto-focus tidak didukung penuh oleh browser HP ini."); }
+
+                // Efek fokus dapet (warna hijau)
+                setTimeout(() => {
+                    focusSquare.classList.remove('border-yellow-400');
+                    focusSquare.classList.add('border-green-400', 'scale-90');
+                }, 500);
+
+                // Hilangkan kotak fokus setelah 1 detik
                 setTimeout(() => { 
-                    focusSquare.classList.remove('scale-100'); 
+                    focusSquare.classList.remove('opacity-100', 'scale-90', 'border-green-400'); 
                     focusSquare.classList.add('opacity-0', 'scale-150'); 
-                }, 800);
+                }, 1000);
             });
         });
 
