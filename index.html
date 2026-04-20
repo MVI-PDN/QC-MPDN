@@ -198,9 +198,6 @@
             <video id="cameraVideo" autoplay playsinline muted class="absolute w-full h-full object-cover"></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
             
-            <!-- Tambahan Kotak Animasi Tap-To-Focus -->
-            <div id="focusSquare" class="hidden absolute border-2 border-yellow-400 w-16 h-16 rounded-sm pointer-events-none transition-all duration-300 z-50 shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
-            
             <div id="watermarkPreview" class="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded text-[10px] font-mono opacity-50 pointer-events-none border border-white/20">
                 <div class="font-bold text-blue-300">AUTO-WATERMARK AKTIF</div><div>Koordinat terdeteksi</div>
             </div>
@@ -665,19 +662,7 @@
             try {
                 let idealWidth = 1920; let idealHeight = 1080;
                 if(appSettings.camQuality === '720') { idealWidth = 1280; idealHeight = 720; } else if(appSettings.camQuality === '480') { idealWidth = 854; idealHeight = 480; }
-                
-                // Panggil fitur Auto-Focus bawaan hardware HP
-                const constraints = { 
-                    video: { 
-                        facingMode: { ideal: "environment" }, 
-                        width: { ideal: idealWidth }, 
-                        height: { ideal: idealHeight },
-                        advanced: [{ focusMode: "continuous" }] 
-                    }, 
-                    audio: false 
-                };
-
-                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: idealWidth }, height: { ideal: idealHeight } }, audio: false });
                 videoEl.srcObject = videoStream; cameraOverlay.classList.remove('hidden'); document.getElementById('floatingProgress').classList.add('hide-in-camera');
                 if (window.location.hash !== '#camera') { window.location.hash = 'camera'; }
                 setCameraMode('photo'); updateCamBadge();
@@ -903,71 +888,6 @@
         function closePdfProgress() {
             document.getElementById('pdfProgressModal').classList.add('hidden');
         }
-
-        // ==========================================
-        // FITUR TAP TO FOCUS KAMERA
-        // ==========================================
-        document.addEventListener("DOMContentLoaded", () => { 
-            initGPS(); updateLastSnDisplay(); openModal(); 
-            document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
-            
-            const videoContainer = document.getElementById('cameraVideo');
-            const focusSquare = document.getElementById('focusSquare');
-            
-            // Tangkap sentuhan layar saat buka kamera
-            videoContainer.addEventListener('touchstart', async (e) => {
-                if (!videoStream) return;
-                const touch = e.touches[0];
-                const rect = videoContainer.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-
-                // Animasi Kotak Fokus kuning
-                focusSquare.style.left = `${x - 32}px`;
-                focusSquare.style.top = `${y - 32}px`;
-                focusSquare.classList.remove('hidden', 'opacity-0', 'scale-150', 'border-green-400');
-                focusSquare.classList.add('opacity-100', 'scale-100', 'border-yellow-400');
-
-                // Paksa hardware kamera untuk refresh Auto-Focus ke titik yang disentuh
-                try {
-                    const track = videoStream.getVideoTracks()[0];
-                    const capabilities = track.getCapabilities();
-                    
-                    // Hitung koordinat relatif (0.0 sampai 1.0) untuk pointsOfInterest
-                    const focusX = x / rect.width;
-                    const focusY = y / rect.height;
-
-                    let advancedSettings = {};
-                    
-                    if (capabilities.focusMode && capabilities.focusMode.includes('single-shot')) {
-                        advancedSettings.focusMode = 'single-shot';
-                    }
-                    
-                    if (capabilities.pointsOfInterest) {
-                        advancedSettings.pointsOfInterest = [{ x: focusX, y: focusY }];
-                    } else if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-                        // Fallback kalau gak support point of interest
-                        advancedSettings.focusMode = 'continuous';
-                    }
-
-                    if (Object.keys(advancedSettings).length > 0) {
-                        await track.applyConstraints({ advanced: [advancedSettings] });
-                    }
-                } catch (err) { console.log("Auto-focus tidak didukung penuh oleh browser HP ini."); }
-
-                // Efek fokus dapet (warna hijau)
-                setTimeout(() => {
-                    focusSquare.classList.remove('border-yellow-400');
-                    focusSquare.classList.add('border-green-400', 'scale-90');
-                }, 500);
-
-                // Hilangkan kotak fokus setelah 1 detik
-                setTimeout(() => { 
-                    focusSquare.classList.remove('opacity-100', 'scale-90', 'border-green-400'); 
-                    focusSquare.classList.add('opacity-0', 'scale-150'); 
-                }, 1000);
-            });
-        });
 
         // ==========================================
         // FUNGSI REQUEST PDF
