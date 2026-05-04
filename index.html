@@ -74,6 +74,21 @@
         <div id="mediaPreviewContainer" class="w-full h-full flex items-center justify-center overflow-hidden relative"></div>
     </div>
 
+    <!-- === MODAL UPLOAD GAGAL === -->
+    <div id="uploadFailModal" class="hidden fixed inset-0 z-[110] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-bounce-short p-6 text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-red-50 animate-bounce">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Upload Gagal!</h3>
+            <p class="text-sm text-slate-500 mb-4">Beberapa foto gagal terupload ke server. Berikut daftar SN-nya:</p>
+            <div id="failedSNList" class="bg-red-50 p-3 rounded-xl border border-red-100 text-xs font-mono text-red-700 max-h-32 overflow-y-auto custom-scrollbar mb-5 font-bold text-left space-y-1.5 shadow-inner">
+                <!-- List SN yang gagal bakal masuk sini otomatis -->
+            </div>
+            <button onclick="hideUploadFailModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg active:scale-95 text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-right"></i> Tutup & Coba Lagi</button>
+        </div>
+    </div>
+
     <!-- === MODAL PENGATURAN === -->
     <div id="settingsModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-bounce-short">
@@ -124,8 +139,8 @@
                     <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-file-pdf mr-1"></i> 3. Menu Laporan (PDF)</h3>
                     <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
                         <li>Gunakan menu ini saat proses foto QC telah selesai.</li>
-                        <li>Ketik <b>Nama Folder (Range SN / Project)</b> tempat foto disimpan.</li>
-                        <li>Isi <b>Tambahan Judul</b> (opsional) untuk menggabungkan teks di dokumen.</li>
+                        <li>Ketik <b>Nama Folder Target</b> tempat foto disimpan (Biasanya Range SN / Project).</li>
+                        <li>Isi <b>Nama Project</b> dan <b>Range SN</b> untuk ditampilkan di Dokumen.</li>
                         <li>Klik <b>Bikin Laporan Sekarang!</b>. Sistem meracik foto menjadi PDF.</li>
                     </ul>
                 </div>
@@ -339,7 +354,6 @@
             
             <!-- CONTENT FOLDER/FILE -->
             <div id="downloadContent" class="space-y-3 min-h-[150px]">
-                <!-- Animasi Loading Game/Sci-fi awal (Tema Putih/Bersih) -->
                 <div class="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
                     <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(#93c5fd 1px, transparent 1px); background-size: 16px 16px;"></div>
                     <div class="relative w-16 h-16 mb-4 flex items-center justify-center">
@@ -384,14 +398,21 @@
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
                         <i class="fa-solid fa-folder-magnifying-glass"></i>
                     </span>
-                    <input type="text" id="pdfSearchFolder" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Ketik Nama Folder (Contoh: Range SN)...">
+                    <input type="text" id="pdfSearchFolder" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Ketik Nama Folder Target (Untuk Pencarian)...">
+                </div>
+
+                <div class="relative mb-3 group/input z-10">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
+                        <i class="fa-solid fa-building"></i>
+                    </span>
+                    <input type="text" id="pdfProjectName" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Nama Project (Untuk ditulis di PDF)...">
                 </div>
 
                 <div class="relative mb-4 group/input z-10">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
-                        <i class="fa-solid fa-heading"></i>
+                        <i class="fa-solid fa-layer-group"></i>
                     </span>
-                    <input type="text" id="pdfTitleAppend" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Tambahan Judul Dokumen (Opsional)...">
+                    <input type="text" id="pdfRangeSN" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Range SN (Untuk ditulis di PDF)...">
                 </div>
                 
                 <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 relative z-10">
@@ -432,11 +453,9 @@
         // ==========================================
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6CuVEhoVzuivKLq_fZu65yc8VVJ6mO45uMx06GVkdsCjCTTEhcKsP92qB2EtYqusk/exec"; 
 
-        // ==========================================
-        // DATABASE DINAMIS DARI EXCEL
-        // ==========================================
         let downloadDB = {}; 
         let isDbLoaded = false;
+        let failedUploads = []; // Variabel nyimpen SN yang gagal upload
 
         async function fetchDatabase() {
             if (isDbLoaded) return;
@@ -449,14 +468,15 @@
         }
 
         // ==========================================
-        // FUNGSI BANTUAN (HELP)
+        // FUNGSI BANTUAN & POPUP GAGAL
         // ==========================================
         function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
         function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
+        
+        function hideUploadFailModal() { 
+            document.getElementById('uploadFailModal').classList.add('hidden'); 
+        }
 
-        // ==========================================
-        // PENGATURAN & LAINNYA
-        // ==========================================
         let appSettings = { camQuality: localStorage.getItem('qc_camQuality') || '720' };
 
         function openSettings() { document.querySelector(`input[name="set_cam"][value="${appSettings.camQuality}"]`).checked = true; document.getElementById('settingsModal').classList.remove('hidden'); }
@@ -543,32 +563,18 @@
             const headerHelpBtn = document.getElementById('headerHelpBtn');
             const modalKategori = document.getElementById('categoryModal');
             
-            // Reset Semua Tab & Tombol
-            tabQC.classList.add('hidden'); 
-            tabDownload.classList.add('hidden');
-            tabPDF.classList.add('hidden');
-            
-            navQC.classList.replace('text-blue-600', 'text-slate-400'); 
-            navDownload.classList.replace('text-blue-600', 'text-slate-400');
-            navPDF.classList.replace('text-blue-600', 'text-slate-400');
+            tabQC.classList.add('hidden'); tabDownload.classList.add('hidden'); tabPDF.classList.add('hidden');
+            navQC.classList.replace('text-blue-600', 'text-slate-400'); navDownload.classList.replace('text-blue-600', 'text-slate-400'); navPDF.classList.replace('text-blue-600', 'text-slate-400');
 
             if (tabName === 'qc') {
-                tabQC.classList.remove('hidden');
-                navQC.classList.replace('text-slate-400', 'text-blue-600');
-                headerCatBtn.classList.remove('hidden');
-                headerSettingBtn.classList.remove('hidden');
-                headerHelpBtn.classList.remove('hidden');
-                // Cuma pop up milih kategori kalau emang kategorinya masih kosong
+                tabQC.classList.remove('hidden'); navQC.classList.replace('text-slate-400', 'text-blue-600');
+                headerCatBtn.classList.remove('hidden'); headerSettingBtn.classList.remove('hidden'); headerHelpBtn.classList.remove('hidden');
                 if (modalKategori && !document.getElementById('category').value) { modalKategori.classList.remove('opacity-0', 'pointer-events-none'); }
             } else if (tabName === 'download') {
-                tabDownload.classList.remove('hidden');
-                navDownload.classList.replace('text-slate-400', 'text-blue-600');
-                headerCatBtn.classList.add('hidden');
-                headerSettingBtn.classList.add('hidden');
-                headerHelpBtn.classList.add('hidden');
+                tabDownload.classList.remove('hidden'); navDownload.classList.replace('text-slate-400', 'text-blue-600');
+                headerCatBtn.classList.add('hidden'); headerSettingBtn.classList.add('hidden'); headerHelpBtn.classList.add('hidden');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
                 
-                // Show cool loading state then fetch
                 const downloadContent = document.getElementById('downloadContent');
                 downloadContent.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
@@ -584,11 +590,8 @@
                 </div>`;
                 fetchDatabase(); 
             } else if (tabName === 'pdf') {
-                tabPDF.classList.remove('hidden');
-                navPDF.classList.replace('text-slate-400', 'text-blue-600');
-                headerCatBtn.classList.add('hidden');
-                headerSettingBtn.classList.add('hidden');
-                headerHelpBtn.classList.add('hidden');
+                tabPDF.classList.remove('hidden'); navPDF.classList.replace('text-slate-400', 'text-blue-600');
+                headerCatBtn.classList.add('hidden'); headerSettingBtn.classList.add('hidden'); headerHelpBtn.classList.add('hidden');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
             }
         }
@@ -640,11 +643,8 @@
                 rangeSNInput.required = false;
             }
 
-            // Project Name direset placeholder-nya & Load dari Memory
             projectInput.placeholder = "Ketik Nama Project...";
             projectInput.value = localStorage.getItem(`lastProjectName_${catName}`) || ''; 
-            
-            // TAMBAHAN: Load Range SN dari Memory biar nempel terus
             rangeSNInput.value = localStorage.getItem(`lastRangeSN_${catName}`) || ''; 
             
             updateLastSnDisplay(); categoryModal.classList.add('opacity-0', 'pointer-events-none'); fetchProjects(catName);
@@ -658,11 +658,18 @@
         });
 
         async function startCamera() {
+            hideUploadFailModal(); // Sembunyiin Error kalo buka kamera lagi
             const snValue = document.getElementById('sn').value.trim(); if (!snValue) { document.getElementById('snError').classList.remove('hidden'); document.getElementById('sn').focus(); return; }
             try {
                 let idealWidth = 1920; let idealHeight = 1080;
                 if(appSettings.camQuality === '720') { idealWidth = 1280; idealHeight = 720; } else if(appSettings.camQuality === '480') { idealWidth = 854; idealHeight = 480; }
-                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: idealWidth }, height: { ideal: idealHeight } }, audio: false });
+                
+                const constraints = { 
+                    video: { facingMode: { ideal: "environment" }, width: { ideal: idealWidth }, height: { ideal: idealHeight }, advanced: [{ focusMode: "continuous" }] }, 
+                    audio: false 
+                };
+
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 videoEl.srcObject = videoStream; cameraOverlay.classList.remove('hidden'); document.getElementById('floatingProgress').classList.add('hide-in-camera');
                 if (window.location.hash !== '#camera') { window.location.hash = 'camera'; }
                 setCameraMode('photo'); updateCamBadge();
@@ -758,15 +765,11 @@
             if(currentCat) { icon.classList.add('fa-spin'); fetchProjects(currentCat).then(() => icon.classList.remove('fa-spin')); } else { showToast("Pilih kategori dulu!", "error"); }
         });
 
-        async function fetchProjects(category) {
-            if (!SCRIPT_URL.startsWith("http")) return;
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getProjects&category=${category}`); const data = await response.json();
-                if (data.result === 'success') { projectList.innerHTML = ''; data.projects.forEach(proj => { const option = document.createElement('option'); option.value = proj; projectList.appendChild(option); }); }
-            } catch (e) {}
-        }
-
-        document.getElementById('galleryInput').addEventListener('change', function(e) { handleFiles(e.target.files); this.value = ''; });
+        document.getElementById('galleryInput').addEventListener('change', function(e) { 
+            hideUploadFailModal(); // Sembunyiin error kalau pilih file galeri lagi
+            handleFiles(e.target.files); 
+            this.value = ''; 
+        });
 
         function handleFiles(files) {
             if (!files.length) return;
@@ -835,6 +838,8 @@
             e.preventDefault(); if (fileQueue.length === 0) return;
             if (!SCRIPT_URL.startsWith("http")) { showToast("URL Script belum diisi!", "error"); return; }
             
+            hideUploadFailModal(); // Sembunyiin popup gagal pas mau coba upload baru
+
             const category = categoryInput.value; 
             const rangeSN = document.getElementById('rangeSN').value.trim(); 
             const project = document.getElementById('project').value.trim(); 
@@ -842,7 +847,6 @@
             const notes = document.getElementById('notes').value.trim();
 
             localStorage.setItem(`lastProjectName_${category}`, project); 
-            // Simpan Range SN ke dalam memori browser
             localStorage.setItem(`lastRangeSN_${category}`, rangeSN); 
             localStorage.setItem(`lastUploadedSN_${category}`, sn);
             
@@ -855,9 +859,27 @@
 
         async function processBackgroundQueue() {
             const floatingProgress = document.getElementById('floatingProgress'); const queueCount = document.getElementById('bgQueueCount'); const queueFileName = document.getElementById('bgQueueFileName'); const queueBar = document.getElementById('bgQueueBar');
-            if (backgroundQueue.length === 0) { isUploading = false; floatingProgress.classList.add('-translate-y-5', 'opacity-0', 'pointer-events-none'); setTimeout(() => floatingProgress.classList.add('hidden'), 300); showToast("Semua antrean upload selesai!", "success"); return; }
+            
+            if (backgroundQueue.length === 0) { 
+                isUploading = false; 
+                floatingProgress.classList.add('-translate-y-5', 'opacity-0', 'pointer-events-none'); 
+                setTimeout(() => floatingProgress.classList.add('hidden'), 300); 
+                
+                // MUNCULIN POPUP KALAU ADA YANG GAGAL
+                if (failedUploads.length > 0) {
+                    const listContainer = document.getElementById('failedSNList');
+                    listContainer.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
+                    document.getElementById('uploadFailModal').classList.remove('hidden');
+                    failedUploads = []; // Reset biar fresh lagi
+                } else {
+                    showToast("Semua antrean upload selesai!", "success"); 
+                }
+                return; 
+            }
+
             isUploading = true; floatingProgress.classList.remove('hidden'); setTimeout(() => floatingProgress.classList.remove('-translate-y-5', 'opacity-0', 'pointer-events-none'), 10);
             const currentItem = backgroundQueue.shift(); queueCount.textContent = (backgroundQueue.length + 1); queueFileName.textContent = currentItem.fileObj.name; queueBar.style.width = "10%";
+            
             try {
                 const base64 = await toBase64(currentItem.fileObj); queueBar.style.width = "50%"; 
                 const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ 
@@ -871,7 +893,11 @@
                 }) });
                 const res = await req.json(); if (res.result !== 'success') throw new Error(res.error);
                 queueBar.style.width = "100%"; 
-            } catch (err) { showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error'); }
+            } catch (err) { 
+                // SIMPAN SN YANG GAGAL KE ARRAY
+                failedUploads.push("SN: " + (currentItem.sn || "Tanpa SN"));
+                showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error'); 
+            }
             setTimeout(processBackgroundQueue, 1000);
         }
 
@@ -894,12 +920,10 @@
         // ==========================================
         async function requestPDF() {
             const folderQuery = document.getElementById('pdfSearchFolder').value.trim();
-            const titleAppend = document.getElementById('pdfTitleAppend').value.trim();
+            const projectName = document.getElementById('pdfProjectName').value.trim();
+            const rangeSN = document.getElementById('pdfRangeSN').value.trim();
             
             if (!folderQuery) { showToast("Nama Folder untuk dicari wajib diisi!", "error"); return; }
-            
-            let finalTitle = folderQuery;
-            if(titleAppend) { finalTitle = folderQuery + " - " + titleAppend; }
 
             const modal = document.getElementById('pdfProgressModal');
             const modalBox = document.getElementById('pdfModalBox');
@@ -944,10 +968,15 @@
             step1Icon.className = "fa-solid fa-spinner fa-spin w-4 text-center text-blue-500";
 
             try {
-                // LANGKAH 1: INISIASI
+                // LANGKAH 1: INISIASI BARENG PARAMETER BARU
                 let initResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: 'initPDF', folderQuery: folderQuery, pdfTitle: finalTitle })
+                    body: JSON.stringify({ 
+                        action: 'initPDF', 
+                        folderQuery: folderQuery, 
+                        projectName: projectName, 
+                        rangeSN: rangeSN 
+                    })
                 });
                 
                 let initRes;
@@ -1004,7 +1033,11 @@
 
                 let finalResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: 'finalizePDF', docId: docId, pdfTitle: finalTitle })
+                    body: JSON.stringify({ 
+                        action: 'finalizePDF', 
+                        docId: docId, 
+                        projectName: (projectName ? projectName : folderQuery) // Pakai nama project atau nama folder
+                    })
                 });
 
                 let finalRes = JSON.parse(await finalResponse.text());
@@ -1066,3 +1099,6 @@
     </script>
 </body>
 </html>
+```eof
+
+Gimana bree, kira-kira buat notifikasi gagal ini warna UI-nya udah pas merah begini, atau lu mau nambahin efek suara/getar sekalian kalau uploadnya *failed*?
