@@ -483,14 +483,10 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
-            
-            // Frekuensi naik dari 600Hz ke 1200Hz
             osc.frequency.setValueAtTime(600, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            
             gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
@@ -501,19 +497,17 @@
         function playSoundError() {
             if (!audioCtx) return;
             playTet(audioCtx.currentTime);
-            playTet(audioCtx.currentTime + 0.2); // Jeda 0.2 detik untuk bunyi kedua
+            playTet(audioCtx.currentTime + 0.2); 
         }
 
         function playTet(time) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'square'; // Gelombang kotak bikin suara keras/buzzer
+            osc.type = 'square'; 
             osc.frequency.setValueAtTime(250, time);
-            
             gain.gain.setValueAtTime(0.2, time);
             gain.gain.setValueAtTime(0.2, time + 0.1);
             gain.gain.linearRampToValueAtTime(0.01, time + 0.15);
-            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(time);
@@ -546,11 +540,11 @@
 
             if (!currentCat) {
                  listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs">Pilih Kategori Produk terlebih dahulu.</div>';
-                 if(panelTitle) panelTitle.innerHTML = '<i class="fa-solid fa-earth-asia animate-pulse"></i> Live History';
+                 if(panelTitle) panelTitle.innerHTML = '<i class="fa-solid fa-earth-asia animate-pulse"></i> Last S/N';
                  return;
             }
 
-            if(panelTitle) panelTitle.innerHTML = `<i class="fa-solid fa-earth-asia animate-pulse"></i> Live History: ${currentCat}`;
+            if(panelTitle) panelTitle.innerHTML = `<i class="fa-solid fa-earth-asia animate-pulse"></i> Last S/N: ${currentCat}`;
             
             if(icon) icon.classList.add('fa-spin');
             listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mb-2 text-lg"></i><br>Sinkronisasi server...</div>';
@@ -568,7 +562,6 @@
                     } else {
                         listContainer.innerHTML = '';
                         let lastSN = null;
-                        
                         res.data.forEach(item => {
                             if (item.sn !== lastSN) {
                                 const div = document.createElement('div');
@@ -611,30 +604,24 @@
         
         function renderDownloadMenu() {
             const container = document.getElementById('downloadContent'); const breadcrumb = document.getElementById('downloadBreadcrumb');
-            
             if (currentNavPath.length === 0) { 
                 breadcrumb.innerHTML = `<div class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg flex items-center gap-2 font-bold"><i class="fa-solid fa-hard-drive"></i> Root Database</div>`; 
             } else {
                 breadcrumb.innerHTML = `<button onclick="navDownloadTo('back')" class="text-slate-500 hover:text-slate-800 bg-white border border-slate-200 hover:border-slate-300 font-bold px-3 py-1.5 rounded-lg shadow-sm mr-1 active:scale-95 transition-all flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i></button> <div class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 shadow-sm flex items-center gap-2"><i class="fa-solid fa-folder-open text-blue-500"></i> ${currentNavPath.join(' <span class="text-slate-300 mx-1">/</span> ')}</div>`;
             }
-
             let currentData = downloadDB; for (let key of currentNavPath) { currentData = currentData[key]; }
             container.innerHTML = '';
-            
             if (!currentData || Object.keys(currentData).length === 0) { 
                 container.innerHTML = `<div class="text-center py-12 bg-white rounded-2xl border border-slate-200 shadow-sm"><i class="fa-regular fa-folder-open text-4xl text-slate-300 mb-3"></i><p class="text-sm font-bold text-slate-400">Folder masih kosong.</p></div>`; 
                 return; 
             }
-
             for (let key in currentData) {
                 const itemData = currentData[key]; 
                 const isFile = typeof itemData === 'string';
-                
                 if (isFile) {
                     let iconClass = "fa-file-lines"; let colorClass = "text-slate-500"; let bgClass = "bg-slate-50";
                     if(key.toLowerCase().includes('rcfgx') || key.toLowerCase().includes('rcgfx')) { iconClass = "fa-file-code"; colorClass = "text-pink-600"; bgClass = "bg-pink-50"; }
                     else if(key.toLowerCase().includes('firmware')) { iconClass = "fa-microchip"; colorClass = "text-purple-600"; bgClass = "bg-purple-50"; }
-
                     container.innerHTML += `
                     <a href="${itemData}" target="_blank" class="w-full bg-white border border-slate-200 p-4 rounded-2xl shadow-sm transition-all duration-300 flex items-center justify-between group hover:border-blue-300 hover:shadow-md active:scale-[0.98] relative overflow-hidden mb-2">
                         <div class="absolute left-0 top-0 h-full w-1 bg-transparent group-hover:bg-blue-500 transition-colors"></div>
@@ -677,19 +664,15 @@
             const tabQC = document.getElementById('tabQC'); 
             const tabDownload = document.getElementById('tabDownload');
             const tabPDF = document.getElementById('tabPDF');
-
             const navQC = document.getElementById('navQC'); 
             const navDownload = document.getElementById('navDownload');
             const navPDF = document.getElementById('navPDF');
-
             const headerCatBtn = document.getElementById('headerCatBtn'); 
             const headerSettingBtn = document.getElementById('headerSettingBtn');
             const headerHelpBtn = document.getElementById('headerHelpBtn');
             const modalKategori = document.getElementById('categoryModal');
-            
             tabQC.classList.add('hidden'); tabDownload.classList.add('hidden'); tabPDF.classList.add('hidden');
             navQC.classList.replace('text-blue-600', 'text-slate-400'); navDownload.classList.replace('text-blue-600', 'text-slate-400'); navPDF.classList.replace('text-blue-600', 'text-slate-400');
-
             if (tabName === 'qc') {
                 tabQC.classList.remove('hidden'); navQC.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.remove('hidden'); headerSettingBtn.classList.remove('hidden'); headerHelpBtn.classList.remove('hidden');
@@ -698,7 +681,6 @@
                 tabDownload.classList.remove('hidden'); navDownload.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.add('hidden'); headerSettingBtn.classList.add('hidden'); headerHelpBtn.classList.add('hidden');
                 if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
-                
                 const downloadContent = document.getElementById('downloadContent');
                 downloadContent.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
@@ -758,10 +740,8 @@
 
         function selectCategory(catName) {
             categoryInput.value = catName; categoryDisplay.textContent = catName; if(categoryDisplayInput) { categoryDisplayInput.value = catName; }
-            
             const rangeLabel = document.getElementById('rangeSNLabel');
             const projLabel = document.getElementById('projectLabel');
-
             if (['MVIFCI', 'MVIFCO', 'MVIDCI'].includes(catName)) {
                 rangeLabel.textContent = "Range Serial Number / Batch";
                 rangeSNInput.placeholder = catName === 'MVIFCO' ? "Contoh: MVIFCO5.0-2601-0001-0100" : (catName === 'MVIFCI' ? "Contoh: MVIFCIL2.5-2601-0001-0100" : "Contoh: MVIDCI1.5-2601-0001-0100");
@@ -771,11 +751,9 @@
                 rangeSNInput.placeholder = "Contoh: Batch 1...";
                 rangeSNInput.required = false;
             }
-
             projectInput.placeholder = "Ketik Nama Project...";
             projectInput.value = localStorage.getItem(`lastProjectName_${catName}`) || ''; 
             rangeSNInput.value = localStorage.getItem(`lastRangeSN_${catName}`) || ''; 
-            
             categoryModal.classList.add('opacity-0', 'pointer-events-none'); 
             fetchProjects(catName);
             updateLastSnDisplay();
@@ -790,17 +768,22 @@
         });
 
         async function startCamera() {
+            initAudio(); // Inisialisasi audio saat interaksi user
             hideUploadFailModal(); 
-            const snValue = document.getElementById('sn').value.trim(); if (!snValue) { document.getElementById('snError').classList.remove('hidden'); document.getElementById('sn').focus(); return; }
+            const snValue = document.getElementById('sn').value.trim(); 
+            if (!snValue) { 
+                playSoundError(); // Bunyi TET! TET! saat SN kosong
+                document.getElementById('snError').classList.remove('hidden'); 
+                document.getElementById('sn').focus(); 
+                return; 
+            }
             try {
                 let idealWidth = 1920; let idealHeight = 1080;
                 if(appSettings.camQuality === '720') { idealWidth = 1280; idealHeight = 720; } else if(appSettings.camQuality === '480') { idealWidth = 854; idealHeight = 480; }
-                
                 const constraints = { 
                     video: { facingMode: { ideal: "environment" }, width: { ideal: idealWidth }, height: { ideal: idealHeight }, advanced: [{ focusMode: "continuous" }] }, 
                     audio: false 
                 };
-
                 videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 videoEl.srcObject = videoStream; cameraOverlay.classList.remove('hidden'); document.getElementById('floatingProgress').classList.add('hide-in-camera');
                 if (window.location.hash !== '#camera') { window.location.hash = 'camera'; }
@@ -831,14 +814,12 @@
             const dateTimeStr = `Waktu : ${now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} - ${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} WIB`;
             const isLandscape = canvasWidth > canvasHeight; const baseDim = isLandscape ? canvasHeight : canvasWidth;
             const fontSize = Math.max(10, Math.floor(baseDim * (isLandscape ? 0.010 : 0.017))); const padding = fontSize; const lineHeight = fontSize * 1.4;
-            
             const textLines = [];
             if (projectVal) textLines.push(`Project : ${projectVal.toUpperCase()}`);
             if (rangeSNVal) textLines.push(`Range SN : ${rangeSNVal.toUpperCase()}`);
             textLines.push(`S/N      : ${snValue.toUpperCase()}`);
             textLines.push(dateTimeStr);
             textLines.push(currentLocationStr);
-
             ctx.font = `bold ${fontSize}px sans-serif`; let maxWidth = 0; textLines.forEach(text => { maxWidth = Math.max(maxWidth, ctx.measureText(text).width); });
             const boxWidth = maxWidth + (padding * 2); const boxHeight = (textLines.length * lineHeight) + padding;
             const startX = padding; const startY = canvasHeight - boxHeight - padding;
@@ -969,22 +950,17 @@
         document.getElementById('qcForm').addEventListener('submit', function(e) {
             e.preventDefault(); if (fileQueue.length === 0) return;
             if (!SCRIPT_URL.startsWith("http")) { showToast("URL Script belum diisi!", "error"); return; }
-            
-            initAudio(); // Nyalain akses speaker pas user ngeklik tombol
+            initAudio(); 
             hideUploadFailModal(); 
-
             const category = categoryInput.value; 
             const rangeSN = document.getElementById('rangeSN').value.trim(); 
             const project = document.getElementById('project').value.trim(); 
             const sn = document.getElementById('sn').value.trim(); 
             const notes = document.getElementById('notes').value.trim();
-
             localStorage.setItem(`lastProjectName_${category}`, project); 
             localStorage.setItem(`lastRangeSN_${category}`, rangeSN); 
             localStorage.setItem(`lastUploadedSN_${category}`, sn);
-            
             fileQueue.forEach(file => { backgroundQueue.push({ fileObj: file, category: category, rangeSN: rangeSN, project: project, sn: sn, notes: notes }); });
-            
             const totalAdded = fileQueue.length; clearAllFiles(); document.getElementById('sn').value = ''; document.getElementById('notes').value = ''; updateLastSnDisplay(); 
             showToast(`${totalAdded} File masuk ke antrean upload!`, 'success');
             if (!isUploading) processBackgroundQueue();
@@ -992,30 +968,25 @@
 
         async function processBackgroundQueue() {
             const floatingProgress = document.getElementById('floatingProgress'); const queueCount = document.getElementById('bgQueueCount'); const queueFileName = document.getElementById('bgQueueFileName'); const queueBar = document.getElementById('bgQueueBar');
-            
             if (backgroundQueue.length === 0) { 
                 isUploading = false; 
                 floatingProgress.classList.add('-translate-y-5', 'opacity-0', 'pointer-events-none'); 
                 setTimeout(() => floatingProgress.classList.add('hidden'), 300); 
-                
-                // Kalo Ada Gagal
                 if (failedUploads.length > 0) {
                     const listContainer = document.getElementById('failedSNList');
                     listContainer.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
                     document.getElementById('uploadFailModal').classList.remove('hidden');
-                    playSoundError(); // Bunyi TET TET
+                    playSoundError(); 
                     failedUploads = []; 
                 } else {
                     showToast("Semua antrean upload selesai!", "success"); 
-                    playSoundSuccess(); // Bunyi KLUNG
+                    playSoundSuccess(); 
                     fetchLiveHistory(); 
                 }
                 return; 
             }
-
             isUploading = true; floatingProgress.classList.remove('hidden'); setTimeout(() => floatingProgress.classList.remove('-translate-y-5', 'opacity-0', 'pointer-events-none'), 10);
             const currentItem = backgroundQueue.shift(); queueCount.textContent = (backgroundQueue.length + 1); queueFileName.textContent = currentItem.fileObj.name; queueBar.style.width = "10%";
-            
             try {
                 const base64 = await toBase64(currentItem.fileObj); queueBar.style.width = "50%"; 
                 const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ 
@@ -1050,17 +1021,12 @@
             document.getElementById('pdfProgressModal').classList.add('hidden');
         }
 
-        // ==========================================
-        // FUNGSI REQUEST PDF
-        // ==========================================
         async function requestPDF() {
-            initAudio(); // Nyalain akses speaker
+            initAudio(); 
             const folderQuery = document.getElementById('pdfSearchFolder').value.trim();
             const projectName = document.getElementById('pdfProjectName').value.trim();
             const rangeSN = document.getElementById('pdfRangeSN').value.trim();
-            
             if (!folderQuery) { showToast("Nama Folder untuk dicari wajib diisi!", "error"); return; }
-
             const modal = document.getElementById('pdfProgressModal');
             const modalBox = document.getElementById('pdfModalBox');
             const glowEffect = document.getElementById('pdfGlowEffect');
@@ -1073,156 +1039,115 @@
             const actions = document.getElementById('pdfResultActions');
             const btnDownload = document.getElementById('btnDownloadPDF');
             const errorActions = document.getElementById('pdfErrorActions');
-
             const step1 = document.getElementById('step1'); const step1Icon = document.getElementById('step1Icon');
             const step2 = document.getElementById('step2'); const step2Icon = document.getElementById('step2Icon');
             const step3 = document.getElementById('step3'); const step3Icon = document.getElementById('step3Icon');
-
-            // Reset UI Modal
             modal.classList.remove('hidden');
             modalBox.classList.remove('animate-shake', 'ring-4', 'ring-red-500');
             glowEffect.classList.remove('opacity-100', 'bg-red-500', 'bg-green-500');
             glowEffect.classList.add('opacity-0');
             actions.classList.add('hidden'); actions.classList.remove('flex');
             errorActions.classList.add('hidden'); errorActions.classList.remove('flex');
-            
             icon.className = "w-16 h-16 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce relative z-10 shadow-sm border border-blue-50";
             icon.innerHTML = '<i class="fa-solid fa-folder-magnifying-glass"></i>';
             title.textContent = "Mencari & Menyiapkan...";
             text.textContent = "Mendata seluruh foto di folder project...";
-            
             bar.className = "bg-blue-600 h-3 rounded-full transition-all duration-500 progress-striped";
             bar.style.width = "5%";
             percentTxt.textContent = "5% MEMPROSES";
             percentTxt.className = "text-blue-500 animate-pulse";
             countTxt.textContent = "0 / ? FILE";
-
             [step1, step2, step3].forEach(s => s.classList.replace('text-slate-800', 'text-slate-400'));
             [step1Icon, step2Icon, step3Icon].forEach(i => i.className = "fa-regular fa-circle w-4 text-center");
-
             step1.classList.replace('text-slate-400', 'text-blue-600');
             step1Icon.className = "fa-solid fa-spinner fa-spin w-4 text-center text-blue-500";
-
             try {
                 let initResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({ action: 'initPDF', folderQuery: folderQuery, projectName: projectName, rangeSN: rangeSN })
                 });
-                
                 let initRes;
                 try { initRes = JSON.parse(await initResponse.text()); } 
                 catch(e) { throw new Error("Server menolak akses. Pastikan Deploy Versi Baru!"); }
-
                 if (initRes.result !== 'success') throw new Error(initRes.message);
-
                 const totalFiles = initRes.total;
                 const fileIds = initRes.fileIds;
                 const docId = initRes.docId;
-
                 step1.classList.replace('text-blue-600', 'text-green-600');
                 step1Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
-                
                 step2.classList.replace('text-slate-400', 'text-blue-600');
                 step2Icon.className = "fa-solid fa-spinner fa-spin w-4 text-center text-blue-500";
-
                 icon.className = "w-16 h-16 mx-auto bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl mb-4 relative z-10 shadow-sm border border-indigo-50";
                 icon.innerHTML = '<i class="fa-solid fa-file-pdf fa-beat-fade"></i>';
                 title.textContent = "Menyusun PDF";
                 glowEffect.classList.remove('opacity-0');
                 glowEffect.classList.add('opacity-30', 'bg-indigo-500');
-
-                // BATCH PROCESSING
                 const batchSize = 30; 
                 let processed = 0;
-
                 for (let i = 0; i < fileIds.length; i += batchSize) {
                     const chunk = fileIds.slice(i, i + batchSize);
-                    
                     text.innerHTML = `Menyusun foto <b>${processed + 1} - ${processed + chunk.length}</b> dari ${totalFiles}...`;
                     let percent = Math.floor((processed / totalFiles) * 80) + 10; 
                     bar.style.width = percent + "%";
                     percentTxt.textContent = percent + "% MENYUSUN";
                     countTxt.textContent = `${processed} / ${totalFiles} FILE`;
-
                     let batchResponse = await fetch(SCRIPT_URL, {
                         method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
                         body: JSON.stringify({ action: 'processBatch', docId: docId, fileIds: chunk })
                     });
-
                     let batchRes = JSON.parse(await batchResponse.text());
                     if (batchRes.result !== 'success') throw new Error(batchRes.message);
-                    
                     processed += chunk.length;
                 }
-
-                // FINALIZE PDF
                 bar.style.width = "95%";
                 percentTxt.textContent = "95% FINISHING";
                 countTxt.textContent = `${totalFiles} / ${totalFiles} FILE`;
                 text.textContent = "Menyelesaikan dokumen dan konversi ke PDF...";
-
                 let finalResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({ action: 'finalizePDF', docId: docId, projectName: (projectName ? projectName : folderQuery) })
                 });
-
                 let finalRes = JSON.parse(await finalResponse.text());
                 if (finalRes.result !== 'success') throw new Error(finalRes.message);
-
-                // SEMUA SUKSES
                 step2.classList.replace('text-blue-600', 'text-green-600');
                 step2Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
                 step3.classList.replace('text-slate-400', 'text-green-600');
                 step3Icon.className = "fa-solid fa-circle-check w-4 text-center text-green-500";
-
                 bar.className = "bg-green-500 h-3 rounded-full transition-all duration-500";
                 bar.style.width = "100%";
                 percentTxt.textContent = "100% SELESAI";
                 percentTxt.className = "text-green-600";
-                
                 title.textContent = "Mantap! Selesai!";
                 title.className = "text-2xl font-black text-green-600 mb-1 relative z-10";
                 text.textContent = "Laporan PDF berhasil diracik dan siap untuk diunduh/dicetak.";
-
                 icon.className = "w-20 h-20 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mb-4 relative z-10 shadow-lg border-4 border-white";
                 icon.innerHTML = '<i class="fa-solid fa-check"></i>';
-
                 glowEffect.classList.replace('bg-indigo-500', 'bg-green-400');
                 glowEffect.classList.replace('opacity-30', 'opacity-40');
-
                 btnDownload.href = finalRes.link;
                 actions.classList.remove('hidden');
                 actions.classList.add('flex');
-                
                 showToast("Laporan PDF berhasil dibuat!", "success");
-                playSoundSuccess(); // Bunyi KLUNG
-
+                playSoundSuccess(); 
             } catch (err) {
-                // ERROR HANDLER
                 modalBox.classList.add('animate-shake', 'ring-4', 'ring-red-500');
                 bar.className = "bg-red-500 h-3 rounded-full transition-all duration-300";
                 bar.style.width = "100%";
                 percentTxt.textContent = "GAGAL EKSTRAK";
                 percentTxt.className = "text-red-600";
-                
                 if(step1Icon.classList.contains('fa-spin')) step1Icon.className = "fa-solid fa-circle-xmark w-4 text-center text-red-500";
                 if(step2Icon.classList.contains('fa-spin')) step2Icon.className = "fa-solid fa-circle-xmark w-4 text-center text-red-500";
                 if(step3Icon.classList.contains('fa-spin')) step3Icon.className = "fa-solid fa-circle-xmark w-4 text-center text-red-500";
-                
                 title.textContent = "Ekstraksi Gagal!";
                 title.className = "text-xl font-black text-red-600 mb-1 relative z-10";
                 text.innerHTML = `<b>Detail Error:</b><br>${err.message || "Terjadi kesalahan yang tidak diketahui."}`;
-                
                 icon.className = "w-16 h-16 mx-auto bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mb-4 relative z-10 shadow-sm border border-red-50";
                 icon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-
                 glowEffect.classList.replace('bg-indigo-500', 'bg-red-500');
                 glowEffect.classList.add('opacity-30');
-
                 errorActions.classList.remove('hidden');
                 errorActions.classList.add('flex');
-                
-                playSoundError(); // Bunyi TET TET
+                playSoundError(); 
             }
         }
     </script>
