@@ -300,6 +300,7 @@
                         <input type="text" id="sn" name="sn" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide" placeholder="Scan / Ketik SN Unit">
                     </div>
                     <p id="snError" class="text-xs font-bold text-red-500 mt-1.5 ml-1 hidden"><i class="fa-solid fa-circle-exclamation"></i> SN harus diisi terlebih dahulu sebelum membuka kamera!</p>
+                    <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Catatan</label>
@@ -337,12 +338,12 @@
             <!-- === PANEL LIVE GLOBAL HISTORY === -->
             <div class="mt-6 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                 <div class="bg-blue-600 px-4 py-3 flex justify-between items-center">
-                    <h3 class="text-white text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-earth-asia animate-pulse"></i> Live Global History</h3>
+                    <h3 id="liveHistoryTitle" class="text-white text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-earth-asia animate-pulse"></i> Live History</h3>
                     <button type="button" onclick="fetchLiveHistory()" class="text-blue-200 hover:text-white transition" title="Refresh History"><i id="refreshHistoryIcon" class="fa-solid fa-rotate-right"></i></button>
                 </div>
                 <div id="liveHistoryList" class="p-3 max-h-48 overflow-y-auto custom-scrollbar space-y-2">
                     <!-- Data history otomatis masuk sini -->
-                    <div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mb-2"></i><br>Memuat history...</div>
+                    <div class="text-center py-4 text-slate-400 text-xs">Pilih Kategori Produk terlebih dahulu.</div>
                 </div>
             </div>
 
@@ -467,7 +468,7 @@
 
         let downloadDB = {}; 
         let isDbLoaded = false;
-        let failedUploads = []; // Variabel nyimpen SN yang gagal upload
+        let failedUploads = []; 
 
         async function fetchDatabase() {
             if (isDbLoaded) return;
@@ -480,11 +481,21 @@
         }
 
         // ==========================================
-        // FUNGSI LIVE HISTORY GLOBAL
+        // FUNGSI LIVE HISTORY (DIFILTER PER KATEGORI)
         // ==========================================
         async function fetchLiveHistory() {
             const listContainer = document.getElementById('liveHistoryList');
             const icon = document.getElementById('refreshHistoryIcon');
+            const currentCat = document.getElementById('category').value;
+            const panelTitle = document.getElementById('liveHistoryTitle');
+
+            if (!currentCat) {
+                 listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs">Pilih Kategori Produk terlebih dahulu.</div>';
+                 if(panelTitle) panelTitle.innerHTML = '<i class="fa-solid fa-earth-asia animate-pulse"></i> Live History';
+                 return;
+            }
+
+            if(panelTitle) panelTitle.innerHTML = `<i class="fa-solid fa-earth-asia animate-pulse"></i> Live History: ${currentCat}`;
             
             if(icon) icon.classList.add('fa-spin');
             listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mb-2 text-lg"></i><br>Sinkronisasi server...</div>';
@@ -492,13 +503,13 @@
             try {
                 const req = await fetch(SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify({ action: 'getLiveHistory' })
+                    body: JSON.stringify({ action: 'getLiveHistory', category: currentCat })
                 });
                 const res = await req.json();
                 
                 if (res.result === 'success') {
                     if (res.data.length === 0) {
-                        listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs">Belum ada history QC.</div>';
+                        listContainer.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs">Belum ada history QC untuk ${currentCat}.</div>`;
                     } else {
                         listContainer.innerHTML = '';
                         res.data.forEach(item => {
@@ -663,6 +674,12 @@
             fetchLiveHistory();
         });
 
+        function updateLastSnDisplay() {
+            const currentCat = categoryInput.value; if (!currentCat) { document.getElementById('lastSnDisplay').classList.add('hidden'); return; }
+            const lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`); const displayEl = document.getElementById('lastSnDisplay'); const valueEl = document.getElementById('lastSnValue');
+            if (lastSn) { valueEl.textContent = lastSn; displayEl.classList.remove('hidden'); } else { displayEl.classList.add('hidden'); }
+        }
+
         let lastFetchedCoords = { lat: null, lng: null };
         function initGPS() {
             if (navigator.geolocation) {
@@ -705,6 +722,7 @@
             
             categoryModal.classList.add('opacity-0', 'pointer-events-none'); 
             fetchProjects(catName);
+            updateLastSnDisplay();
             fetchLiveHistory(); // Refresh history tiap ganti kategori
         }
 
@@ -716,7 +734,7 @@
         });
 
         async function startCamera() {
-            hideUploadFailModal(); // Sembunyiin Error kalo buka kamera lagi
+            hideUploadFailModal(); 
             const snValue = document.getElementById('sn').value.trim(); if (!snValue) { document.getElementById('snError').classList.remove('hidden'); document.getElementById('sn').focus(); return; }
             try {
                 let idealWidth = 1920; let idealHeight = 1080;
@@ -824,7 +842,7 @@
         });
 
         document.getElementById('galleryInput').addEventListener('change', function(e) { 
-            hideUploadFailModal(); // Sembunyiin error kalau pilih file galeri lagi
+            hideUploadFailModal(); 
             handleFiles(e.target.files); 
             this.value = ''; 
         });
@@ -896,7 +914,7 @@
             e.preventDefault(); if (fileQueue.length === 0) return;
             if (!SCRIPT_URL.startsWith("http")) { showToast("URL Script belum diisi!", "error"); return; }
             
-            hideUploadFailModal(); // Sembunyiin popup gagal pas mau coba upload baru
+            hideUploadFailModal(); 
 
             const category = categoryInput.value; 
             const rangeSN = document.getElementById('rangeSN').value.trim(); 
@@ -906,10 +924,11 @@
 
             localStorage.setItem(`lastProjectName_${category}`, project); 
             localStorage.setItem(`lastRangeSN_${category}`, rangeSN); 
+            localStorage.setItem(`lastUploadedSN_${category}`, sn);
             
             fileQueue.forEach(file => { backgroundQueue.push({ fileObj: file, category: category, rangeSN: rangeSN, project: project, sn: sn, notes: notes }); });
             
-            const totalAdded = fileQueue.length; clearAllFiles(); document.getElementById('sn').value = ''; document.getElementById('notes').value = ''; 
+            const totalAdded = fileQueue.length; clearAllFiles(); document.getElementById('sn').value = ''; document.getElementById('notes').value = ''; updateLastSnDisplay(); 
             showToast(`${totalAdded} File masuk ke antrean upload!`, 'success');
             if (!isUploading) processBackgroundQueue();
         });
@@ -927,10 +946,10 @@
                     const listContainer = document.getElementById('failedSNList');
                     listContainer.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
                     document.getElementById('uploadFailModal').classList.remove('hidden');
-                    failedUploads = []; // Reset biar fresh lagi
+                    failedUploads = []; 
                 } else {
                     showToast("Semua antrean upload selesai!", "success"); 
-                    fetchLiveHistory(); // Update panel live history kalau semuanya sukses
+                    fetchLiveHistory(); 
                 }
                 return; 
             }
@@ -952,7 +971,6 @@
                 const res = await req.json(); if (res.result !== 'success') throw new Error(res.error);
                 queueBar.style.width = "100%"; 
             } catch (err) { 
-                // SIMPAN SN YANG GAGAL KE ARRAY
                 failedUploads.push("SN: " + (currentItem.sn || "Tanpa SN"));
                 showToast(`Gagal upload: ${currentItem.fileObj.name}`, 'error'); 
             }
@@ -1026,7 +1044,6 @@
             step1Icon.className = "fa-solid fa-spinner fa-spin w-4 text-center text-blue-500";
 
             try {
-                // LANGKAH 1: INISIASI BARENG PARAMETER BARU
                 let initResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({ 
@@ -1059,7 +1076,7 @@
                 glowEffect.classList.remove('opacity-0');
                 glowEffect.classList.add('opacity-30', 'bg-indigo-500');
 
-                // LANGKAH 2: BATCH PROCESSING
+                // BATCH PROCESSING
                 const batchSize = 30; 
                 let processed = 0;
 
@@ -1083,7 +1100,7 @@
                     processed += chunk.length;
                 }
 
-                // LANGKAH 3: FINALIZE PDF
+                // FINALIZE PDF
                 bar.style.width = "95%";
                 percentTxt.textContent = "95% FINISHING";
                 countTxt.textContent = `${totalFiles} / ${totalFiles} FILE`;
@@ -1094,7 +1111,7 @@
                     body: JSON.stringify({ 
                         action: 'finalizePDF', 
                         docId: docId, 
-                        projectName: (projectName ? projectName : folderQuery) // Pakai nama project atau nama folder
+                        projectName: (projectName ? projectName : folderQuery)
                     })
                 });
 
