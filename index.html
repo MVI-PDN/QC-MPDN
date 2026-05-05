@@ -83,7 +83,7 @@
             <h3 class="text-xl font-black text-slate-800 mb-2">Upload Gagal!</h3>
             <p class="text-sm text-slate-500 mb-4">Beberapa foto gagal terupload ke server. Berikut daftar SN-nya:</p>
             <div id="failedSNList" class="bg-red-50 p-3 rounded-xl border border-red-100 text-xs font-mono text-red-700 max-h-32 overflow-y-auto custom-scrollbar mb-5 font-bold text-left space-y-1.5 shadow-inner">
-                <!-- List SN yang gagal bakal masuk sini otomatis -->
+                <!-- List SN yang gagal bakal masuk sini -->
             </div>
             <button onclick="hideUploadFailModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg active:scale-95 text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-right"></i> Tutup & Coba Lagi</button>
         </div>
@@ -300,7 +300,6 @@
                         <input type="text" id="sn" name="sn" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition bg-slate-50 text-sm font-mono tracking-wide" placeholder="Scan / Ketik SN Unit">
                     </div>
                     <p id="snError" class="text-xs font-bold text-red-500 mt-1.5 ml-1 hidden"><i class="fa-solid fa-circle-exclamation"></i> SN harus diisi terlebih dahulu sebelum membuka kamera!</p>
-                    <p id="lastSnDisplay" class="text-xs text-slate-500 mt-1.5 ml-1 hidden">Histori SN terakhir: <span id="lastSnValue" class="font-bold text-blue-600"></span></p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">Catatan</label>
@@ -334,6 +333,19 @@
                     <i id="btnIcon" class="fa-solid fa-cloud-arrow-up"></i>
                 </button>
             </form>
+
+            <!-- === PANEL LIVE GLOBAL HISTORY === -->
+            <div class="mt-6 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                <div class="bg-blue-600 px-4 py-3 flex justify-between items-center">
+                    <h3 class="text-white text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-earth-asia animate-pulse"></i> Live Global History</h3>
+                    <button type="button" onclick="fetchLiveHistory()" class="text-blue-200 hover:text-white transition" title="Refresh History"><i id="refreshHistoryIcon" class="fa-solid fa-rotate-right"></i></button>
+                </div>
+                <div id="liveHistoryList" class="p-3 max-h-48 overflow-y-auto custom-scrollbar space-y-2">
+                    <!-- Data history otomatis masuk sini -->
+                    <div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mb-2"></i><br>Memuat history...</div>
+                </div>
+            </div>
+
         </div>
 
         <!-- TAB 2: DATABASE -->
@@ -468,6 +480,50 @@
         }
 
         // ==========================================
+        // FUNGSI LIVE HISTORY GLOBAL
+        // ==========================================
+        async function fetchLiveHistory() {
+            const listContainer = document.getElementById('liveHistoryList');
+            const icon = document.getElementById('refreshHistoryIcon');
+            
+            if(icon) icon.classList.add('fa-spin');
+            listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mb-2 text-lg"></i><br>Sinkronisasi server...</div>';
+
+            try {
+                const req = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: 'getLiveHistory' })
+                });
+                const res = await req.json();
+                
+                if (res.result === 'success') {
+                    if (res.data.length === 0) {
+                        listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs">Belum ada history QC.</div>';
+                    } else {
+                        listContainer.innerHTML = '';
+                        res.data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = "bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm flex flex-col gap-1 hover:border-blue-200 transition-colors";
+                            div.innerHTML = `
+                                <div class="flex justify-between items-start">
+                                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${item.kategori || '-'}</span>
+                                    <span class="text-[9px] text-slate-400 font-mono"><i class="fa-regular fa-clock"></i> ${item.waktu || '-'}</span>
+                                </div>
+                                <div class="text-xs font-black text-slate-700 mt-1 uppercase tracking-wide">SN: ${item.sn || '-'}</div>
+                                <div class="text-[10px] text-slate-500 truncate"><i class="fa-solid fa-building mr-1"></i> ${item.project || '-'} <span class="mx-1">|</span> <i class="fa-solid fa-layer-group mr-1"></i> ${item.rangeSN || '-'}</div>
+                            `;
+                            listContainer.appendChild(div);
+                        });
+                    }
+                } else { throw new Error(res.message); }
+            } catch (err) {
+                listContainer.innerHTML = `<div class="text-center py-4 text-red-400 text-xs"><i class="fa-solid fa-triangle-exclamation mb-2 text-lg"></i><br>Gagal memuat history. Pastikan Sheet 'HistoryQC' ada.</div>`;
+            } finally {
+                if(icon) icon.classList.remove('fa-spin');
+            }
+        }
+
+        // ==========================================
         // FUNGSI BANTUAN & POPUP GAGAL
         // ==========================================
         function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
@@ -599,13 +655,13 @@
         let fileQueue = []; let backgroundQueue = []; let isUploading = false; let videoStream = null; let mediaRecorder = null; let recordedChunks = []; let recordingTimerInterval = null; let recordingStartTime = null; let currentMode = 'photo'; let currentLocationStr = "Lokasi: Menunggu GPS..."; let isRecording = false; 
         const categoryModal = document.getElementById('categoryModal'); const categoryInput = document.getElementById('category'); const categoryDisplay = document.getElementById('currentCategoryDisplay'); const categoryDisplayInput = document.getElementById('categoryDisplayInput'); const projectInput = document.getElementById('project'); const rangeSNInput = document.getElementById('rangeSN'); const projectList = document.getElementById('projectList'); const submitBtn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const previewList = document.getElementById('previewList'); const previewContainer = document.getElementById('previewContainer'); const cameraOverlay = document.getElementById('cameraOverlay'); const videoEl = document.getElementById('cameraVideo'); const canvasEl = document.getElementById('cameraCanvas'); const gpsStatus = document.getElementById('gpsStatus'); const shutterInner = document.getElementById('shutterInner'); const shutterBtn = document.getElementById('shutterBtn'); const btnModePhoto = document.getElementById('btnModePhoto'); const btnModeVideo = document.getElementById('btnModeVideo'); const recordingTimer = document.getElementById('recordingTimer'); const timerText = document.getElementById('timerText'); const modeIndicator = document.getElementById('modeIndicator'); const camCountBadge = document.getElementById('camCountBadge'); const btnFinishCamera = document.getElementById('btnFinishCamera');
 
-        document.addEventListener("DOMContentLoaded", () => { initGPS(); updateLastSnDisplay(); openModal(); document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); });
-
-        function updateLastSnDisplay() {
-            const currentCat = categoryInput.value; if (!currentCat) { document.getElementById('lastSnDisplay').classList.add('hidden'); return; }
-            const lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`); const displayEl = document.getElementById('lastSnDisplay'); const valueEl = document.getElementById('lastSnValue');
-            if (lastSn) { valueEl.textContent = lastSn; displayEl.classList.remove('hidden'); } else { displayEl.classList.add('hidden'); }
-        }
+        document.addEventListener("DOMContentLoaded", () => { 
+            initGPS(); 
+            openModal(); 
+            document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
+            // Ambil history pas pertama kali web dibuka
+            fetchLiveHistory();
+        });
 
         let lastFetchedCoords = { lat: null, lng: null };
         function initGPS() {
@@ -647,7 +703,9 @@
             projectInput.value = localStorage.getItem(`lastProjectName_${catName}`) || ''; 
             rangeSNInput.value = localStorage.getItem(`lastRangeSN_${catName}`) || ''; 
             
-            updateLastSnDisplay(); categoryModal.classList.add('opacity-0', 'pointer-events-none'); fetchProjects(catName);
+            categoryModal.classList.add('opacity-0', 'pointer-events-none'); 
+            fetchProjects(catName);
+            fetchLiveHistory(); // Refresh history tiap ganti kategori
         }
 
         function openModal() { categoryModal.classList.remove('opacity-0', 'pointer-events-none'); }
@@ -848,11 +906,10 @@
 
             localStorage.setItem(`lastProjectName_${category}`, project); 
             localStorage.setItem(`lastRangeSN_${category}`, rangeSN); 
-            localStorage.setItem(`lastUploadedSN_${category}`, sn);
             
             fileQueue.forEach(file => { backgroundQueue.push({ fileObj: file, category: category, rangeSN: rangeSN, project: project, sn: sn, notes: notes }); });
             
-            const totalAdded = fileQueue.length; clearAllFiles(); document.getElementById('sn').value = ''; document.getElementById('notes').value = ''; updateLastSnDisplay(); 
+            const totalAdded = fileQueue.length; clearAllFiles(); document.getElementById('sn').value = ''; document.getElementById('notes').value = ''; 
             showToast(`${totalAdded} File masuk ke antrean upload!`, 'success');
             if (!isUploading) processBackgroundQueue();
         });
@@ -873,6 +930,7 @@
                     failedUploads = []; // Reset biar fresh lagi
                 } else {
                     showToast("Semua antrean upload selesai!", "success"); 
+                    fetchLiveHistory(); // Update panel live history kalau semuanya sukses
                 }
                 return; 
             }
@@ -1099,6 +1157,3 @@
     </script>
 </body>
 </html>
-```eof
-
-Gimana bree, kira-kira buat notifikasi gagal ini warna UI-nya udah pas merah begini, atau lu mau nambahin efek suara/getar sekalian kalau uploadnya *failed*?
