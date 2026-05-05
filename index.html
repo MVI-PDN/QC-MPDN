@@ -478,28 +478,33 @@
         function playSoundSuccess() {
             if (!audioCtx) return;
             const now = audioCtx.currentTime;
-            // Melodi ala Digital Interface (G5, C6, E6)
-            playTone(783.99, now, 0.15, 'sine');
-            playTone(1046.50, now + 0.12, 0.15, 'sine');
-            playTone(1318.51, now + 0.24, 0.8, 'triangle'); // Gema lebih panjang
+            // Melodi ala Digital Interface (G5, C6, E6) dengan volume 0.4
+            playTone(783.99, now, 0.15, 'sine', 0.4);
+            playTone(1046.50, now + 0.12, 0.15, 'sine', 0.4);
+            playTone(1318.51, now + 0.24, 0.8, 'triangle', 0.4); 
         }
 
-        // Suara Error (Tet-Tet-Tet! 3x Cepat Beruntun)
+        // Suara Error (Tet-Tet-Tet! 3x Cepat Beruntun) - VOLUME MAKSIMAL
         function playSoundError() {
             if (!audioCtx) return;
             const now = audioCtx.currentTime;
-            playTone(180, now, 0.06, 'square');
-            playTone(180, now + 0.08, 0.06, 'square');
-            playTone(180, now + 0.16, 0.06, 'square');
+            // Tiga nada buzzer dengan volume 1.0 (Full Volume)
+            playTone(180, now, 0.06, 'square', 1.0);
+            playTone(180, now + 0.08, 0.06, 'square', 1.0);
+            playTone(180, now + 0.16, 0.06, 'square', 1.0);
         }
 
-        function playTone(freq, time, duration, type) {
+        // FUNGSI UTAMA PENGHASIL NADA
+        function playTone(freq, time, duration, type, volume) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = type;
             osc.frequency.setValueAtTime(freq, time);
-            gain.gain.setValueAtTime(0.12, time);
+            
+            // --- KONTROL VOLUME (SKALA 0.0 - 1.0) ---
+            gain.gain.setValueAtTime(volume, time); 
             gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(time);
@@ -670,7 +675,10 @@
             initAudio(); hideUploadFailModal(); 
             const snValue = document.getElementById('sn').value.trim(); 
             if (!snValue) { 
-                playSoundError(); document.getElementById('snError').classList.remove('hidden'); document.getElementById('sn').focus(); return; 
+                playSoundError(); 
+                document.getElementById('snError').classList.remove('hidden'); 
+                document.getElementById('sn').focus(); 
+                return; 
             }
             try {
                 let idealWidth = 1920; let idealHeight = 1080;
@@ -795,8 +803,13 @@
                 isUploading = false; float.classList.add('opacity-0'); setTimeout(() => float.classList.add('hidden'), 300);
                 if (failedUploads.length > 0) {
                     const list = document.getElementById('failedSNList'); list.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
-                    document.getElementById('uploadFailModal').classList.remove('hidden'); playSoundError();
-                } else { showToast("Upload selesai!", "success"); playSoundSuccess(); fetchLiveHistory(); }
+                    document.getElementById('uploadFailModal').classList.remove('hidden'); 
+                    playSoundError(); // VOLUME 1.0 (Full)
+                } else { 
+                    showToast("Upload selesai!", "success"); 
+                    playSoundSuccess(); // VOLUME 0.4 (Normal)
+                    fetchLiveHistory(); 
+                }
                 return;
             }
             isUploading = true; float.classList.remove('hidden'); setTimeout(() => float.classList.remove('opacity-0'), 10);
@@ -835,7 +848,10 @@
                 let f = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'finalizePDF', docId: docId, projectName: (proj || folder) }) });
                 let fres = JSON.parse(await f.text()); if (fres.result !== 'success') throw new Error("Gagal finalize");
                 document.getElementById('btnDownloadPDF').href = fres.link; actions.classList.remove('hidden'); showToast("PDF Selesai!", "success"); playSoundSuccess();
-            } catch (err) { document.getElementById('pdfErrorActions').classList.remove('hidden'); playSoundError(); }
+            } catch (err) { 
+                document.getElementById('pdfErrorActions').classList.remove('hidden'); 
+                playSoundError(); // VOLUME 1.0
+            }
         }
     </script>
 </body>
