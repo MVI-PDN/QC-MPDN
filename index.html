@@ -338,7 +338,7 @@
             <!-- === PANEL LIVE GLOBAL HISTORY === -->
             <div class="mt-6 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                 <div class="bg-blue-600 px-4 py-3 flex justify-between items-center">
-                    <h3 id="liveHistoryTitle" class="text-white text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-earth-asia animate-pulse"></i> Live History</h3>
+                    <h3 id="liveHistoryTitle" class="text-white text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-earth-asia animate-pulse"></i> Last S/N</h3>
                     <button type="button" onclick="fetchLiveHistory()" class="text-blue-200 hover:text-white transition" title="Refresh History"><i id="refreshHistoryIcon" class="fa-solid fa-rotate-right"></i></button>
                 </div>
                 <div id="liveHistoryList" class="p-3 max-h-48 overflow-y-auto custom-scrollbar space-y-2">
@@ -411,25 +411,25 @@
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
                         <i class="fa-solid fa-folder-magnifying-glass"></i>
                     </span>
-                    <input type="text" id="pdfSearchFolder" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Ketik Nama Folder Target (Untuk Pencarian)...">
+                    <input type="text" id="pdfSearchFolder" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Ketikan Nama Folder">
                 </div>
 
                 <div class="relative mb-3 group/input z-10">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
                         <i class="fa-solid fa-building"></i>
                     </span>
-                    <input type="text" id="pdfProjectName" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Nama Project (Untuk ditulis di PDF)...">
+                    <input type="text" id="pdfProjectName" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Nama Project">
                 </div>
 
                 <div class="relative mb-4 group/input z-10">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-blue-500 transition-colors">
                         <i class="fa-solid fa-layer-group"></i>
                     </span>
-                    <input type="text" id="pdfRangeSN" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Range SN (Untuk ditulis di PDF)...">
+                    <input type="text" id="pdfRangeSN" class="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none font-semibold transition-all placeholder:text-slate-400" placeholder="Range SN Project">
                 </div>
                 
                 <button onclick="requestPDF()" id="btnRequestPDF" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 relative z-10">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Bikin Laporan Sekarang!
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Buat Laporan Sekarang!
                 </button>
             </div>
             <div class="pb-10"></div>
@@ -466,6 +466,64 @@
         // ==========================================
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6CuVEhoVzuivKLq_fZu65yc8VVJ6mO45uMx06GVkdsCjCTTEhcKsP92qB2EtYqusk/exec"; 
 
+        // ==========================================
+        // FITUR SUARA (WEB AUDIO API)
+        // ==========================================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        // Suara Sukses "Klung!" (Dua nada cepat naik)
+        function playSoundSuccess() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            
+            // Frekuensi naik dari 600Hz ke 1200Hz
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // Suara Error "Tet! Tet!" (Buzzer)
+        function playSoundError() {
+            if (!audioCtx) return;
+            playTet(audioCtx.currentTime);
+            playTet(audioCtx.currentTime + 0.2); // Jeda 0.2 detik untuk bunyi kedua
+        }
+
+        function playTet(time) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square'; // Gelombang kotak bikin suara keras/buzzer
+            osc.frequency.setValueAtTime(250, time);
+            
+            gain.gain.setValueAtTime(0.2, time);
+            gain.gain.setValueAtTime(0.2, time + 0.1);
+            gain.gain.linearRampToValueAtTime(0.01, time + 0.15);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + 0.15);
+        }
+
+
+        // ==========================================
+        // LOGIKA APLIKASI
+        // ==========================================
         let downloadDB = {}; 
         let isDbLoaded = false;
         let failedUploads = []; 
@@ -480,9 +538,6 @@
             } catch(e) { document.getElementById('downloadContent').innerHTML = `<div class="text-center py-12 opacity-50 bg-white rounded-2xl border border-slate-200"><i class="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-3"></i><p class="text-sm font-medium text-slate-500">Gagal memuat Database Excel.</p></div>`; }
         }
 
-        // ==========================================
-        // FUNGSI LIVE HISTORY (DIFILTER PER KATEGORI & ANTI SPAM)
-        // ==========================================
         async function fetchLiveHistory() {
             const listContainer = document.getElementById('liveHistoryList');
             const icon = document.getElementById('refreshHistoryIcon');
@@ -515,7 +570,6 @@
                         let lastSN = null;
                         
                         res.data.forEach(item => {
-                            // Filter tampilan biar gak ada SN duplikat berjejer (kalo misal kecolongan dari data lama)
                             if (item.sn !== lastSN) {
                                 const div = document.createElement('div');
                                 div.className = "bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm flex flex-col gap-1 hover:border-blue-200 transition-colors";
@@ -540,9 +594,6 @@
             }
         }
 
-        // ==========================================
-        // FUNGSI BANTUAN & POPUP GAGAL
-        // ==========================================
         function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
         function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
         
@@ -676,7 +727,6 @@
             initGPS(); 
             openModal(); 
             document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
-            // Ambil history pas pertama kali web dibuka
             fetchLiveHistory();
         });
 
@@ -729,7 +779,7 @@
             categoryModal.classList.add('opacity-0', 'pointer-events-none'); 
             fetchProjects(catName);
             updateLastSnDisplay();
-            fetchLiveHistory(); // Refresh history tiap ganti kategori
+            fetchLiveHistory(); 
         }
 
         function openModal() { categoryModal.classList.remove('opacity-0', 'pointer-events-none'); }
@@ -920,6 +970,7 @@
             e.preventDefault(); if (fileQueue.length === 0) return;
             if (!SCRIPT_URL.startsWith("http")) { showToast("URL Script belum diisi!", "error"); return; }
             
+            initAudio(); // Nyalain akses speaker pas user ngeklik tombol
             hideUploadFailModal(); 
 
             const category = categoryInput.value; 
@@ -947,14 +998,16 @@
                 floatingProgress.classList.add('-translate-y-5', 'opacity-0', 'pointer-events-none'); 
                 setTimeout(() => floatingProgress.classList.add('hidden'), 300); 
                 
-                // MUNCULIN POPUP KALAU ADA YANG GAGAL
+                // Kalo Ada Gagal
                 if (failedUploads.length > 0) {
                     const listContainer = document.getElementById('failedSNList');
                     listContainer.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
                     document.getElementById('uploadFailModal').classList.remove('hidden');
+                    playSoundError(); // Bunyi TET TET
                     failedUploads = []; 
                 } else {
                     showToast("Semua antrean upload selesai!", "success"); 
+                    playSoundSuccess(); // Bunyi KLUNG
                     fetchLiveHistory(); 
                 }
                 return; 
@@ -1001,6 +1054,7 @@
         // FUNGSI REQUEST PDF
         // ==========================================
         async function requestPDF() {
+            initAudio(); // Nyalain akses speaker
             const folderQuery = document.getElementById('pdfSearchFolder').value.trim();
             const projectName = document.getElementById('pdfProjectName').value.trim();
             const rangeSN = document.getElementById('pdfRangeSN').value.trim();
@@ -1052,12 +1106,7 @@
             try {
                 let initResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ 
-                        action: 'initPDF', 
-                        folderQuery: folderQuery, 
-                        projectName: projectName, 
-                        rangeSN: rangeSN 
-                    })
+                    body: JSON.stringify({ action: 'initPDF', folderQuery: folderQuery, projectName: projectName, rangeSN: rangeSN })
                 });
                 
                 let initRes;
@@ -1078,7 +1127,7 @@
 
                 icon.className = "w-16 h-16 mx-auto bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl mb-4 relative z-10 shadow-sm border border-indigo-50";
                 icon.innerHTML = '<i class="fa-solid fa-file-pdf fa-beat-fade"></i>';
-                title.textContent = "Menyusun PDF (Nyicil)...";
+                title.textContent = "Menyusun PDF";
                 glowEffect.classList.remove('opacity-0');
                 glowEffect.classList.add('opacity-30', 'bg-indigo-500');
 
@@ -1114,11 +1163,7 @@
 
                 let finalResponse = await fetch(SCRIPT_URL, {
                     method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ 
-                        action: 'finalizePDF', 
-                        docId: docId, 
-                        projectName: (projectName ? projectName : folderQuery)
-                    })
+                    body: JSON.stringify({ action: 'finalizePDF', docId: docId, projectName: (projectName ? projectName : folderQuery) })
                 });
 
                 let finalRes = JSON.parse(await finalResponse.text());
@@ -1150,6 +1195,7 @@
                 actions.classList.add('flex');
                 
                 showToast("Laporan PDF berhasil dibuat!", "success");
+                playSoundSuccess(); // Bunyi KLUNG
 
             } catch (err) {
                 // ERROR HANDLER
@@ -1175,6 +1221,8 @@
 
                 errorActions.classList.remove('hidden');
                 errorActions.classList.add('flex');
+                
+                playSoundError(); // Bunyi TET TET
             }
         }
     </script>
