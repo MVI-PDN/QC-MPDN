@@ -660,7 +660,10 @@
             const snValue = document.getElementById('sn').value.trim() || "SN KOSONG"; 
             const now = new Date();
             const dateTimeStr = `Waktu : ${now.toLocaleDateString('id-ID')} - ${now.toLocaleTimeString('id-ID')} WIB`;
-            const fontSize = Math.max(10, Math.floor(canvasWidth * 0.015)); const lineHeight = fontSize * 1.4;
+            
+            // Ukuran font diperkecil 1.5x (dari 0.015 jadi 0.010)
+            const fontSize = Math.max(8, Math.floor(canvasWidth * 0.010)); const lineHeight = fontSize * 1.4;
+            
             const textLines = [];
             if (projectVal) textLines.push(`Project : ${projectVal.toUpperCase()}`);
             if (rangeSNVal) textLines.push(`Range SN : ${rangeSNVal.toUpperCase()}`);
@@ -706,27 +709,61 @@
         }
 
         function renderPreview() {
-            previewList.innerHTML = '';
+            const list = document.getElementById('previewList');
+            list.innerHTML = '';
             fileQueue.forEach((file, index) => {
-                const div = document.createElement('div'); div.className = 'flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200';
-                div.innerHTML = `<div class="w-10 h-10 overflow-hidden rounded bg-white border flex items-center justify-center">${file.type.startsWith('image') ? `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">` : '<i class="fa-solid fa-video"></i>'}</div><div class="flex-1 truncate text-xs font-bold text-slate-700">${file.name}</div><button type="button" onclick="removeFile(${index})" class="text-red-400 px-2"><i class="fa-solid fa-trash"></i></button>`;
-                previewList.appendChild(div);
+                const div = document.createElement('div'); div.className = 'flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200 preview-item';
+                div.innerHTML = `<div onclick="openMediaPreview(${index})" class="w-10 h-10 overflow-hidden rounded bg-white border flex items-center justify-center cursor-pointer">${file.type.startsWith('image') ? `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">` : '<i class="fa-solid fa-video text-blue-500"></i>'}</div><div onclick="openMediaPreview(${index})" class="flex-1 truncate text-xs font-bold text-slate-700 cursor-pointer">${file.name}</div><button type="button" onclick="removeFile(${index})" class="text-red-400 px-2 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>`;
+                list.appendChild(div);
             });
-            previewContainer.classList.toggle('hidden', fileQueue.length === 0);
+            document.getElementById('previewContainer').classList.toggle('hidden', fileQueue.length === 0);
             if(fileQueue.length > 0) document.getElementById('fileCount').textContent = fileQueue.length;
         }
+
+        let previewScale = 1, previewPanX = 0, previewPanY = 0;
 
         function openMediaPreview(index) { previewIndex = index; renderCurrentMedia(); window.location.hash = 'preview'; document.getElementById('mediaPreviewModal').classList.remove('hidden'); }
         function closeMediaPreview(fromBackButton = false) { document.getElementById('mediaPreviewModal').classList.add('hidden'); if (!fromBackButton && window.location.hash === '#preview') window.history.back(); }
         function nextMedia() { previewIndex = (previewIndex + 1) % fileQueue.length; renderCurrentMedia(); }
         function prevMedia() { previewIndex = (previewIndex - 1 < 0) ? fileQueue.length - 1 : previewIndex - 1; renderCurrentMedia(); }
+        
         function renderCurrentMedia() {
             const file = fileQueue[previewIndex]; const container = document.getElementById('mediaPreviewContainer');
-            document.getElementById('previewModalTitle').textContent = file.name; container.innerHTML = '';
+            document.getElementById('previewModalTitle').textContent = file.name; 
+            const counter = document.getElementById('previewCounter');
+            if (counter) counter.textContent = `${previewIndex + 1} / ${fileQueue.length}`;
+            
+            container.innerHTML = ''; previewScale = 1; previewPanX = 0; previewPanY = 0;
             let mediaEl = document.createElement(file.type.startsWith('video') ? 'video' : 'img');
-            mediaEl.src = URL.createObjectURL(file); mediaEl.className = "max-w-full max-h-full rounded-lg";
+            mediaEl.src = URL.createObjectURL(file); mediaEl.className = "max-w-full max-h-full rounded-lg shadow-2xl origin-center";
             if(file.type.startsWith('video')) { mediaEl.controls = true; mediaEl.autoplay = true; }
             container.appendChild(mediaEl);
+            setupGestures(mediaEl, container);
+        }
+
+        function setupGestures(mediaEl, container) {
+            let touchStartX = 0, touchStartY = 0, swipeStartX = 0, swipeStartY = 0, initialDistance = 0, lastScale = 1, lastTap = 0;
+            function updateTransform(withTransition = false) {
+                mediaEl.style.transition = withTransition ? "transform 0.2s ease-out" : "none";
+                if (previewScale === 1) { previewPanX = 0; previewPanY = 0; }
+                mediaEl.style.transform = `translate(${previewPanX}px, ${previewPanY}px) scale(${previewScale})`;
+            }
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    swipeStartX = e.touches[0].clientX; swipeStartY = e.touches[0].clientY; touchStartX = e.touches[0].clientX - previewPanX; touchStartY = e.touches[0].clientY - previewPanY;
+                    const currentTime = new Date().getTime(); if (currentTime - lastTap < 300 && currentTime - lastTap > 0) { previewScale = previewScale > 1 ? 1 : 2.5; previewPanX = 0; previewPanY = 0; updateTransform(true); e.preventDefault(); } lastTap = currentTime;
+                } else if (e.touches.length === 2) { initialDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); lastScale = previewScale; }
+            }, { passive: false });
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && previewScale > 1) { previewPanX = e.touches[0].clientX - touchStartX; previewPanY = e.touches[0].clientY - touchStartY; updateTransform(false); e.preventDefault(); }
+                else if (e.touches.length === 2) { previewScale = Math.max(1, Math.min(lastScale * (Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY) / initialDistance), 5)); updateTransform(false); e.preventDefault(); }
+            }, { passive: false });
+            container.addEventListener('touchend', (e) => {
+                if (previewScale === 1 && e.changedTouches.length === 1) {
+                    const diffX = swipeStartX - e.changedTouches[0].clientX; const diffY = Math.abs(swipeStartY - e.changedTouches[0].clientY);
+                    if (Math.abs(diffX) > 50 && diffY < 100) { if (diffX > 0) nextMedia(); else prevMedia(); }
+                } else if (previewScale < 1) { previewScale = 1; previewPanX = 0; previewPanY = 0; updateTransform(true); }
+            });
         }
 
         window.removeFile = (index) => { fileQueue.splice(index, 1); renderPreview(); updateSubmitBtn(); updateCamBadge(); };
