@@ -606,7 +606,17 @@
                             if (data && data.display_name) { const addressParts = data.display_name.split(', '); currentLocationStr = `Lokasi : ${addressParts.slice(0, 3).join(', ')}`; }
                         } catch (e) { }
                     }
-                }, (error) => { isGpsActive = false; currentLocationStr = "Lokasi : Gagal GPS"; gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500"></i>'; }, { enableHighAccuracy: true });
+                }, (error) => { 
+                    isGpsActive = false; 
+                    currentLocationStr = "Lokasi : Gagal GPS"; 
+                    gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500"></i>'; 
+                    
+                    const cameraOverlay = document.getElementById('cameraOverlay');
+                    if (cameraOverlay && !cameraOverlay.classList.contains('hidden')) {
+                        closeCamera();
+                        showToast("⚠️ Ketahuan! GPS dimatikan, kamera ditutup otomatis.", "error");
+                    }
+                }, { enableHighAccuracy: true });
             } else {
                 isGpsActive = false;
             }
@@ -682,6 +692,10 @@
         }
 
         function handleShutter() { 
+            if (!isGpsActive || currentLocationStr.includes("Gagal GPS") || currentLocationStr.includes("Menunggu GPS")) {
+                showToast("⚠️ Akses GPS terputus! Nyalakan lokasi Anda.", "error");
+                return;
+            }
             if(currentMode === 'photo') { takePicture(); } 
             else { toggleRecording(); }
         }
