@@ -464,54 +464,6 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6CuVEhoVzuivKLq_fZu65yc8VVJ6mO45uMx06GVkdsCjCTTEhcKsP92qB2EtYqusk/exec"; 
 
         // ==========================================
-        // FITUR SUARA (WEB AUDIO API)
-        // ==========================================
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-
-        function initAudio() {
-            if (!audioCtx) audioCtx = new AudioContext();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
-
-        // Suara Sukses Premium (Melodi 3 Nada, Ringout 1 Detik)
-        function playSoundSuccess() {
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-            // Melodi ala Digital Interface (G5, C6, E6) dengan volume 0.4
-            playTone(783.99, now, 0.15, 'sine', 0.4);
-            playTone(1046.50, now + 0.12, 0.15, 'sine', 0.4);
-            playTone(1318.51, now + 0.24, 0.8, 'triangle', 0.4); 
-        }
-
-        // Suara Error (Tet-Tet-Tet! 3x Cepat Beruntun) - VOLUME MAKSIMAL
-        function playSoundError() {
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-            // Tiga nada buzzer dengan volume 1.0 (Full Volume)
-            playTone(180, now, 0.06, 'square', 1.0);
-            playTone(180, now + 0.08, 0.06, 'square', 1.0);
-            playTone(180, now + 0.16, 0.06, 'square', 1.0);
-        }
-
-        // FUNGSI UTAMA PENGHASIL NADA
-        function playTone(freq, time, duration, type, volume) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, time);
-            
-            // --- KONTROL VOLUME (SKALA 0.0 - 1.0) ---
-            gain.gain.setValueAtTime(volume, time); 
-            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(time);
-            osc.stop(time + duration);
-        }
-
-        // ==========================================
         // LOGIKA APLIKASI
         // ==========================================
         let downloadDB = {}; 
@@ -672,10 +624,9 @@
         });
 
         async function startCamera() {
-            initAudio(); hideUploadFailModal(); 
+            hideUploadFailModal(); 
             const snValue = document.getElementById('sn').value.trim(); 
             if (!snValue) { 
-                playSoundError(); 
                 document.getElementById('snError').classList.remove('hidden'); 
                 document.getElementById('sn').focus(); 
                 return; 
@@ -789,7 +740,7 @@
 
         document.getElementById('qcForm').addEventListener('submit', function(e) {
             e.preventDefault(); if (fileQueue.length === 0) return;
-            initAudio(); hideUploadFailModal();
+            hideUploadFailModal();
             const cat = categoryInput.value; const range = rangeSNInput.value.trim(); const proj = projectInput.value.trim(); const snVal = document.getElementById('sn').value.trim(); const notesVal = document.getElementById('notes').value.trim();
             localStorage.setItem(`lastProjectName_${cat}`, proj); localStorage.setItem(`lastRangeSN_${cat}`, range); localStorage.setItem(`lastUploadedSN_${cat}`, snVal);
             fileQueue.forEach(file => { backgroundQueue.push({ fileObj: file, category: cat, rangeSN: range, project: proj, sn: snVal, notes: notesVal }); });
@@ -804,10 +755,8 @@
                 if (failedUploads.length > 0) {
                     const list = document.getElementById('failedSNList'); list.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
                     document.getElementById('uploadFailModal').classList.remove('hidden'); 
-                    playSoundError(); // VOLUME 1.0 (Full)
                 } else { 
                     showToast("Upload selesai!", "success"); 
-                    playSoundSuccess(); // VOLUME 0.4 (Normal)
                     fetchLiveHistory(); 
                 }
                 return;
@@ -832,7 +781,7 @@
         function closePdfProgress() { document.getElementById('pdfProgressModal').classList.add('hidden'); }
 
         async function requestPDF() {
-            initAudio(); const folder = document.getElementById('pdfSearchFolder').value.trim(); const proj = document.getElementById('pdfProjectName').value.trim(); const range = document.getElementById('pdfRangeSN').value.trim();
+            const folder = document.getElementById('pdfSearchFolder').value.trim(); const proj = document.getElementById('pdfProjectName').value.trim(); const range = document.getElementById('pdfRangeSN').value.trim();
             if (!folder) { showToast("Nama Folder wajib diisi!", "error"); return; }
             const modal = document.getElementById('pdfProgressModal'); const bar = document.getElementById('pdfProgressBar'); const actions = document.getElementById('pdfResultActions');
             modal.classList.remove('hidden'); actions.classList.add('hidden');
@@ -847,10 +796,9 @@
                 }
                 let f = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'finalizePDF', docId: docId, projectName: (proj || folder) }) });
                 let fres = JSON.parse(await f.text()); if (fres.result !== 'success') throw new Error("Gagal finalize");
-                document.getElementById('btnDownloadPDF').href = fres.link; actions.classList.remove('hidden'); showToast("PDF Selesai!", "success"); playSoundSuccess();
+                document.getElementById('btnDownloadPDF').href = fres.link; actions.classList.remove('hidden'); showToast("PDF Selesai!", "success"); 
             } catch (err) { 
                 document.getElementById('pdfErrorActions').classList.remove('hidden'); 
-                playSoundError(); // VOLUME 1.0
             }
         }
     </script>
