@@ -661,8 +661,9 @@
             const now = new Date();
             const dateTimeStr = `Waktu : ${now.toLocaleDateString('id-ID')} - ${now.toLocaleTimeString('id-ID')} WIB`;
             
-            // Ukuran font diperbesar 2x (dari 0.010 jadi 0.020)
-            const fontSize = Math.max(16, Math.floor(canvasWidth * 0.020)); const lineHeight = fontSize * 1.4;
+            const isPortrait = canvasHeight > canvasWidth;
+            const fontSize = Math.max(16, Math.floor(canvasWidth * (isPortrait ? 0.035 : 0.015))); 
+            const lineHeight = fontSize * 1.4;
             
             const textLines = [];
             if (projectVal) textLines.push(`Project : ${projectVal.toUpperCase()}`);
