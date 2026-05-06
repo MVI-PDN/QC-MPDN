@@ -566,9 +566,13 @@
             const headerCatBtn = document.getElementById('headerCatBtn'); const modalKategori = document.getElementById('categoryModal');
             tabQC.classList.add('hidden'); tabDownload.classList.add('hidden'); tabPDF.classList.add('hidden');
             navQC.classList.replace('text-blue-600', 'text-slate-400'); navDownload.classList.replace('text-blue-600', 'text-slate-400'); navPDF.classList.replace('text-blue-600', 'text-slate-400');
+            
+            if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
+
             if (tabName === 'qc') {
                 tabQC.classList.remove('hidden'); navQC.classList.replace('text-slate-400', 'text-blue-600');
-                headerCatBtn.classList.remove('hidden'); if (modalKategori && !document.getElementById('category').value) { modalKategori.classList.remove('opacity-0', 'pointer-events-none'); }
+                headerCatBtn.classList.remove('hidden'); 
+                if (modalKategori && !document.getElementById('category').value) { modalKategori.classList.remove('opacity-0', 'pointer-events-none'); }
             } else if (tabName === 'download') {
                 tabDownload.classList.remove('hidden'); navDownload.classList.replace('text-slate-400', 'text-blue-600');
                 headerCatBtn.classList.add('hidden'); fetchDatabase(); 
@@ -582,7 +586,12 @@
 
         const categoryModal = document.getElementById('categoryModal'); const categoryInput = document.getElementById('category'); const categoryDisplay = document.getElementById('currentCategoryDisplay'); const categoryDisplayInput = document.getElementById('categoryDisplayInput'); const projectInput = document.getElementById('project'); const rangeSNInput = document.getElementById('rangeSN'); const projectList = document.getElementById('projectList'); const submitBtn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const previewList = document.getElementById('previewList'); const previewContainer = document.getElementById('previewContainer'); const cameraOverlay = document.getElementById('cameraOverlay'); const videoEl = document.getElementById('cameraVideo'); const canvasEl = document.getElementById('cameraCanvas'); const gpsStatus = document.getElementById('gpsStatus'); const shutterInner = document.getElementById('shutterInner'); const shutterBtn = document.getElementById('shutterBtn'); const btnModePhoto = document.getElementById('btnModePhoto'); const btnModeVideo = document.getElementById('btnModeVideo'); const recordingTimer = document.getElementById('recordingTimer'); const timerText = document.getElementById('timerText'); const modeIndicator = document.getElementById('modeIndicator'); const camCountBadge = document.getElementById('camCountBadge'); const btnFinishCamera = document.getElementById('btnFinishCamera');
 
-        document.addEventListener("DOMContentLoaded", () => { initGPS(); openModal(); document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); fetchLiveHistory(); });
+        document.addEventListener("DOMContentLoaded", () => { 
+            initGPS(); 
+            openModal(); 
+            fetchLiveHistory(); 
+            document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
+        });
 
         function updateLastSnDisplay() {
             const currentCat = categoryInput.value; if (!currentCat) { document.getElementById('lastSnDisplay').classList.add('hidden'); return; }
