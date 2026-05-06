@@ -578,6 +578,8 @@
         }
 
         let fileQueue = []; let backgroundQueue = []; let isUploading = false; let videoStream = null; let currentMode = 'photo'; let currentLocationStr = "Lokasi: Menunggu GPS...";
+        let mediaRecorder = null; let recordedChunks = []; let recordingTimerInterval = null; let recordingStartTime = null; let isRecording = false;
+
         const categoryModal = document.getElementById('categoryModal'); const categoryInput = document.getElementById('category'); const categoryDisplay = document.getElementById('currentCategoryDisplay'); const categoryDisplayInput = document.getElementById('categoryDisplayInput'); const projectInput = document.getElementById('project'); const rangeSNInput = document.getElementById('rangeSN'); const projectList = document.getElementById('projectList'); const submitBtn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const previewList = document.getElementById('previewList'); const previewContainer = document.getElementById('previewContainer'); const cameraOverlay = document.getElementById('cameraOverlay'); const videoEl = document.getElementById('cameraVideo'); const canvasEl = document.getElementById('cameraCanvas'); const gpsStatus = document.getElementById('gpsStatus'); const shutterInner = document.getElementById('shutterInner'); const shutterBtn = document.getElementById('shutterBtn'); const btnModePhoto = document.getElementById('btnModePhoto'); const btnModeVideo = document.getElementById('btnModeVideo'); const recordingTimer = document.getElementById('recordingTimer'); const timerText = document.getElementById('timerText'); const modeIndicator = document.getElementById('modeIndicator'); const camCountBadge = document.getElementById('camCountBadge'); const btnFinishCamera = document.getElementById('btnFinishCamera');
 
         document.addEventListener("DOMContentLoaded", () => { initGPS(); openModal(); document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); fetchLiveHistory(); });
@@ -589,9 +591,12 @@
         }
 
         let lastFetchedCoords = { lat: null, lng: null };
+        let isGpsActive = false;
+        
         function initGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(async (position) => {
+                    isGpsActive = true;
                     const lat = position.coords.latitude.toFixed(6); const lng = position.coords.longitude.toFixed(6);
                     gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-green-600"></i>';
                     if (Math.abs(lat - lastFetchedCoords.lat) > 0.001 || Math.abs(lng - lastFetchedCoords.lng) > 0.001) {
@@ -601,7 +606,9 @@
                             if (data && data.display_name) { const addressParts = data.display_name.split(', '); currentLocationStr = `Lokasi : ${addressParts.slice(0, 3).join(', ')}`; }
                         } catch (e) { }
                     }
-                }, (error) => { currentLocationStr = "Lokasi : Gagal GPS"; gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500"></i>'; }, { enableHighAccuracy: true });
+                }, (error) => { isGpsActive = false; currentLocationStr = "Lokasi : Gagal GPS"; gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500"></i>'; }, { enableHighAccuracy: true });
+            } else {
+                isGpsActive = false;
             }
         }
 
@@ -637,6 +644,15 @@
 
         async function startCamera() {
             hideUploadFailModal(); 
+            
+            if (!isGpsActive) {
+                showToast("⚠️ Wajib nyalakan GPS & Izinkan Lokasi!", "error");
+                const gpsIcon = document.getElementById('gpsStatus');
+                gpsIcon.classList.add('animate-pulse', 'ring-2', 'ring-red-500');
+                setTimeout(() => gpsIcon.classList.remove('animate-pulse', 'ring-2', 'ring-red-500'), 2000);
+                return;
+            }
+
             const snValue = document.getElementById('sn').value.trim(); 
             if (!snValue) { 
                 document.getElementById('snError').classList.remove('hidden'); 
@@ -656,15 +672,94 @@
         function setCameraMode(mode) {
             currentMode = mode; const watermarkPreview = document.getElementById('watermarkPreview');
             if(mode === 'photo') {
-                btnModePhoto.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white text-black"; btnModeVideo.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400";
-                shutterInner.className = "w-16 h-16 rounded-full bg-white border-2 border-black"; modeIndicator.textContent = "FOTO MODE"; watermarkPreview.classList.remove('hidden'); 
+                btnModePhoto.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white text-black"; btnModeVideo.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400 hover:text-white";
+                shutterInner.className = "w-16 h-16 rounded-full bg-white border-2 border-black"; modeIndicator.textContent = "FOTO MODE"; watermarkPreview.classList.remove('hidden');
+                recordingTimer.classList.add('hidden');
             } else {
-                btnModeVideo.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-red-600 text-white"; btnModePhoto.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400";
+                btnModeVideo.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-red-600 text-white"; btnModePhoto.className = "px-4 py-1.5 rounded-full text-xs font-bold transition-all text-gray-400 hover:text-white";
                 shutterInner.className = "w-16 h-16 rounded-full bg-red-600 border-2 border-black scale-90"; modeIndicator.textContent = "VIDEO MODE"; watermarkPreview.classList.add('hidden'); 
             }
         }
 
-        function handleShutter() { if(currentMode === 'photo') { takePicture(); } }
+        function handleShutter() { 
+            if(currentMode === 'photo') { takePicture(); } 
+            else { toggleRecording(); }
+        }
+
+        function drawVideoFrameLoop() {
+            if(!isRecording) return;
+            const canvas = document.getElementById('cameraCanvas');
+            const video = document.getElementById('cameraVideo');
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            drawWatermark(ctx, canvas.width, canvas.height);
+            requestAnimationFrame(drawVideoFrameLoop);
+        }
+
+        function toggleRecording() {
+            if (mediaRecorder && mediaRecorder.state === "recording") { stopRecording(); }
+            else { startRecording(); }
+        }
+
+        function startRecording() {
+            if (!videoStream) return;
+            recordedChunks = [];
+            const canvas = document.getElementById('cameraCanvas');
+            const video = document.getElementById('cameraVideo');
+            const track = videoStream.getVideoTracks()[0];
+            const settings = track.getSettings();
+            canvas.width = settings.width || video.videoWidth;
+            canvas.height = settings.height || video.videoHeight;
+            
+            let options = { mimeType: 'video/webm;codecs=vp9' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options = { mimeType: 'video/webm' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'video/mp4' };
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) options = undefined;
+                }
+            }
+            
+            try {
+                const canvasStream = canvas.captureStream(30);
+                mediaRecorder = new MediaRecorder(canvasStream, options);
+            } catch (e) { showToast("Gagal memulai perekam.", "error"); return; }
+            
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const file = new File([new Blob(recordedChunks, { type: 'video/webm' })], `Video_${Date.now()}.webm`, { type: "video/webm" });
+                fileQueue.push(file);
+                isRecording = false;
+                
+                shutterInner.classList.remove('rounded-sm', 'scale-50');
+                shutterInner.classList.add('rounded-full', 'scale-90');
+                shutterBtn.classList.remove('record-pulse');
+                recordingTimer.classList.add('hidden');
+                clearInterval(recordingTimerInterval);
+                
+                renderPreview();
+                updateSubmitBtn();
+                updateCamBadge();
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            drawVideoFrameLoop();
+            
+            shutterInner.classList.remove('rounded-full', 'scale-90');
+            shutterInner.classList.add('rounded-sm', 'scale-50');
+            shutterBtn.classList.add('record-pulse');
+            recordingTimer.classList.remove('hidden');
+            
+            recordingStartTime = Date.now();
+            timerText.textContent = "00:00";
+            recordingTimerInterval = setInterval(() => {
+                const diff = Date.now() - recordingStartTime;
+                timerText.textContent = `${Math.floor(diff / 1000 / 60).toString().padStart(2, '0')}:${(Math.floor(diff / 1000) % 60).toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopRecording() { if (mediaRecorder) mediaRecorder.stop(); }
 
         function drawWatermark(ctx, canvasWidth, canvasHeight) {
             const projectVal = document.getElementById('project').value.trim(); 
@@ -701,6 +796,7 @@
         }
 
         function closeCamera(fromBackButton = false) {
+            if (mediaRecorder && mediaRecorder.state === "recording") stopRecording();
             if (videoStream) { videoStream.getTracks().forEach(track => track.stop()); videoStream = null; }
             cameraOverlay.classList.add('hidden'); if (!fromBackButton && window.location.hash === '#camera') window.history.back();
         }
