@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="QC-PDN PRO">
-    <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true">
+    <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true&v=2">
     <!-- END TAG PWA -->
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -82,9 +82,7 @@
             </div>
             <h3 class="text-xl font-black text-slate-800 mb-2">Upload Gagal!</h3>
             <p class="text-sm text-slate-500 mb-4">Beberapa foto gagal terupload ke server. Berikut daftar SN-nya:</p>
-            <div id="failedSNList" class="bg-red-50 p-3 rounded-xl border border-red-100 text-xs font-mono text-red-700 max-h-32 overflow-y-auto custom-scrollbar mb-5 font-bold text-left space-y-1.5 shadow-inner">
-                <!-- List SN yang gagal bakal masuk sini -->
-            </div>
+            <div id="failedSNList" class="bg-red-50 p-3 rounded-xl border border-red-100 text-xs font-mono text-red-700 max-h-32 overflow-y-auto custom-scrollbar mb-5 font-bold text-left space-y-1.5 shadow-inner"></div>
             <button onclick="hideUploadFailModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg active:scale-95 text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-right"></i> Tutup & Coba Lagi</button>
         </div>
     </div>
@@ -124,7 +122,7 @@
                         <li>Pilih <b>Kategori Produk</b> di bagian atas layar.</li>
                         <li>Ketik/Pilih <b>Range Serial Number</b> dan <b>Nama Project</b>.</li>
                         <li>Scan atau ketik <b>Serial Number (SN)</b> unit. <span class="text-red-500 font-bold">Wajib diisi sebelum buka kamera!</span></li>
-                        <li>Klik tombol <b>Buka Kamera</b>. Bukti foto akan otomatis tertempel Watermark (Project, Range SN, Waktu & Lokasi).</li>
+                        <li>Klik tombol <b>Buka Kamera</b>. Bukti foto akan otomatis tertempel Watermark.</li>
                         <li>Klik <b>Upload File</b>. Sistem akan otomatis membuat folder di Drive sesuai data yang diisi.</li>
                     </ul>
                 </div>
@@ -158,8 +156,8 @@
             <div id="pdfProgressIcon" class="w-16 h-16 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce relative z-10 shadow-sm border border-blue-50">
                 <i class="fa-solid fa-folder-magnifying-glass"></i>
             </div>
-            <h3 id="pdfProgressTitle" class="text-xl font-black text-slate-800 mb-1 relative z-10">Mencari Folder...</h3>
-            <p id="pdfProgressText" class="text-xs text-slate-500 font-medium mb-5 relative z-10 min-h-[36px]">Melakukan pemindaian server dan menghitung total foto...</p>
+            <h3 id="pdfProgressTitle" class="text-xl font-black text-slate-800 mb-1 relative z-10">Membuat Laporan...</h3>
+            <p id="pdfProgressText" class="text-xs text-slate-500 font-medium mb-5 relative z-10 min-h-[36px]">Menghubungkan ke server...</p>
             <div class="w-full bg-slate-100 rounded-full h-3 mb-2 overflow-hidden relative z-10 shadow-inner">
                 <div id="pdfProgressBar" class="bg-blue-600 h-3 rounded-full transition-all duration-300 progress-striped" style="width: 5%"></div>
             </div>
@@ -167,9 +165,9 @@
                 <span id="pdfProgressPercent">5% MEMPROSES</span><span id="pdfProgressCount">? / ? FILE</span>
             </div>
             <div id="pdfStepContainer" class="flex flex-col gap-2 text-left mb-6 bg-slate-50 p-3 rounded-xl border border-slate-100 relative z-10">
-                <div id="step1" class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step1Icon" class="fa-regular fa-circle w-4 text-center"></i><span>1. Menyiapkan Dokumen</span></div>
-                <div id="step2" class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step2Icon" class="fa-regular fa-circle w-4 text-center"></i><span>2. Ekstrak Tabel per Batch</span></div>
-                <div id="step3" class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step3Icon" class="fa-regular fa-circle w-4 text-center"></i><span>3. Laporan Siap Unduh</span></div>
+                <div class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step1Icon" class="fa-solid fa-circle-notch fa-spin w-4 text-center text-blue-500"></i><span id="step1Text">1. Pemindaian Folder</span></div>
+                <div class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step2Icon" class="fa-regular fa-circle w-4 text-center"></i><span id="step2Text">2. Ekstrak & Konversi Tabel</span></div>
+                <div class="flex items-center gap-3 text-xs text-slate-400 font-bold"><i id="step3Icon" class="fa-regular fa-circle w-4 text-center"></i><span id="step3Text">3. Laporan Siap Unduh</span></div>
             </div>
             <div id="pdfResultActions" class="hidden flex-col gap-3 relative z-10">
                 <a id="btnDownloadPDF" href="#" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 active:scale-95 transition flex items-center justify-center gap-2 group"><i class="fa-solid fa-cloud-arrow-down text-lg group-hover:animate-bounce"></i> Buka & Download PDF</a>
@@ -244,7 +242,7 @@
     <!-- === HEADER GLOBAL === -->
     <div class="bg-white/90 backdrop-blur-md p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
         <div class="flex items-center gap-3">
-            <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
+            <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true&v=2" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
             <div id="gpsStatus" class="flex items-center justify-center w-8 h-8 bg-slate-100 rounded-md border border-slate-200" title="Mencari GPS..."><i class="fa-solid fa-location-crosshairs fa-spin text-slate-400 text-sm"></i></div>
         </div>
         <div class="flex items-center gap-2">
@@ -952,24 +950,84 @@
         function closePdfProgress() { document.getElementById('pdfProgressModal').classList.add('hidden'); }
 
         async function requestPDF() {
-            const folder = document.getElementById('pdfSearchFolder').value.trim(); const proj = document.getElementById('pdfProjectName').value.trim(); const range = document.getElementById('pdfRangeSN').value.trim();
+            const folder = document.getElementById('pdfSearchFolder').value.trim(); 
+            const proj = document.getElementById('pdfProjectName').value.trim(); 
+            const range = document.getElementById('pdfRangeSN').value.trim();
+            
             if (!folder) { showToast("Nama Folder wajib diisi!", "error"); return; }
-            const modal = document.getElementById('pdfProgressModal'); const bar = document.getElementById('pdfProgressBar'); const actions = document.getElementById('pdfResultActions');
-            modal.classList.remove('hidden'); actions.classList.add('hidden');
+            
+            const modal = document.getElementById('pdfProgressModal'); 
+            const bar = document.getElementById('pdfProgressBar'); 
+            const actions = document.getElementById('pdfResultActions');
+            const errorActions = document.getElementById('pdfErrorActions');
+            const percentText = document.getElementById('pdfProgressPercent');
+            const countText = document.getElementById('pdfProgressCount');
+            const progressText = document.getElementById('pdfProgressText');
+            
+            // Reset & Tampilkan Pop-Up
+            modal.classList.remove('hidden'); 
+            actions.classList.add('hidden');
+            errorActions.classList.add('hidden');
+            bar.style.width = "5%";
+            percentText.textContent = "5% MEMPROSES";
+            countText.textContent = "? / ? FILE";
+            progressText.textContent = "Melakukan pemindaian server dan menghitung total foto...";
+
+            document.getElementById('step1Icon').className = "fa-solid fa-circle-notch fa-spin text-blue-500 w-4 text-center";
+            document.getElementById('step2Icon').className = "fa-regular fa-circle w-4 text-center text-slate-400";
+            document.getElementById('step3Icon').className = "fa-regular fa-circle w-4 text-center text-slate-400";
+
             try {
                 let init = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'initPDF', folderQuery: folder, projectName: proj, rangeSN: range }) });
-                let res = JSON.parse(await init.text()); if (res.result !== 'success') throw new Error(res.message);
-                const fileIds = res.fileIds; const docId = res.docId;
+                let res = JSON.parse(await init.text()); 
+                if (res.result !== 'success') throw new Error(res.message);
+                
+                const fileIds = res.fileIds; 
+                const docId = res.docId;
+                
+                countText.textContent = `0 / ${fileIds.length} FILE`;
+                bar.style.width = "20%";
+                percentText.textContent = "20% MEMPROSES";
+                
+                document.getElementById('step1Icon').className = "fa-solid fa-check-circle text-green-500 w-4 text-center";
+                document.getElementById('step2Icon').className = "fa-solid fa-circle-notch fa-spin text-blue-500 w-4 text-center";
+                progressText.textContent = `Mengekstrak ${fileIds.length} foto ke dalam tabel dokumen...`;
+
                 for (let i = 0; i < fileIds.length; i += 30) {
                     const chunk = fileIds.slice(i, i + 30);
                     let b = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'processBatch', docId: docId, fileIds: chunk }) });
                     if (JSON.parse(await b.text()).result !== 'success') throw new Error("Gagal proses batch");
+                    
+                    let currentCount = Math.min(i + 30, fileIds.length);
+                    let percent = 20 + Math.floor((currentCount / fileIds.length) * 60);
+                    bar.style.width = percent + "%";
+                    percentText.textContent = percent + "% MEMPROSES";
+                    countText.textContent = `${currentCount} / ${fileIds.length} FILE`;
                 }
+
+                document.getElementById('step2Icon').className = "fa-solid fa-check-circle text-green-500 w-4 text-center";
+                document.getElementById('step3Icon').className = "fa-solid fa-circle-notch fa-spin text-blue-500 w-4 text-center";
+                bar.style.width = "90%";
+                percentText.textContent = "90% FINALISASI";
+                progressText.textContent = "Menyimpan dan mengonversi laporan ke format PDF...";
+
                 let f = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'finalizePDF', docId: docId, projectName: (proj || folder) }) });
-                let fres = JSON.parse(await f.text()); if (fres.result !== 'success') throw new Error("Gagal finalize");
-                document.getElementById('btnDownloadPDF').href = fres.link; actions.classList.remove('hidden'); showToast("PDF Selesai!", "success"); 
+                let fres = JSON.parse(await f.text()); 
+                if (fres.result !== 'success') throw new Error("Gagal finalize");
+                
+                document.getElementById('step3Icon').className = "fa-solid fa-check-circle text-green-500 w-4 text-center";
+                bar.style.width = "100%";
+                percentText.textContent = "100% SELESAI";
+                progressText.textContent = "Laporan berhasil dibuat dan siap untuk diunduh!";
+                
+                document.getElementById('btnDownloadPDF').href = fres.link; 
+                actions.classList.remove('hidden'); 
             } catch (err) { 
-                document.getElementById('pdfErrorActions').classList.remove('hidden'); 
+                progressText.textContent = "Terjadi kesalahan saat membuat laporan. Silakan coba lagi.";
+                errorActions.classList.remove('hidden'); 
+                document.getElementById('step1Icon').className = "fa-solid fa-circle-xmark text-red-500 w-4 text-center";
+                document.getElementById('step2Icon').className = "fa-solid fa-circle-xmark text-red-500 w-4 text-center";
+                document.getElementById('step3Icon').className = "fa-solid fa-circle-xmark text-red-500 w-4 text-center";
             }
         }
     </script>
