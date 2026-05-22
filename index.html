@@ -5,38 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QC-PDN PRO - Microvision</title>
     
-    <!-- TAG PWA (Progressive Web App) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="QC-PDN PRO">
     <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true&v=2">
-    <!-- END TAG PWA -->
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         .preview-item { transition: all 0.3s ease; }
         .preview-item:hover { transform: scale(1.02); }
         .modal-enter { opacity: 0; transform: scale(0.9); }
         .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.3s, transform 0.3s; }
         
-        /* Animasi Flash Kamera */
         @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; background: white; } 100% { opacity: 1; } }
         .flash-anim { animation: flash 0.2s ease-out; }
 
-        /* Animasi Pulse Record */
         @keyframes pulse-red { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .record-pulse { animation: pulse-red 1.5s infinite; }
 
-        /* Animasi Pop-up Tengah Layar */
         @keyframes bounceShort { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .animate-bounce-short { animation: bounceShort 0.3s ease-out forwards; }
-
-        /* Animasi Progress PDF */
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px) rotate(-2deg); } 50% { transform: translateX(5px) rotate(2deg); } 75% { transform: translateX(-5px) rotate(-2deg); } }
-        .animate-shake { animation: shake 0.4s ease-in-out; }
 
         .progress-striped { background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent); background-size: 1rem 1rem; animation: progress-stripes 1s linear infinite; }
         @keyframes progress-stripes { from { background-position: 1rem 0; } to { background-position: 0 0; } }
@@ -56,11 +48,13 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Khusus Editor Coretan Inbound */
+        #drawingCanvas { touch-action: none; cursor: crosshair; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
 
-    <!-- === MODAL PREVIEW MEDIA === -->
     <div id="mediaPreviewModal" class="hidden fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center backdrop-blur-md transition-opacity" style="touch-action: none;">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
             <span id="previewModalTitle" class="text-white text-sm font-bold truncate pr-4">Preview</span>
@@ -74,7 +68,22 @@
         <div id="mediaPreviewContainer" class="w-full h-full flex items-center justify-center overflow-hidden relative"></div>
     </div>
 
-    <!-- === MODAL UPLOAD GAGAL === -->
+    <div id="editorModal" class="hidden fixed inset-0 z-[110] bg-slate-900 flex flex-col transition-opacity">
+        <div class="bg-slate-800 p-4 flex justify-between items-center text-white shrink-0 shadow-md relative z-20">
+            <button type="button" onclick="closeEditor()" class="text-white bg-slate-700 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            <span class="text-sm font-bold">Tandai Area Cacat</span>
+            <button type="button" onclick="clearDrawing()" class="text-red-400 font-bold text-xs"><i class="fa-solid fa-eraser"></i> Hapus Coretan</button>
+        </div>
+        <div class="flex-1 relative overflow-hidden bg-black flex items-center justify-center" id="editorContainer">
+            <canvas id="drawingCanvas" class="max-w-full max-h-full object-contain"></canvas>
+        </div>
+        <div class="bg-white p-4 shrink-0 shadow-[0_-5px_15px_rgba(0,0,0,0.1)] relative z-20">
+            <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Deskripsi Cacat / Temuan</label>
+            <textarea id="inboundItemDesc" rows="2" class="w-full p-3 rounded-xl border border-slate-300 focus:border-blue-500 outline-none text-sm bg-slate-50" placeholder="Ketik keterangan cacat di sini..."></textarea>
+            <button onclick="saveInboundItem()" class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 text-sm uppercase tracking-wider"><i class="fa-solid fa-check mr-1"></i> Simpan Temuan</button>
+        </div>
+    </div>
+
     <div id="uploadFailModal" class="hidden fixed inset-0 z-[110] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-bounce-short p-6 text-center">
             <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-red-50 animate-bounce">
@@ -87,7 +96,6 @@
         </div>
     </div>
 
-    <!-- === MODAL PENGATURAN === -->
     <div id="settingsModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-bounce-short">
             <div class="bg-slate-800 p-4 flex justify-between items-center">
@@ -108,48 +116,6 @@
         </div>
     </div>
 
-    <!-- === MODAL PANDUAN PENGGUNAAN (HELP) === -->
-    <div id="helpModal" class="hidden fixed inset-0 z-[85] bg-slate-900/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-bounce-short flex flex-col max-h-[85vh]">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center shrink-0">
-                <h2 class="text-white font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Panduan Aplikasi</h2>
-                <button onclick="closeHelp()" class="text-blue-200 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="p-5 overflow-y-auto space-y-6 flex-1 custom-scrollbar text-sm text-slate-700">
-                <div class="space-y-2">
-                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-camera-retro mr-1"></i> 1. Menu Input QC</h3>
-                    <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
-                        <li>Pilih <b>Kategori Produk</b> di bagian atas layar.</li>
-                        <li>Ketik/Pilih <b>Range Serial Number</b> dan <b>Nama Project</b>.</li>
-                        <li>Scan atau ketik <b>Serial Number (SN)</b> unit. <span class="text-red-500 font-bold">Wajib diisi sebelum buka kamera!</span></li>
-                        <li>Klik tombol <b>Buka Kamera</b>. Bukti foto akan otomatis tertempel Watermark.</li>
-                        <li>Klik <b>Upload File</b>. Sistem akan otomatis membuat folder di Drive sesuai data yang diisi.</li>
-                    </ul>
-                </div>
-                <div class="space-y-2">
-                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-database mr-1"></i> 2. Menu Database</h3>
-                    <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
-                        <li>Gunakan menu ini untuk mencari file <b>RCFGX</b> dan <b>Firmware</b>.</li>
-                        <li>Navigasi bekerja seperti Folder di Komputer. Klik folder untuk masuk, tekan tombol <b>Kembali</b> untuk keluar.</li>
-                    </ul>
-                </div>
-                <div class="space-y-2">
-                    <h3 class="font-black text-blue-700 text-base border-b border-blue-100 pb-1"><i class="fa-solid fa-file-pdf mr-1"></i> 3. Menu Laporan (PDF)</h3>
-                    <ul class="list-decimal pl-4 space-y-1.5 text-xs text-slate-600">
-                        <li>Gunakan menu ini saat proses foto QC telah selesai.</li>
-                        <li>Ketik <b>Nama Folder Target</b> tempat foto disimpan (Biasanya Range SN / Project).</li>
-                        <li>Isi <b>Nama Project</b> dan <b>Range SN</b> untuk ditampilkan di Dokumen.</li>
-                        <li>Klik <b>Bikin Laporan Sekarang!</b>. Sistem meracik foto menjadi PDF.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="p-4 bg-slate-50 border-t border-slate-100 text-center">
-                <button onclick="closeHelp()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg active:scale-95">Tutup Panduan</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- === MODAL PROGRESS BIKIN PDF === -->
     <div id="pdfProgressModal" class="hidden fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div id="pdfModalBox" class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm text-center transform transition-all animate-bounce-short relative overflow-hidden">
             <div id="pdfGlowEffect" class="absolute inset-0 bg-blue-500 opacity-0 blur-3xl transition-opacity duration-1000 -z-10 pointer-events-none"></div>
@@ -179,8 +145,7 @@
         </div>
     </div>
 
-    <!-- === MODAL PILIH KATEGORI === -->
-    <div id="categoryModal" class="fixed inset-0 z-50 bg-slate-900 bg-opacity-95 flex flex-col justify-center items-center p-4 transition-all duration-300">
+    <div id="categoryModal" class="hidden fixed inset-0 z-50 bg-slate-900 bg-opacity-95 flex flex-col justify-center items-center p-4 transition-all duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all">
             <div class="bg-blue-800 p-5 text-center">
                 <h2 class="text-white font-bold text-lg tracking-wide">PILIH KATEGORI QC</h2>
@@ -197,7 +162,6 @@
         </div>
     </div>
 
-    <!-- === CAMERA OVERLAY (WEBRTC) === -->
     <div id="cameraOverlay" class="hidden fixed inset-0 z-[60] bg-black flex flex-col">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
             <div id="recordingTimer" class="hidden bg-red-600 text-white px-3 py-1 rounded-full text-sm font-mono font-bold flex items-center gap-2">
@@ -239,30 +203,30 @@
         </div>
     </div>
 
-    <!-- === HEADER GLOBAL === -->
+    <input type="file" id="inboundCameraInput" accept="image/*" capture="environment" class="hidden">
+    <canvas id="inboundWatermarkCanvas" class="hidden"></canvas>
+
     <div class="bg-white/90 backdrop-blur-md p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
         <div class="flex items-center gap-3">
             <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true&v=2" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
             <div id="gpsStatus" class="flex items-center justify-center w-8 h-8 bg-slate-100 rounded-md border border-slate-200" title="Mencari GPS..."><i class="fa-solid fa-location-crosshairs fa-spin text-slate-400 text-sm"></i></div>
         </div>
         <div class="flex items-center gap-2">
-            <button id="headerCatBtn" onclick="openModal()" class="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 hover:bg-blue-100 transition">
+            <button id="headerCatBtn" onclick="openModal()" class="hidden flex-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-200 hover:bg-blue-100 transition">
                 <span id="currentCategoryDisplay">PILIH KATEGORI</span><i class="fa-solid fa-chevron-down"></i>
             </button>
-            <button id="headerHelpBtn" onclick="openHelp()" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition" title="Panduan Aplikasi">
+            <button id="headerHelpBtn" onclick="openHelp()" class="hidden w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition" title="Panduan Aplikasi">
                 <i class="fa-solid fa-circle-question text-lg"></i>
             </button>
-            <button id="headerSettingBtn" onclick="openSettings()" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" title="Pengaturan">
+            <button id="headerSettingBtn" onclick="openSettings()" class="hidden w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" title="Pengaturan">
                 <i class="fa-solid fa-gear text-lg"></i>
             </button>
         </div>
     </div>
 
-    <!-- === KONTEN UTAMA: DIBAGI 3 TAB (QC, DOWNLOAD, PDF) === -->
     <div class="max-w-xl mx-auto bg-white min-h-[85vh] sm:min-h-0 sm:rounded-b-xl sm:shadow-xl overflow-hidden relative mb-20">
         
-        <!-- TAB 1: FORMULIR QC -->
-        <div id="tabQC" class="p-5 space-y-5 block transition-opacity duration-300">
+        <div id="tabQC" class="hidden p-5 space-y-5 transition-opacity duration-300">
             <form id="qcForm" class="space-y-4">
                 <input type="hidden" id="category" name="category">
                 <div>
@@ -333,23 +297,18 @@
                 </button>
             </form>
 
-            <!-- === PANEL LIVE GLOBAL HISTORY === -->
             <div class="mt-6 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                 <div class="bg-blue-600 px-4 py-3 flex justify-between items-center">
                     <h3 id="liveHistoryTitle" class="text-white text-xs font-bold flex items-center gap-2"><i class="fa-solid fa-earth-asia animate-pulse"></i> Last S/N</h3>
                     <button type="button" onclick="fetchLiveHistory()" class="text-blue-200 hover:text-white transition" title="Refresh History"><i id="refreshHistoryIcon" class="fa-solid fa-rotate-right"></i></button>
                 </div>
                 <div id="liveHistoryList" class="p-3 max-h-48 overflow-y-auto custom-scrollbar space-y-2">
-                    <!-- Data history otomatis masuk sini -->
                     <div class="text-center py-4 text-slate-400 text-xs">Pilih Kategori Produk terlebih dahulu.</div>
                 </div>
             </div>
-
         </div>
 
-        <!-- TAB 2: DATABASE -->
-        <div id="tabDownload" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
-            <!-- HEADER DATABASE -->
+        <div id="tabDownload" class="p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300 block">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
                     <i class="fa-solid fa-database text-lg"></i>
@@ -360,29 +319,57 @@
                 </div>
             </div>
             
-            <!-- BREADCRUMB MODERN -->
             <div id="downloadBreadcrumb" class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 text-sm font-medium text-slate-600"></div>
             
-            <!-- CONTENT FOLDER/FILE -->
             <div id="downloadContent" class="space-y-3 min-h-[150px]">
-                <div class="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden">
-                    <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(#93c5fd 1px, transparent 1px); background-size: 16px 16px;"></div>
-                    <div class="relative w-16 h-16 mb-4 flex items-center justify-center">
-                        <div class="absolute inset-0 border-4 border-blue-50 rounded-full"></div>
-                        <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" style="animation-duration: 0.8s;"></div>
-                        <div class="absolute inset-2 border-4 border-indigo-400 rounded-full border-b-transparent animate-spin" style="animation-duration: 1.2s; animation-direction: reverse;"></div>
-                        <i class="fa-solid fa-satellite-dish text-blue-500 text-lg animate-pulse"></i>
-                    </div>
-                    <h3 class="text-blue-600 font-black tracking-[0.3em] text-xs animate-pulse">LOADING DATA SERVER</h3>
-                    <p class="text-slate-400 text-[9px] font-mono mt-2 uppercase tracking-widest">Memproses Data...</p>
+                <div class="text-center py-10 text-slate-400 text-xs flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-blue-500"></i>
+                    <p class="font-bold">Memuat database...</p>
                 </div>
             </div>
             <div class="pb-10"></div>
         </div>
 
-        <!-- TAB 3: LAPORAN PDF -->
+        <div id="tabInbound" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
+             <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                    <i class="fa-solid fa-clipboard-check text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-slate-800 leading-tight">Cek Fisik</h2>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">QC Barang Masuk</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4 relative z-10">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Nama Inspector</label>
+                    <input type="text" id="inbInspector" class="w-full p-3.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm font-bold bg-slate-50" placeholder="Nama Anda...">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Nama Project</label>
+                    <input type="text" id="inbProject" class="w-full p-3.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm font-bold bg-slate-50" placeholder="Nama Project / Batch...">
+                </div>
+                
+                <div class="pt-3">
+                    <button onclick="startInboundCamera()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-xl transition-all active:scale-95 text-sm flex items-center justify-center gap-2 border-2 border-dashed border-slate-300">
+                        <i class="fa-solid fa-camera text-lg text-blue-500"></i> Tambah Foto Temuan
+                    </button>
+                </div>
+            </div>
+
+            <div id="inboundListContainer" class="hidden space-y-3 relative z-10">
+                <h3 class="text-xs font-black text-slate-500 uppercase mt-4 mb-2 pl-1 border-l-4 border-blue-500">Daftar Temuan Cacat</h3>
+                <div id="inboundList" class="space-y-3"></div>
+                
+                <button onclick="generateInboundPDF()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-xl transition-all active:scale-95 text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30">
+                    <i class="fa-solid fa-file-pdf"></i> Cetak Laporan PDF
+                </button>
+            </div>
+            <div class="pb-10"></div>
+        </div>
+
         <div id="tabPDF" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
-             <!-- HEADER LAPORAN -->
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
                     <i class="fa-solid fa-file-pdf text-lg"></i>
@@ -393,7 +380,6 @@
                 </div>
             </div>
 
-            <!-- Generate Laporan (PDF) - TEMA BIRU PUTIH -->
             <div class="bg-white rounded-2xl border border-blue-100 shadow-lg shadow-blue-500/5 p-6 relative overflow-hidden group">
                 <div class="flex items-center gap-4 mb-4 relative z-10">
                     <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
@@ -435,7 +421,6 @@
 
     </div>
     
-    <!-- === WIDGET PROGRESS BG === -->
     <div id="floatingProgress" class="fixed top-24 right-4 z-[70] bg-white rounded-xl shadow-2xl p-4 border border-slate-200 w-64 transform transition-all duration-300 -translate-y-5 opacity-0 pointer-events-none hidden">
         <div class="flex items-center gap-3 mb-2">
             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0"><i class="fa-solid fa-cloud-arrow-up fa-fade"></i></div>
@@ -447,10 +432,10 @@
         <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div id="bgQueueBar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div></div>
     </div>
 
-    <!-- === BOTTOM NAVIGATION BAR === -->
     <div class="fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-        <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors"><i class="fa-solid fa-camera-retro text-xl mb-1"></i><span class="text-[10px] font-bold">Input QC</span></button>
-        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-database text-xl mb-1"></i><span class="text-[10px] font-bold">Database</span></button>
+        <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors"><i class="fa-solid fa-database text-xl mb-1"></i><span class="text-[10px] font-bold">Database</span></button>
+        <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-camera-retro text-xl mb-1"></i><span class="text-[10px] font-bold">Input QC</span></button>
+        <button onclick="switchTab('inbound')" id="navInbound" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-emerald-500 transition-colors"><i class="fa-solid fa-clipboard-check text-xl mb-1"></i><span class="text-[10px] font-bold">Inbound</span></button>
         <button onclick="switchTab('pdf')" id="navPDF" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-file-pdf text-xl mb-1"></i><span class="text-[10px] font-bold">Laporan</span></button>
     </div>
 
@@ -467,7 +452,101 @@
         let downloadDB = {}; 
         let isDbLoaded = false;
         let failedUploads = []; 
+        let fileQueue = []; 
+        let backgroundQueue = []; 
+        let isUploading = false; 
+        let videoStream = null; 
+        let currentMode = 'photo'; 
+        let currentLocationStr = "Lokasi: Menunggu GPS...";
+        let mediaRecorder = null; 
+        let recordedChunks = []; 
+        let recordingTimerInterval = null; 
+        let recordingStartTime = null; 
+        let isRecording = false;
+        let lastFetchedCoords = { lat: null, lng: null };
+        let isGpsActive = false;
+        let currentNavPath = []; 
+        let appSettings = { camQuality: localStorage.getItem('qc_camQuality') || '720' };
+        let previewScale = 1, previewPanX = 0, previewPanY = 0;
+        let previewIndex = 0;
 
+        let inboundItems = [];
+        let canvas, ctx, isDrawing = false;
+        let originalImg = null;
+
+        const categoryModal = document.getElementById('categoryModal'); 
+        const categoryInput = document.getElementById('category'); 
+        const categoryDisplay = document.getElementById('currentCategoryDisplay'); 
+        const categoryDisplayInput = document.getElementById('categoryDisplayInput'); 
+        const projectInput = document.getElementById('project'); 
+        const rangeSNInput = document.getElementById('rangeSN'); 
+        const projectList = document.getElementById('projectList'); 
+        const submitBtn = document.getElementById('submitBtn'); 
+        const btnText = document.getElementById('btnText'); 
+        const previewList = document.getElementById('previewList'); 
+        const previewContainer = document.getElementById('previewContainer'); 
+        const cameraOverlay = document.getElementById('cameraOverlay'); 
+        const videoEl = document.getElementById('cameraVideo'); 
+        const canvasEl = document.getElementById('cameraCanvas'); 
+        const gpsStatus = document.getElementById('gpsStatus'); 
+        const shutterInner = document.getElementById('shutterInner'); 
+        const shutterBtn = document.getElementById('shutterBtn'); 
+        const btnModePhoto = document.getElementById('btnModePhoto'); 
+        const btnModeVideo = document.getElementById('btnModeVideo'); 
+        const recordingTimer = document.getElementById('recordingTimer'); 
+        const timerText = document.getElementById('timerText'); 
+        const modeIndicator = document.getElementById('modeIndicator'); 
+        const camCountBadge = document.getElementById('camCountBadge'); 
+        const btnFinishCamera = document.getElementById('btnFinishCamera');
+
+        document.addEventListener("DOMContentLoaded", () => { 
+            initGPS(); 
+            switchTab('download'); // Default ke Database
+            fetchLiveHistory(); 
+            document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
+            setupInboundCamera();
+        });
+
+        // --- TAB NAVIGATION ---
+        function switchTab(tabName) {
+            const tabs = ['tabQC', 'tabDownload', 'tabPDF', 'tabInbound'];
+            const navs = ['navQC', 'navDownload', 'navPDF', 'navInbound'];
+            const headerCatBtn = document.getElementById('headerCatBtn'); 
+            const headerHelpBtn = document.getElementById('headerHelpBtn'); 
+            const headerSettingBtn = document.getElementById('headerSettingBtn'); 
+            const modalKategori = document.getElementById('categoryModal');
+
+            tabs.forEach(t => document.getElementById(t).classList.add('hidden'));
+            navs.forEach(n => document.getElementById(n).classList.replace('text-blue-600', 'text-slate-400'));
+            navs.forEach(n => document.getElementById(n).classList.replace('text-emerald-500', 'text-slate-400'));
+
+            if (modalKategori) modalKategori.classList.add('hidden');
+
+            // FIX BUG BLANK: Paksa 'pdf' jadi 'PDF', yang lain Kapital diawal
+            let suffix = tabName === 'qc' ? 'QC' : (tabName === 'pdf' ? 'PDF' : tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            const activeTab = document.getElementById('tab' + suffix);
+            const activeNav = document.getElementById('nav' + suffix);
+            
+            if(activeTab) activeTab.classList.remove('hidden');
+            if(activeNav) {
+                if(tabName === 'inbound') activeNav.classList.replace('text-slate-400', 'text-emerald-500');
+                else activeNav.classList.replace('text-slate-400', 'text-blue-600');
+            }
+
+            if (tabName === 'qc') {
+                if(headerCatBtn) headerCatBtn.classList.remove('hidden'); 
+                if(headerHelpBtn) headerHelpBtn.classList.remove('hidden'); 
+                if(headerSettingBtn) headerSettingBtn.classList.remove('hidden'); 
+                if (modalKategori && !document.getElementById('category').value) { modalKategori.classList.remove('hidden'); }
+            } else {
+                if(headerCatBtn) headerCatBtn.classList.add('hidden');
+                if(headerHelpBtn) headerHelpBtn.classList.add('hidden'); 
+                if(headerSettingBtn) headerSettingBtn.classList.add('hidden'); 
+                if (tabName === 'download') fetchDatabase(); 
+            }
+        }
+
+        // --- DATABASE & HISTORY ---
         async function fetchDatabase() {
             if (isDbLoaded) return;
             try {
@@ -484,13 +563,13 @@
             const currentCat = document.getElementById('category').value;
             const panelTitle = document.getElementById('liveHistoryTitle');
             if (!currentCat) {
-                 listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs">Pilih Kategori Produk terlebih dahulu.</div>';
+                 if(listContainer) listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs">Pilih Kategori Produk terlebih dahulu.</div>';
                  if(panelTitle) panelTitle.innerHTML = '<i class="fa-solid fa-earth-asia animate-pulse"></i> Last S/N';
                  return;
             }
             if(panelTitle) panelTitle.innerHTML = `<i class="fa-solid fa-earth-asia animate-pulse"></i> Last S/N: ${currentCat}`;
             if(icon) icon.classList.add('fa-spin');
-            listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mb-2 text-lg"></i><br>Sinkronisasi server...</div>';
+            if(listContainer) listContainer.innerHTML = '<div class="text-center py-4 text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mb-2 text-lg"></i><br>Sinkronisasi server...</div>';
             try {
                 const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: 'getLiveHistory', category: currentCat }) });
                 const res = await req.json();
@@ -519,22 +598,27 @@
                     }
                 } else { throw new Error(res.message); }
             } catch (err) {
-                listContainer.innerHTML = `<div class="text-center py-4 text-red-400 text-xs"><i class="fa-solid fa-triangle-exclamation mb-2 text-lg"></i><br>Gagal memuat history server.</div>`;
+                if(listContainer) listContainer.innerHTML = `<div class="text-center py-4 text-red-400 text-xs"><i class="fa-solid fa-triangle-exclamation mb-2 text-lg"></i><br>Gagal memuat history server.</div>`;
             } finally {
                 if(icon) icon.classList.remove('fa-spin');
             }
         }
 
+        // --- UTILS & MODALS ---
         function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
         function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
         function hideUploadFailModal() { document.getElementById('uploadFailModal').classList.add('hidden'); }
-
-        let appSettings = { camQuality: localStorage.getItem('qc_camQuality') || '720' };
         function openSettings() { document.querySelector(`input[name="set_cam"][value="${appSettings.camQuality}"]`).checked = true; document.getElementById('settingsModal').classList.remove('hidden'); }
         function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
         function saveSettings() { appSettings.camQuality = document.querySelector('input[name="set_cam"]:checked').value; localStorage.setItem('qc_camQuality', appSettings.camQuality); closeSettings(); showToast("Pengaturan disimpan!", "success"); }
+        function showToast(m, t) {
+            const toast = document.getElementById('toast'); document.getElementById('toastMessage').textContent = m;
+            toast.className = `fixed bottom-20 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[90] text-sm font-medium text-white flex items-center gap-2 ${t === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 3000);
+        }
+        function closePdfProgress() { document.getElementById('pdfProgressModal').classList.add('hidden'); }
 
-        let currentNavPath = []; 
+        // --- DOWNLOAD MENU ---
         function renderDownloadMenu() {
             const container = document.getElementById('downloadContent'); const breadcrumb = document.getElementById('downloadBreadcrumb');
             if (currentNavPath.length === 0) { breadcrumb.innerHTML = `<div class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg flex items-center gap-2 font-bold"><i class="fa-solid fa-hard-drive"></i> Root Database</div>`; } 
@@ -558,48 +642,7 @@
         }
         function navDownloadTo(target) { if (target === 'back') { currentNavPath.pop(); } else { currentNavPath.push(target); } renderDownloadMenu(); }
 
-        function switchTab(tabName) {
-            const tabQC = document.getElementById('tabQC'); const tabDownload = document.getElementById('tabDownload'); const tabPDF = document.getElementById('tabPDF');
-            const navQC = document.getElementById('navQC'); const navDownload = document.getElementById('navDownload'); const navPDF = document.getElementById('navPDF');
-            const headerCatBtn = document.getElementById('headerCatBtn'); const modalKategori = document.getElementById('categoryModal');
-            tabQC.classList.add('hidden'); tabDownload.classList.add('hidden'); tabPDF.classList.add('hidden');
-            navQC.classList.replace('text-blue-600', 'text-slate-400'); navDownload.classList.replace('text-blue-600', 'text-slate-400'); navPDF.classList.replace('text-blue-600', 'text-slate-400');
-            
-            if (modalKategori) { modalKategori.classList.add('opacity-0', 'pointer-events-none'); }
-
-            if (tabName === 'qc') {
-                tabQC.classList.remove('hidden'); navQC.classList.replace('text-slate-400', 'text-blue-600');
-                headerCatBtn.classList.remove('hidden'); 
-                if (modalKategori && !document.getElementById('category').value) { modalKategori.classList.remove('opacity-0', 'pointer-events-none'); }
-            } else if (tabName === 'download') {
-                tabDownload.classList.remove('hidden'); navDownload.classList.replace('text-slate-400', 'text-blue-600');
-                headerCatBtn.classList.add('hidden'); fetchDatabase(); 
-            } else if (tabName === 'pdf') {
-                tabPDF.classList.remove('hidden'); navPDF.classList.replace('text-slate-400', 'text-blue-600'); headerCatBtn.classList.add('hidden');
-            }
-        }
-
-        let fileQueue = []; let backgroundQueue = []; let isUploading = false; let videoStream = null; let currentMode = 'photo'; let currentLocationStr = "Lokasi: Menunggu GPS...";
-        let mediaRecorder = null; let recordedChunks = []; let recordingTimerInterval = null; let recordingStartTime = null; let isRecording = false;
-
-        const categoryModal = document.getElementById('categoryModal'); const categoryInput = document.getElementById('category'); const categoryDisplay = document.getElementById('currentCategoryDisplay'); const categoryDisplayInput = document.getElementById('categoryDisplayInput'); const projectInput = document.getElementById('project'); const rangeSNInput = document.getElementById('rangeSN'); const projectList = document.getElementById('projectList'); const submitBtn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const previewList = document.getElementById('previewList'); const previewContainer = document.getElementById('previewContainer'); const cameraOverlay = document.getElementById('cameraOverlay'); const videoEl = document.getElementById('cameraVideo'); const canvasEl = document.getElementById('cameraCanvas'); const gpsStatus = document.getElementById('gpsStatus'); const shutterInner = document.getElementById('shutterInner'); const shutterBtn = document.getElementById('shutterBtn'); const btnModePhoto = document.getElementById('btnModePhoto'); const btnModeVideo = document.getElementById('btnModeVideo'); const recordingTimer = document.getElementById('recordingTimer'); const timerText = document.getElementById('timerText'); const modeIndicator = document.getElementById('modeIndicator'); const camCountBadge = document.getElementById('camCountBadge'); const btnFinishCamera = document.getElementById('btnFinishCamera');
-
-        document.addEventListener("DOMContentLoaded", () => { 
-            initGPS(); 
-            openModal(); 
-            fetchLiveHistory(); 
-            document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
-        });
-
-        function updateLastSnDisplay() {
-            const currentCat = categoryInput.value; if (!currentCat) { document.getElementById('lastSnDisplay').classList.add('hidden'); return; }
-            const lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`); const displayEl = document.getElementById('lastSnDisplay'); const valueEl = document.getElementById('lastSnValue');
-            if (lastSn) { valueEl.textContent = lastSn; displayEl.classList.remove('hidden'); } else { displayEl.classList.add('hidden'); }
-        }
-
-        let lastFetchedCoords = { lat: null, lng: null };
-        let isGpsActive = false;
-        
+        // --- GPS & CATEGORY ---
         function initGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(async (position) => {
@@ -617,16 +660,19 @@
                     isGpsActive = false; 
                     currentLocationStr = "Lokasi : Gagal GPS"; 
                     gpsStatus.innerHTML = '<i class="fa-solid fa-location-crosshairs text-red-500"></i>'; 
-                    
-                    const cameraOverlay = document.getElementById('cameraOverlay');
-                    if (cameraOverlay && !cameraOverlay.classList.contains('hidden')) {
+                    const overlay = document.getElementById('cameraOverlay');
+                    if (overlay && !overlay.classList.contains('hidden')) {
                         closeCamera();
                         showToast("⚠️ Ketahuan! GPS dimatikan, kamera ditutup otomatis.", "error");
                     }
                 }, { enableHighAccuracy: true });
-            } else {
-                isGpsActive = false;
-            }
+            } else { isGpsActive = false; }
+        }
+
+        function updateLastSnDisplay() {
+            const currentCat = categoryInput.value; if (!currentCat) { document.getElementById('lastSnDisplay').classList.add('hidden'); return; }
+            const lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`); const displayEl = document.getElementById('lastSnDisplay'); const valueEl = document.getElementById('lastSnValue');
+            if (lastSn) { valueEl.textContent = lastSn; displayEl.classList.remove('hidden'); } else { displayEl.classList.add('hidden'); }
         }
 
         function selectCategory(catName) {
@@ -646,22 +692,28 @@
                     rangeLabel.textContent = "Range SN / Batch (Opsional)"; rangeSNInput.required = false; 
                 }
             }
-            
             projectInput.value = localStorage.getItem(`lastProjectName_${catName}`) || ''; 
             rangeSNInput.value = localStorage.getItem(`lastRangeSN_${catName}`) || ''; 
-            categoryModal.classList.add('opacity-0', 'pointer-events-none'); 
+            categoryModal.classList.add('hidden'); 
             fetchProjects(catName); updateLastSnDisplay(); fetchLiveHistory(); 
         }
 
-        function openModal() { categoryModal.classList.remove('opacity-0', 'pointer-events-none'); }
+        function openModal() { categoryModal.classList.remove('hidden'); }
         window.addEventListener('hashchange', function() {
             if (window.location.hash !== '#camera' && !cameraOverlay.classList.contains('hidden')) { closeCamera(true); }
             if (window.location.hash !== '#preview' && !document.getElementById('mediaPreviewModal').classList.contains('hidden')) { closeMediaPreview(true); }
         });
 
+        async function fetchProjects(category) {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getProjects&category=${category}`); const data = await response.json();
+                if (data.result === 'success') { projectList.innerHTML = ''; data.projects.forEach(proj => { const opt = document.createElement('option'); opt.value = proj; projectList.appendChild(opt); }); }
+            } catch (e) { }
+        }
+
+        // --- CAMERA REGULER ---
         async function startCamera() {
             hideUploadFailModal(); 
-            
             if (!isGpsActive) {
                 showToast("⚠️ Wajib nyalakan GPS & Izinkan Lokasi!", "error");
                 const gpsIcon = document.getElementById('gpsStatus');
@@ -669,11 +721,9 @@
                 setTimeout(() => gpsIcon.classList.remove('animate-pulse', 'ring-2', 'ring-red-500'), 2000);
                 return;
             }
-
             const snValue = document.getElementById('sn').value.trim(); 
             if (!snValue) { 
-                document.getElementById('snError').classList.remove('hidden'); 
-                document.getElementById('sn').focus(); 
+                document.getElementById('snError').classList.remove('hidden'); document.getElementById('sn').focus(); 
                 return; 
             }
             try {
@@ -700,8 +750,7 @@
 
         function handleShutter() { 
             if (!isGpsActive || currentLocationStr.includes("Gagal GPS") || currentLocationStr.includes("Menunggu GPS")) {
-                showToast("⚠️ Akses GPS terputus! Nyalakan lokasi Anda.", "error");
-                return;
+                showToast("⚠️ Akses GPS terputus! Nyalakan lokasi Anda.", "error"); return;
             }
             if(currentMode === 'photo') { takePicture(); } 
             else { toggleRecording(); }
@@ -709,11 +758,9 @@
 
         function drawVideoFrameLoop() {
             if(!isRecording) return;
-            const canvas = document.getElementById('cameraCanvas');
-            const video = document.getElementById('cameraVideo');
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            drawWatermark(ctx, canvas.width, canvas.height);
+            const ctx = canvasEl.getContext('2d');
+            ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+            drawWatermark(ctx, canvasEl.width, canvasEl.height);
             requestAnimationFrame(drawVideoFrameLoop);
         }
 
@@ -725,12 +772,10 @@
         function startRecording() {
             if (!videoStream) return;
             recordedChunks = [];
-            const canvas = document.getElementById('cameraCanvas');
-            const video = document.getElementById('cameraVideo');
             const track = videoStream.getVideoTracks()[0];
             const settings = track.getSettings();
-            canvas.width = settings.width || video.videoWidth;
-            canvas.height = settings.height || video.videoHeight;
+            canvasEl.width = settings.width || videoEl.videoWidth;
+            canvasEl.height = settings.height || videoEl.videoHeight;
             
             let options = { mimeType: 'video/webm;codecs=vp9' };
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
@@ -742,7 +787,7 @@
             }
             
             try {
-                const canvasStream = canvas.captureStream(30);
+                const canvasStream = canvasEl.captureStream(30);
                 mediaRecorder = new MediaRecorder(canvasStream, options);
             } catch (e) { showToast("Gagal memulai perekam.", "error"); return; }
             
@@ -751,29 +796,16 @@
                 const file = new File([new Blob(recordedChunks, { type: 'video/webm' })], `Video_${Date.now()}.webm`, { type: "video/webm" });
                 fileQueue.push(file);
                 isRecording = false;
-                
-                shutterInner.classList.remove('rounded-sm', 'scale-50');
-                shutterInner.classList.add('rounded-full', 'scale-90');
-                shutterBtn.classList.remove('record-pulse');
-                recordingTimer.classList.add('hidden');
+                shutterInner.classList.remove('rounded-sm', 'scale-50'); shutterInner.classList.add('rounded-full', 'scale-90');
+                shutterBtn.classList.remove('record-pulse'); recordingTimer.classList.add('hidden');
                 clearInterval(recordingTimerInterval);
-                
-                renderPreview();
-                updateSubmitBtn();
-                updateCamBadge();
+                renderPreview(); updateSubmitBtn(); updateCamBadge();
             };
             
-            mediaRecorder.start();
-            isRecording = true;
-            drawVideoFrameLoop();
-            
-            shutterInner.classList.remove('rounded-full', 'scale-90');
-            shutterInner.classList.add('rounded-sm', 'scale-50');
-            shutterBtn.classList.add('record-pulse');
-            recordingTimer.classList.remove('hidden');
-            
-            recordingStartTime = Date.now();
-            timerText.textContent = "00:00";
+            mediaRecorder.start(); isRecording = true; drawVideoFrameLoop();
+            shutterInner.classList.remove('rounded-full', 'scale-90'); shutterInner.classList.add('rounded-sm', 'scale-50');
+            shutterBtn.classList.add('record-pulse'); recordingTimer.classList.remove('hidden');
+            recordingStartTime = Date.now(); timerText.textContent = "00:00";
             recordingTimerInterval = setInterval(() => {
                 const diff = Date.now() - recordingStartTime;
                 timerText.textContent = `${Math.floor(diff / 1000 / 60).toString().padStart(2, '0')}:${(Math.floor(diff / 1000) % 60).toString().padStart(2, '0')}`;
@@ -791,7 +823,6 @@
             const dateTimeStr = `Waktu : ${now.toLocaleDateString('id-ID')} - ${now.toLocaleTimeString('id-ID')} WIB`;
             
             const isPortrait = canvasHeight > canvasWidth;
-            // Ukuran font diperkecil 2x lipat
             const fontSize = Math.max(10, Math.floor(canvasWidth * (isPortrait ? 0.0175 : 0.0075))); 
             const lineHeight = fontSize * 1.4;
             
@@ -827,13 +858,7 @@
             else { btnFinishCamera.classList.add('hidden'); }
         }
 
-        async function fetchProjects(category) {
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getProjects&category=${category}`); const data = await response.json();
-                if (data.result === 'success') { projectList.innerHTML = ''; data.projects.forEach(proj => { const opt = document.createElement('option'); opt.value = proj; projectList.appendChild(opt); }); }
-            } catch (e) { }
-        }
-
+        // --- FILES & PREVIEW ---
         document.getElementById('galleryInput').addEventListener('change', function(e) { hideUploadFailModal(); handleFiles(e.target.files); this.value = ''; });
         function handleFiles(files) {
             Array.from(files).forEach(file => { if (file.size <= 50 * 1024 * 1024) fileQueue.push(file); });
@@ -851,8 +876,6 @@
             document.getElementById('previewContainer').classList.toggle('hidden', fileQueue.length === 0);
             if(fileQueue.length > 0) document.getElementById('fileCount').textContent = fileQueue.length;
         }
-
-        let previewScale = 1, previewPanX = 0, previewPanY = 0;
 
         function openMediaPreview(index) { previewIndex = index; renderCurrentMedia(); window.location.hash = 'preview'; document.getElementById('mediaPreviewModal').classList.remove('hidden'); }
         function closeMediaPreview(fromBackButton = false) { document.getElementById('mediaPreviewModal').classList.add('hidden'); if (!fromBackButton && window.location.hash === '#preview') window.history.back(); }
@@ -907,6 +930,7 @@
             btnText.textContent = fileQueue.length > 0 ? `Upload ${fileQueue.length} File` : "Pilih File Dulu";
         }
 
+        // --- SUBMIT UPLOAD REGULER ---
         document.getElementById('qcForm').addEventListener('submit', function(e) {
             e.preventDefault(); if (fileQueue.length === 0) return;
             hideUploadFailModal();
@@ -924,10 +948,7 @@
                 if (failedUploads.length > 0) {
                     const list = document.getElementById('failedSNList'); list.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
                     document.getElementById('uploadFailModal').classList.remove('hidden'); 
-                } else { 
-                    showToast("Upload selesai!", "success"); 
-                    fetchLiveHistory(); 
-                }
+                } else { showToast("Upload selesai!", "success"); fetchLiveHistory(); }
                 return;
             }
             isUploading = true; float.classList.remove('hidden'); setTimeout(() => float.classList.remove('opacity-0'), 10);
@@ -942,13 +963,8 @@
         }
 
         function toBase64(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = reject; }); }
-        function showToast(m, t) {
-            const toast = document.getElementById('toast'); document.getElementById('toastMessage').textContent = m;
-            toast.className = `fixed bottom-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[90] text-sm font-medium text-white flex items-center gap-2 ${t === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
-            toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 3000);
-        }
-        function closePdfProgress() { document.getElementById('pdfProgressModal').classList.add('hidden'); }
 
+        // --- PDF GENERATOR (SERVER) ---
         async function requestPDF() {
             const folder = document.getElementById('pdfSearchFolder').value.trim(); 
             const proj = document.getElementById('pdfProjectName').value.trim(); 
@@ -965,13 +981,11 @@
             const progressText = document.getElementById('pdfProgressText');
             const topIconBox = document.getElementById('pdfProgressIcon');
             
-            // Reset & Tampilkan Pop-Up
             modal.classList.remove('hidden'); 
             actions.classList.add('hidden');
             errorActions.classList.add('hidden');
             bar.style.width = "5%";
             
-            // Reset state animasi loading
             bar.className = "bg-blue-600 h-3 rounded-full transition-all duration-300 progress-striped";
             topIconBox.className = "w-16 h-16 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-4 animate-bounce relative z-10 shadow-sm border border-blue-50";
             topIconBox.innerHTML = '<i class="fa-solid fa-folder-magnifying-glass"></i>';
@@ -1047,6 +1061,176 @@
                 topIconBox.className = "w-16 h-16 mx-auto bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mb-4 relative z-10 shadow-sm border border-red-50";
                 topIconBox.innerHTML = '<i class="fa-solid fa-xmark"></i>';
             }
+        }
+
+        // --- INBOUND QC (EDITOR + JSPDF) ---
+        function setupInboundCamera() {
+            const input = document.getElementById('inboundCameraInput');
+            input.addEventListener('change', handleInboundImage);
+            
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+            const getPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            };
+
+            const startPosition = (e) => {
+                if(e.cancelable) e.preventDefault();
+                isDrawing = true;
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            };
+
+            const draw = (e) => {
+                if (!isDrawing) return;
+                if(e.cancelable) e.preventDefault();
+                const pos = getPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = Math.max(3, canvas.width * 0.005); 
+                ctx.lineCap = "round";
+                ctx.stroke();
+            };
+
+            const stopPosition = () => { isDrawing = false; };
+
+            canvas.addEventListener('mousedown', startPosition);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopPosition);
+            canvas.addEventListener('mouseout', stopPosition);
+            canvas.addEventListener('touchstart', startPosition, {passive: false});
+            canvas.addEventListener('touchmove', draw, {passive: false});
+            canvas.addEventListener('touchend', stopPosition);
+        }
+
+        function startInboundCamera() {
+            if (!isGpsActive) { showToast("⚠️ Wajib nyalakan GPS & Izinkan Lokasi!", "error"); return; }
+            document.getElementById('inboundCameraInput').click();
+        }
+
+        function handleInboundImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    originalImg = img;
+                    const wCanvas = document.getElementById('inboundWatermarkCanvas');
+                    const wCtx = wCanvas.getContext('2d');
+                    wCanvas.width = img.width; wCanvas.height = img.height;
+                    wCtx.drawImage(img, 0, 0);
+                    
+                    const proj = document.getElementById('inbProject').value.trim() || "-";
+                    const inspector = document.getElementById('inbInspector').value.trim() || "-";
+                    const now = new Date();
+                    const dateTimeStr = `${now.toLocaleDateString('id-ID')} - ${now.toLocaleTimeString('id-ID')} WIB`;
+                    const isPortrait = wCanvas.height > wCanvas.width;
+                    const fontSize = Math.max(16, Math.floor(wCanvas.width * (isPortrait ? 0.0175 : 0.0075))); 
+                    const lineHeight = fontSize * 1.4;
+                    
+                    const textLines = [ `INBOUND QC`, `Project : ${proj.toUpperCase()}`, `Inspector: ${inspector.toUpperCase()}`, `Waktu : ${dateTimeStr}`, `${currentLocationStr}` ];
+                    
+                    wCtx.font = `bold ${fontSize}px sans-serif`; 
+                    let maxWidth = 0; textLines.forEach(text => { maxWidth = Math.max(maxWidth, wCtx.measureText(text).width); });
+                    const boxWidth = maxWidth + (fontSize * 2); const boxHeight = (textLines.length * lineHeight) + fontSize;
+                    
+                    wCtx.fillStyle = "rgba(0, 0, 0, 0.55)"; wCtx.fillRect(10, wCanvas.height - boxHeight - 10, boxWidth, boxHeight);
+                    wCtx.fillStyle = "#10b981"; wCtx.fillRect(10, wCanvas.height - boxHeight - 10, 6, boxHeight);
+                    wCtx.fillStyle = "#ffffff"; wCtx.textAlign = "left"; wCtx.textBaseline = "top";
+                    
+                    let currentY = wCanvas.height - boxHeight - 5; 
+                    textLines.forEach(line => { wCtx.fillText(line, 25, currentY); currentY += lineHeight; });
+
+                    canvas.width = wCanvas.width; canvas.height = wCanvas.height;
+                    ctx.drawImage(wCanvas, 0, 0);
+                    document.getElementById('inboundItemDesc').value = '';
+                    document.getElementById('editorModal').classList.remove('hidden');
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file); e.target.value = ''; 
+        }
+
+        function clearDrawing() {
+            if (!originalImg) return;
+            const wCanvas = document.getElementById('inboundWatermarkCanvas');
+            ctx.drawImage(wCanvas, 0, 0);
+        }
+
+        function closeEditor() { document.getElementById('editorModal').classList.add('hidden'); }
+
+        function saveInboundItem() {
+            const desc = document.getElementById('inboundItemDesc').value.trim();
+            if (!desc) { showToast("⚠️ Deskripsi wajib diisi!", "error"); return; }
+            const finalImgData = canvas.toDataURL('image/jpeg', 0.8);
+            inboundItems.push({ imgData: finalImgData, desc: desc, width: canvas.width, height: canvas.height });
+            renderInboundList(); closeEditor(); showToast("Temuan ditambahkan!", "success");
+        }
+
+        function renderInboundList() {
+            const container = document.getElementById('inboundListContainer');
+            const list = document.getElementById('inboundList');
+            list.innerHTML = '';
+            if (inboundItems.length === 0) { container.classList.add('hidden'); return; }
+            container.classList.remove('hidden');
+            inboundItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "flex gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm";
+                div.innerHTML = `
+                    <div class="w-16 h-16 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200"><img src="${item.imgData}" class="w-full h-full object-cover"></div>
+                    <div class="flex-1 flex flex-col justify-between">
+                        <p class="text-xs font-bold text-slate-700 line-clamp-2">${item.desc}</p>
+                        <button onclick="removeInboundItem(${index})" class="text-red-500 text-[10px] font-black uppercase text-left hover:text-red-700 w-max mt-1"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    </div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function removeInboundItem(index) { inboundItems.splice(index, 1); renderInboundList(); }
+
+        async function generateInboundPDF() {
+            if (inboundItems.length === 0) return;
+            const inspector = document.getElementById('inbInspector').value.trim() || 'Tidak ada nama';
+            const project = document.getElementById('inbProject').value.trim() || 'Tidak ada project';
+            const date = new Date().toLocaleDateString('id-ID');
+            showToast("Membuat PDF...", "success");
+
+            setTimeout(() => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4'); 
+                
+                doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.setTextColor(30, 64, 175); 
+                doc.text("PT. MICROVISION INDONESIA", 105, 20, { align: "center" });
+                doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.5); doc.line(20, 25, 190, 25);
+                doc.setTextColor(0, 0, 0); doc.setFontSize(14); doc.text("LAPORAN QC BARANG MASUK", 105, 35, { align: "center" });
+                doc.setFontSize(10); doc.setFont("helvetica", "normal");
+                doc.text(`Inspector : ${inspector}`, 20, 48); doc.text(`Project   : ${project}`, 20, 53); doc.text(`Tanggal   : ${date}`, 20, 58);
+                doc.setFont("helvetica", "bold"); doc.text("Berikut hasil QC/Temuan cacat Unit:", 20, 70);
+
+                let yPos = 75;
+                for (let i = 0; i < inboundItems.length; i++) {
+                    const item = inboundItems[i];
+                    const imgWidth = 170; const imgHeight = (item.height / item.width) * imgWidth;
+                    if (yPos + imgHeight + 20 > 280) { doc.addPage(); yPos = 20; }
+                    doc.addImage(item.imgData, 'JPEG', 20, yPos, imgWidth, imgHeight); yPos += imgHeight + 5;
+                    doc.setFontSize(10); doc.setFont("helvetica", "normal");
+                    const splitDesc = doc.splitTextToSize(`Catatan: ${item.desc}`, 170);
+                    doc.text(splitDesc, 20, yPos);
+                    yPos += (splitDesc.length * 5) + 15; 
+                }
+                doc.save(`Inbound_QC_${project}_${Date.now()}.pdf`);
+                showToast("PDF Berhasil Dicetak!", "success");
+                inboundItems = []; renderInboundList(); document.getElementById('inbProject').value = '';
+            }, 500);
         }
     </script>
 </body>
