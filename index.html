@@ -11,6 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="QC-PDN PRO">
     <link rel="apple-touch-icon" href="https://github.com/MVI-PDN/QC-MPDN/blob/main/LogoApp.png?raw=true&v=2">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -55,6 +56,25 @@
 </head>
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800 pb-20 relative overflow-x-hidden">
 
+    <!-- === MODALS === -->
+    
+    <!-- MODAL PASSWORD (Gembok Aplikasi) -->
+    <div id="passwordModal" class="hidden fixed inset-0 z-[120] bg-slate-900/90 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all animate-bounce-short p-6 text-center">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm border border-blue-50">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Akses Terkunci</h3>
+            <p class="text-sm text-slate-500 mb-4">Silakan masukkan kata sandi untuk mengakses menu ini.</p>
+            <input type="password" id="appPasswordInput" autocomplete="off" class="w-full p-3.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none text-center text-lg font-bold tracking-widest bg-slate-50 mb-4 transition-all" placeholder="••••">
+            <div class="flex gap-2">
+                <button onclick="closePasswordModal()" class="w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 rounded-xl transition active:scale-95 text-sm">Batal</button>
+                <button onclick="checkPassword()" class="w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg active:scale-95 text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-unlock"></i> Buka Akses</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Preview -->
     <div id="mediaPreviewModal" class="hidden fixed inset-0 z-[100] bg-black/95 flex flex-col justify-center items-center backdrop-blur-md transition-opacity" style="touch-action: none;">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
             <span id="previewModalTitle" class="text-white text-sm font-bold truncate pr-4">Preview</span>
@@ -68,6 +88,7 @@
         <div id="mediaPreviewContainer" class="w-full h-full flex items-center justify-center overflow-hidden relative"></div>
     </div>
 
+    <!-- Modal Editor Inbound QC -->
     <div id="editorModal" class="hidden fixed inset-0 z-[110] bg-slate-900 flex flex-col transition-opacity">
         <div class="bg-slate-800 p-4 flex justify-between items-center text-white shrink-0 shadow-md relative z-20">
             <button type="button" onclick="closeEditor()" class="text-white bg-slate-700 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -116,6 +137,7 @@
         </div>
     </div>
 
+    <!-- Modal Progress PDF -->
     <div id="pdfProgressModal" class="hidden fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div id="pdfModalBox" class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm text-center transform transition-all animate-bounce-short relative overflow-hidden">
             <div id="pdfGlowEffect" class="absolute inset-0 bg-blue-500 opacity-0 blur-3xl transition-opacity duration-1000 -z-10 pointer-events-none"></div>
@@ -203,9 +225,11 @@
         </div>
     </div>
 
+    <!-- KHUSUS INBOUND QC -->
     <input type="file" id="inboundCameraInput" accept="image/*" capture="environment" class="hidden">
     <canvas id="inboundWatermarkCanvas" class="hidden"></canvas>
 
+    <!-- === HEADER GLOBAL === -->
     <div class="bg-white/90 backdrop-blur-md p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
         <div class="flex items-center gap-3">
             <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true&v=2" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
@@ -224,8 +248,10 @@
         </div>
     </div>
 
+    <!-- === KONTEN UTAMA: DIBAGI 4 TAB === -->
     <div class="max-w-xl mx-auto bg-white min-h-[85vh] sm:min-h-0 sm:rounded-b-xl sm:shadow-xl overflow-hidden relative mb-20">
         
+        <!-- TAB 1: FORMULIR QC REGULER -->
         <div id="tabQC" class="hidden p-5 space-y-5 transition-opacity duration-300">
             <form id="qcForm" class="space-y-4">
                 <input type="hidden" id="category" name="category">
@@ -308,6 +334,7 @@
             </div>
         </div>
 
+        <!-- TAB 2: DATABASE -->
         <div id="tabDownload" class="p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300 block">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
@@ -330,6 +357,7 @@
             <div class="pb-10"></div>
         </div>
 
+        <!-- TAB 3: INBOUND QC -->
         <div id="tabInbound" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
              <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
@@ -369,6 +397,7 @@
             <div class="pb-10"></div>
         </div>
 
+        <!-- TAB 4: LAPORAN PDF REGULER -->
         <div id="tabPDF" class="hidden p-5 sm:p-6 space-y-5 bg-slate-50 min-h-full transition-opacity duration-300">
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
@@ -432,6 +461,7 @@
         <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div id="bgQueueBar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div></div>
     </div>
 
+    <!-- === BOTTOM NAVIGATION BAR (4 TABS) === -->
     <div class="fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 flex justify-around p-1.5 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
         <button onclick="switchTab('download')" id="navDownload" class="flex-1 flex flex-col items-center p-2 text-blue-600 transition-colors"><i class="fa-solid fa-database text-xl mb-1"></i><span class="text-[10px] font-bold">Database</span></button>
         <button onclick="switchTab('qc')" id="navQC" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-camera-retro text-xl mb-1"></i><span class="text-[10px] font-bold">Input QC</span></button>
@@ -449,6 +479,11 @@
         // ==========================================
         // LOGIKA APLIKASI
         // ==========================================
+        
+        // VARIABEL GLOBAL & STATE APLIKASI
+        let isAuthenticated = false; // Status Gembok
+        let pendingTab = ''; // Nyimpen tab yang mau dibuka pas kena gembok
+
         let downloadDB = {}; 
         let isDbLoaded = false;
         let failedUploads = []; 
@@ -501,14 +536,48 @@
 
         document.addEventListener("DOMContentLoaded", () => { 
             initGPS(); 
-            switchTab('download'); // Default ke Database
+            switchTab('download'); // Default ke Database pas buka app
             fetchLiveHistory(); 
             document.getElementById('sn').addEventListener('input', function() { document.getElementById('snError').classList.add('hidden'); }); 
             setupInboundCamera();
+            
+            // Trigger Enter buat input password
+            document.getElementById('appPasswordInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') checkPassword();
+            });
         });
+
+        // --- SISTEM GEMBOK PASSWORD ---
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.add('hidden');
+            document.getElementById('appPasswordInput').value = '';
+            pendingTab = '';
+        }
+
+        function checkPassword() {
+            const pwInput = document.getElementById('appPasswordInput');
+            if (pwInput.value === 'buka') {
+                isAuthenticated = true; // Gembok terbuka
+                closePasswordModal();
+                showToast("Akses diberikan!", "success");
+                if (pendingTab) switchTab(pendingTab);
+            } else {
+                showToast("Kata sandi salah!", "error");
+                pwInput.value = '';
+                pwInput.focus();
+            }
+        }
 
         // --- TAB NAVIGATION ---
         function switchTab(tabName) {
+            // Hadang akses kalau belum masukin password (kecuali tab download)
+            if (!isAuthenticated && (tabName === 'qc' || tabName === 'inbound' || tabName === 'pdf')) {
+                pendingTab = tabName;
+                document.getElementById('passwordModal').classList.remove('hidden');
+                setTimeout(() => document.getElementById('appPasswordInput').focus(), 100);
+                return;
+            }
+
             const tabs = ['tabQC', 'tabDownload', 'tabPDF', 'tabInbound'];
             const navs = ['navQC', 'navDownload', 'navPDF', 'navInbound'];
             const headerCatBtn = document.getElementById('headerCatBtn'); 
@@ -522,7 +591,6 @@
 
             if (modalKategori) modalKategori.classList.add('hidden');
 
-            // FIX BUG BLANK: Paksa 'pdf' jadi 'PDF', yang lain Kapital diawal
             let suffix = tabName === 'qc' ? 'QC' : (tabName === 'pdf' ? 'PDF' : tabName.charAt(0).toUpperCase() + tabName.slice(1));
             const activeTab = document.getElementById('tab' + suffix);
             const activeNav = document.getElementById('nav' + suffix);
@@ -1039,7 +1107,7 @@
                 document.getElementById('step3Icon').className = "fa-solid fa-check-circle text-green-500 w-4 text-center";
                 bar.style.width = "100%";
                 
-                // Animasi Sukses! Ubah jadi hijau dan stop loading
+                // Animasi Sukses (Bar Hijau solid)
                 bar.className = "bg-green-500 h-3 rounded-full transition-all duration-500";
                 topIconBox.className = "w-16 h-16 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mb-4 transform scale-110 transition-all duration-300 relative z-10 shadow-md border border-green-200";
                 topIconBox.innerHTML = '<i class="fa-solid fa-check"></i>';
@@ -1056,14 +1124,14 @@
                 document.getElementById('step2Icon').className = "fa-solid fa-circle-xmark text-red-500 w-4 text-center";
                 document.getElementById('step3Icon').className = "fa-solid fa-circle-xmark text-red-500 w-4 text-center";
                 
-                // Animasi Error
+                // Animasi Error (Bar merah solid)
                 bar.className = "bg-red-500 h-3 rounded-full transition-all duration-300";
                 topIconBox.className = "w-16 h-16 mx-auto bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mb-4 relative z-10 shadow-sm border border-red-50";
                 topIconBox.innerHTML = '<i class="fa-solid fa-xmark"></i>';
             }
         }
 
-        // --- INBOUND QC (EDITOR + JSPDF) ---
+        // --- INBOUND QC (EDITOR + JSPDF 3 KOLOM) ---
         function setupInboundCamera() {
             const input = document.getElementById('inboundCameraInput');
             input.addEventListener('change', handleInboundImage);
@@ -1111,7 +1179,9 @@
         }
 
         function startInboundCamera() {
-            if (!isGpsActive) { showToast("⚠️ Wajib nyalakan GPS & Izinkan Lokasi!", "error"); return; }
+            if (!isGpsActive || currentLocationStr.includes("Gagal") || currentLocationStr.includes("Menunggu")) { 
+                showToast("⚠️ Wajib nyalakan GPS & Izinkan Lokasi!", "error"); return; 
+            }
             document.getElementById('inboundCameraInput').click();
         }
 
@@ -1216,17 +1286,44 @@
                 doc.text(`Inspector : ${inspector}`, 20, 48); doc.text(`Project   : ${project}`, 20, 53); doc.text(`Tanggal   : ${date}`, 20, 58);
                 doc.setFont("helvetica", "bold"); doc.text("Berikut hasil QC/Temuan cacat Unit:", 20, 70);
 
-                let yPos = 75;
+                let currentYPos = 75;
+                let colIndex = 0;
+                
+                const imgWidth = 53.33; 
+                const gapX = 5; 
+                const gapY = 10; 
+                let rowMaxHeight = 0;
+
+                doc.setFontSize(8); doc.setFont("helvetica", "normal");
+
                 for (let i = 0; i < inboundItems.length; i++) {
                     const item = inboundItems[i];
-                    const imgWidth = 170; const imgHeight = (item.height / item.width) * imgWidth;
-                    if (yPos + imgHeight + 20 > 280) { doc.addPage(); yPos = 20; }
-                    doc.addImage(item.imgData, 'JPEG', 20, yPos, imgWidth, imgHeight); yPos += imgHeight + 5;
-                    doc.setFontSize(10); doc.setFont("helvetica", "normal");
-                    const splitDesc = doc.splitTextToSize(`Catatan: ${item.desc}`, 170);
-                    doc.text(splitDesc, 20, yPos);
-                    yPos += (splitDesc.length * 5) + 15; 
+                    const imgHeight = (item.height / item.width) * imgWidth;
+                    
+                    const splitDesc = doc.splitTextToSize(`Catatan: ${item.desc}`, imgWidth);
+                    const textHeight = splitDesc.length * 4;
+                    const totalItemHeight = imgHeight + 4 + textHeight;
+                    
+                    if (colIndex === 0 && currentYPos + totalItemHeight > 285) {
+                        doc.addPage();
+                        currentYPos = 20;
+                    }
+                    
+                    const currentX = 20 + (colIndex * (imgWidth + gapX));
+                    
+                    doc.addImage(item.imgData, 'JPEG', currentX, currentYPos, imgWidth, imgHeight);
+                    doc.text(splitDesc, currentX, currentYPos + imgHeight + 4);
+                    
+                    rowMaxHeight = Math.max(rowMaxHeight, totalItemHeight);
+                    
+                    colIndex++;
+                    if (colIndex > 2) {
+                        colIndex = 0;
+                        currentYPos += rowMaxHeight + gapY;
+                        rowMaxHeight = 0;
+                    }
                 }
+
                 doc.save(`Inbound_QC_${project}_${Date.now()}.pdf`);
                 showToast("PDF Berhasil Dicetak!", "success");
                 inboundItems = []; renderInboundList(); document.getElementById('inbProject').value = '';
