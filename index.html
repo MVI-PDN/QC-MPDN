@@ -224,7 +224,7 @@
 
     <div class="bg-white/90 backdrop-blur-md p-4 border-b border-slate-200 sticky top-0 z-20 shadow-sm flex items-center justify-between max-w-xl mx-auto sm:rounded-t-xl sm:mt-8">
         <div class="flex items-center gap-3">
-            <img src="https://github.com/MVI-PDN/QC-MPDN/blob/main/logo.png?raw=true&v=2" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
+            <img src="https://raw.githubusercontent.com/MVI-PDN/QC-MPDN/main/logo.png" alt="Microvision Logo" class="h-9 w-auto max-w-[160px] object-contain">
             <div id="gpsStatus" class="flex items-center justify-center w-8 h-8 bg-slate-100 rounded-md border border-slate-200" title="Mencari GPS..."><i class="fa-solid fa-location-crosshairs fa-spin text-slate-400 text-sm"></i></div>
         </div>
         <div class="flex items-center gap-2">
@@ -455,7 +455,7 @@
         <button onclick="switchTab('pdf')" id="navPDF" class="flex-1 flex flex-col items-center p-2 text-slate-400 hover:text-blue-500 transition-colors"><i class="fa-solid fa-file-pdf text-xl mb-1"></i><span class="text-[10px] font-bold">Laporan</span></button>
     </div>
 
-    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-[90] text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl opacity-0 transition-all duration-300 z-[200] text-sm font-medium text-white flex items-center gap-2 pointer-events-none whitespace-nowrap min-w-[200px] justify-center">
         <i id="toastIcon"></i><span id="toastMessage"></span>
     </div>
 
@@ -653,6 +653,13 @@
                         let lastSN = null;
                         res.data.forEach(item => {
                             if (item.sn !== lastSN) {
+                                
+                                // FIX: Tambahkan auto-padding untuk data SN dari server
+                                let displaySn = String(item.sn || '');
+                                if (['MVIDCI', 'MVIFCI', 'MVIFCO'].includes(currentCat) && displaySn.length > 0 && displaySn.length < 4) {
+                                    displaySn = displaySn.padStart(4, '0');
+                                }
+
                                 const div = document.createElement('div');
                                 div.className = "bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm flex flex-col gap-1 hover:border-blue-200 transition-colors";
                                 div.innerHTML = `
@@ -660,7 +667,7 @@
                                         <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${item.kategori || '-'}</span>
                                         <span class="text-[9px] text-slate-400 font-mono"><i class="fa-regular fa-clock"></i> ${item.waktu || '-'}</span>
                                     </div>
-                                    <div class="text-xs font-black text-slate-700 mt-1 uppercase tracking-wide">SN: ${item.sn || '-'}</div>
+                                    <div class="text-xs font-black text-slate-700 mt-1 uppercase tracking-wide">SN: ${displaySn || '-'}</div>
                                     <div class="text-[10px] text-slate-500 truncate"><i class="fa-solid fa-building mr-1"></i> ${item.project || '-'} <span class="mx-1">|</span> <i class="fa-solid fa-layer-group mr-1"></i> ${item.rangeSN || '-'}</div>
                                 `;
                                 listContainer.appendChild(div);
@@ -685,7 +692,8 @@
         function saveSettings() { appSettings.camQuality = document.querySelector('input[name="set_cam"]:checked').value; localStorage.setItem('qc_camQuality', appSettings.camQuality); closeSettings(); showToast("Pengaturan disimpan!", "success"); }
         function showToast(m, t) {
             const toast = document.getElementById('toast'); document.getElementById('toastMessage').textContent = m;
-            toast.className = `fixed bottom-20 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[90] text-sm font-medium text-white flex items-center gap-2 ${t === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+            // z-index pada toast.className juga diupdate jadi z-[200]
+            toast.className = `fixed bottom-20 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[200] text-sm font-medium text-white flex items-center gap-2 ${t === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
             toast.classList.remove('opacity-0'); setTimeout(() => toast.classList.add('opacity-0'), 3000);
         }
         function closePdfProgress() { document.getElementById('pdfProgressModal').classList.add('hidden'); }
@@ -742,9 +750,23 @@
         }
 
         function updateLastSnDisplay() {
-            const currentCat = categoryInput.value; if (!currentCat) { document.getElementById('lastSnDisplay').classList.add('hidden'); return; }
-            const lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`); const displayEl = document.getElementById('lastSnDisplay'); const valueEl = document.getElementById('lastSnValue');
-            if (lastSn) { valueEl.textContent = lastSn; displayEl.classList.remove('hidden'); } else { displayEl.classList.add('hidden'); }
+            const currentCat = categoryInput.value; 
+            if (!currentCat) { document.getElementById('lastSnDisplay').classList.add('hidden'); return; }
+            
+            let lastSn = localStorage.getItem(`lastUploadedSN_${currentCat}`); 
+            const displayEl = document.getElementById('lastSnDisplay'); 
+            const valueEl = document.getElementById('lastSnValue');
+            
+            if (lastSn) { 
+                // FIX: Tambahkan auto-padding jika data dari local storage tidak ada nol-nya
+                if (['MVIDCI', 'MVIFCI', 'MVIFCO'].includes(currentCat) && lastSn.length > 0 && lastSn.length < 4) {
+                    lastSn = lastSn.padStart(4, '0');
+                }
+                valueEl.textContent = lastSn; 
+                displayEl.classList.remove('hidden'); 
+            } else { 
+                displayEl.classList.add('hidden'); 
+            }
         }
 
         function selectCategory(catName) {
