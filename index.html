@@ -520,6 +520,14 @@
         const camCountBadge = document.getElementById('camCountBadge'); 
         const btnFinishCamera = document.getElementById('btnFinishCamera');
 
+        // Peringatan jika user ingin keluar saat proses upload berjalan
+        window.addEventListener('beforeunload', function (e) {
+            if (isUploading || backgroundQueue.length > 0) {
+                e.preventDefault();
+                e.returnValue = ''; // Memicu pop-up standar browser
+            }
+        });
+
         // --- FUNGSI AUTO-PADDING SN ---
         function padSerialNumber() {
             const snInput = document.getElementById('sn');
@@ -560,6 +568,8 @@
 
         function checkPassword() {
             const pwInput = document.getElementById('appPasswordInput');
+            pwInput.blur(); // PENTING: Force keyboard hp menutup sebelum notifikasi muncul
+
             if (pwInput.value === 'buka') {
                 isAuthenticated = true; // Gembok terbuka
                 closePasswordModal();
@@ -568,7 +578,7 @@
             } else {
                 showToast("Kata sandi salah!", "error");
                 pwInput.value = '';
-                pwInput.focus();
+                // Jangan panggil focus() di sini biar keyboard nggak naik lagi kalau salah
             }
         }
 
@@ -710,7 +720,7 @@
                 const itemData = currentData[key]; const isFile = typeof itemData === 'string';
                 if (isFile) {
                     let iconClass = "fa-file-lines"; let colorClass = "text-slate-500"; let bgClass = "bg-slate-50";
-                    if(key.toLowerCase().includes('RCFGX') || key.toLowerCase().includes('RCFGX')) { iconClass = "fa-file-code"; colorClass = "text-pink-600"; bgClass = "bg-pink-50"; }
+                    if(key.toLowerCase().includes('rcfgx') || key.toLowerCase().includes('rcgfx')) { iconClass = "fa-file-code"; colorClass = "text-pink-600"; bgClass = "bg-pink-50"; }
                     else if(key.toLowerCase().includes('firmware')) { iconClass = "fa-microchip"; colorClass = "text-purple-600"; bgClass = "bg-purple-50"; }
                     container.innerHTML += `<a href="${itemData}" target="_blank" class="w-full bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-between mb-2">
                         <div class="flex items-center gap-4"><div class="${bgClass} w-10 h-10 flex items-center justify-center rounded-xl"><i class="fa-solid ${iconClass} ${colorClass}"></i></div><div class="text-left font-bold text-sm">${key}</div></div><i class="fa-solid fa-download text-slate-300"></i></a>`;
