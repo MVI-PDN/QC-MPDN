@@ -1131,41 +1131,75 @@
         });
 
         async function processBackgroundQueue() {
-            const float = document.getElementById('floatingProgress'); const count = document.getElementById('bgQueueCount'); const bar = document.getElementById('bgQueueBar');
-            if (backgroundQueue.length === 0) {
-                isUploading = false; float.classList.add('opacity-0'); setTimeout(() => float.classList.add('hidden'), 300);
-                if (failedUploads.length > 0) {
-                    const list = document.getElementById('failedSNList'); list.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
-                    document.getElementById('uploadFailModal').classList.remove('hidden'); 
-                } else { showToast("Upload completed!", "success"); fetchLiveHistory(); }
-                return;
-            }
-            isUploading = true; float.classList.remove('hidden'); setTimeout(() => float.classList.remove('opacity-0'), 10);
-            
-            const item = backgroundQueue[0]; 
-            count.textContent = backgroundQueue.length; bar.style.width = "50%";
-            
-            try {
-                if (!navigator.onLine) throw new TypeError("Offline");
-                const req = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ category: item.category, rangeSN: item.rangeSN, project: item.project, sn: item.sn, notes: item.notes, filename: item.filename, file: item.fileData }) });
-                const res = await req.json(); if (res.result !== 'success') throw new Error(res.error);
-                
-                await deleteFromDB(item.id);
-                backgroundQueue.shift();
-                bar.style.width = "100%";
-            } catch (err) { 
-                if (err instanceof TypeError) {
-                    showToast("Network offline, upload paused.", "error");
-                    isUploading = false; float.classList.add('hidden');
-                    return; 
-                } else {
-                    failedUploads.push("SN: " + item.sn); 
-                    await deleteFromDB(item.id);
-                    backgroundQueue.shift();
-                }
-            }
-            setTimeout(processBackgroundQueue, 1000);
+    const float = document.getElementById('floatingProgress'); 
+    const count = document.getElementById('bgQueueCount'); 
+    const bar = document.getElementById('bgQueueBar');
+    
+    // Ambil data terbaru dari DB saat fungsi dipanggil
+    const tx = db.transaction('uploadQueue', 'readonly');
+    const allItems = await new Promise(res => {
+        tx.objectStore('uploadQueue').getAll().onsuccess = e => res(e.target.result);
+    });
+
+    if (allItems.length === 0) {
+        isUploading = false; 
+        backgroundQueue = [];
+        float.classList.add('opacity-0'); 
+        setTimeout(() => float.classList.add('hidden'), 300);
+        if (failedUploads.length > 0) {
+            const list = document.getElementById('failedSNList'); 
+            list.innerHTML = failedUploads.map(sn => `<div><i class="fa-solid fa-xmark mr-2"></i> ${sn}</div>`).join('');
+            document.getElementById('uploadFailModal').classList.remove('hidden'); 
+        } else { showToast("Upload completed!", "success"); fetchLiveHistory(); }
+        return;
+    }
+
+    isUploading = true; 
+    float.classList.remove('hidden'); 
+    setTimeout(() => float.classList.remove('opacity-0'), 10);
+    
+    // Ambil item pertama yang paling lama (FIFO)
+    const item = allItems[0]; 
+    count.textContent = allItems.length; 
+    bar.style.width = "50%";
+    
+    try {
+        if (!navigator.onLine) throw new TypeError("Offline");
+        
+        const req = await fetch(SCRIPT_URL, { 
+            method: "POST", 
+            body: JSON.stringify({ 
+                category: item.category, 
+                rangeSN: item.rangeSN, 
+                project: item.project, 
+                sn: item.sn, 
+                notes: item.notes, 
+                filename: item.filename, 
+                file: item.fileData 
+            }) 
+        });
+        const res = await req.json(); 
+        if (res.result !== 'success') throw new Error(res.error);
+        
+        // JIKA SUKSES: Hapus dari DB biar nggak ter-upload ulang
+        await deleteFromDB(item.id);
+        bar.style.width = "100%";
+        
+    } catch (err) { 
+        if (err instanceof TypeError) {
+            showToast("Network offline, upload paused.", "error");
+            isUploading = false; float.classList.add('hidden');
+            return; 
+        } else {
+            failedUploads.push("SN: " + item.sn); 
+            // Kalau gagal karena error server, hapus juga biar nggak nyangkut selamanya
+            await deleteFromDB(item.id);
         }
+    }
+    
+    // Lanjut ke file berikutnya
+    setTimeout(processBackgroundQueue, 500);
+}
 
         function toBase64(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = reject; }); }
 
