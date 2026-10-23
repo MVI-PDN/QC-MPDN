@@ -734,7 +734,7 @@
                             if (item.sn !== lastSN) {
                                 
                                 let displaySn = String(item.sn || '');
-                                if (['MVIDCI', 'MVIFCI', 'MVIFCO'].includes(currentCat) && displaySn.length > 0 && displaySn.length < 4) {
+                                if (['MVIDCI', 'MVIFCI', 'MVIFCO', 'CRV90'].includes(currentCat) && displaySn.length > 0 && displaySn.length < 4) {
                                     displaySn = displaySn.padStart(4, '0');
                                 }
 
